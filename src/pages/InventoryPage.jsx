@@ -200,14 +200,14 @@ const InventoryPage = () => {
             <div className="relative">
               <Search
                 className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                size={20}
+                size={15}
               />
               <input
                 type="text"
                 placeholder="Search items or suppliers..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                className="w-xs text-sm pl-10 pr-4 py-2 border rounded-lg focus:border-orange-500"
               />
             </div>
           </div>
@@ -219,12 +219,12 @@ const InventoryPage = () => {
               <div className="relative">
                 <Filter
                   className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                  size={20}
+                  size={15}
                 />
                 <select
                   value={filterCategory}
                   onChange={(e) => setFilterCategory(e.target.value)}
-                  className="w-full pl-10 pr-8 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  className="w-full text-sm pl-10 pr-8 py-2 border rounded-lg focus:border-orange-500"
                 >
                   <option value="All">All Categories</option>
                   {categories.map((category) => (
@@ -241,12 +241,12 @@ const InventoryPage = () => {
               <div className="relative">
                 <Package
                   className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                  size={20}
+                  size={15}
                 />
                 <select
                   value={filterStatus}
                   onChange={(e) => setFilterStatus(e.target.value)}
-                  className="w-full pl-10 pr-8 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  className="w-full text-sm pl-10 pr-12 py-2 border rounded-lg focus:border-orange-500"
                 >
                   <option value="All">All Status</option>
                   <option value="In Stock">In Stock</option>

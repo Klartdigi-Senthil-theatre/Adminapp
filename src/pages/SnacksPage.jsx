@@ -1,6 +1,6 @@
-import React, { useState,useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { ShoppingCart, X, Plus, Minus, Trash2 } from "lucide-react";
-import {notify} from "../components/Notification";
+import { notify } from "../components/Notification";
 
 export default function SnacksPage() {
   const [cart, setCart] = useState([]);
@@ -57,7 +57,7 @@ export default function SnacksPage() {
     },
   ];
 
-  const handleSave =() => {
+  const handleSave = () => {
     notify.success("Checkout Successfully !...")
   }
 
@@ -153,7 +153,7 @@ export default function SnacksPage() {
               </h3>
 
               <div className="flex justify-between items-center mb-3">
-                <span className="text-xl font-bold text-green-600">
+                <span className="text-xl font-medium text-orange-600">
                   ₹{snack.price}
                 </span>
                 <span className="text-sm text-gray-500">
@@ -187,9 +187,8 @@ export default function SnacksPage() {
 
           {/* Cart Panel */}
           <div
-            className={`fixed top-0 right-0 h-full w-full sm:w-96 bg-white shadow-lg transform ${
-              isCartOpen ? "translate-x-0" : "translate-x-full"
-            } transition-transform duration-300 ease-in-out z-50 flex flex-col`}
+            className={`fixed top-0 right-0 h-full w-full sm:w-96 bg-white shadow-lg transform ${isCartOpen ? "translate-x-0" : "translate-x-full"
+              } transition-transform duration-300 ease-in-out z-50 flex flex-col`}
           >
             {/* Cart Header */}
             <div className="p-4 border-b bg-gray-50">
@@ -232,7 +231,7 @@ export default function SnacksPage() {
                         <p className="text-sm text-gray-500">
                           ₹{item.price} each
                         </p>
-                        <p className="text-sm font-medium text-green-600">
+                        <p className="text-sm font-medium text-orange-600">
                           ₹{item.price * item.quantity}
                         </p>
                       </div>
@@ -279,7 +278,7 @@ export default function SnacksPage() {
                 <div className="mb-4">
                   <div className="flex justify-between items-center text-md font-semibold">
                     <span>Total ({getTotalItems()} items):</span>
-                    <span className="text-green-600">₹{getTotalPrice()}</span>
+                    <span className="text-orange-600">₹{getTotalPrice()}</span>
                   </div>
                 </div>
 
@@ -292,7 +291,7 @@ export default function SnacksPage() {
                   </button>
                   <button
                     onClick={() => setCart([])}
-                    className="w-full bg-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-400"
+                    className="w-full text-orange-600 py-2 px-4 rounded-lg hover:bg-orange-600 hover:text-white border-1 border-orange-600"
                   >
                     Clear Cart
                   </button>

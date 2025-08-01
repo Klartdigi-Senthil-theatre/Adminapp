@@ -9,16 +9,22 @@ import {
   Menu,
   User,
   ChevronLeft,
+  Film,
+  Clock,
 } from "lucide-react";
+import { GiOfficeChair } from "react-icons/gi";
 
 // Fixed Sidebar Component
 const Sidebar = ({ isOpen, setIsOpen, isMobile }) => {
   const navItems = [
     { path: "/dashboard", icon: BarChart3, name: "Dashboard" },
     { path: "/snacks", icon: Coffee, name: "Snacks" },
-    { path: "/seats", icon: Users, name: "Seat Allocation" },
+    { path: "/seats", icon: GiOfficeChair, name: "Seat Allocation" },
     { path: "/ads", icon: Megaphone, name: "Advertisement" },
     { path: "/inventory", icon: Package, name: "Inventory" },
+    { path: "/movie", icon: Film, name: "Movie" },
+    { path: "/users", icon: Users, name: "Users" },
+    { path: "/show-time", icon: Clock, name: "Inventory" },
   ];
 
   return (
@@ -35,12 +41,11 @@ const Sidebar = ({ isOpen, setIsOpen, isMobile }) => {
       <div
         className={`
           ${isMobile ? "fixed" : "relative"} 
-          ${
-            isOpen
-              ? isMobile
-                ? "translate-x-0"
-                : "w-64"
-              : isMobile
+          ${isOpen
+            ? isMobile
+              ? "translate-x-0"
+              : "w-64"
+            : isMobile
               ? "-translate-x-full"
               : "w-20"
           }
@@ -68,10 +73,9 @@ const Sidebar = ({ isOpen, setIsOpen, isMobile }) => {
                 <NavLink
                   to={item.path}
                   className={({ isActive }) =>
-                    `flex items-center p-3 mx-2 rounded-lg transition-colors ${
-                      isActive
-                        ? "bg-orange-600 text-white"
-                        : "hover:bg-orange-300"
+                    `flex items-center p-3 mx-2 rounded-lg transition-colors ${isActive
+                      ? "bg-orange-600 text-white"
+                      : "hover:bg-orange-300"
                     }`
                   }
                   onClick={() => isMobile && setIsOpen(false)}
@@ -89,9 +93,8 @@ const Sidebar = ({ isOpen, setIsOpen, isMobile }) => {
         {/* User profile at bottom */}
         <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-orange-700">
           <div
-            className={`flex items-center ${
-              !isOpen && !isMobile ? "justify-center" : ""
-            }`}
+            className={`flex items-center ${!isOpen && !isMobile ? "justify-center" : ""
+              }`}
           >
             <div className="w-10 h-10 rounded-full bg-orange-600 flex items-center justify-center">
               <User className="text-white" />
