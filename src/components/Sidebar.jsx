@@ -24,7 +24,7 @@ const Sidebar = ({ isOpen, setIsOpen, isMobile }) => {
     { path: "/inventory", icon: Package, name: "Inventory" },
     { path: "/movie", icon: Film, name: "Movie" },
     { path: "/users", icon: Users, name: "Users" },
-    { path: "/show-time", icon: Clock, name: "Inventory" },
+    { path: "/show-time", icon: Clock, name: "Show Time" },
   ];
 
   return (
@@ -32,7 +32,7 @@ const Sidebar = ({ isOpen, setIsOpen, isMobile }) => {
       {/* Mobile Overlay */}
       {isMobile && isOpen && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+          className="fixed inset-0 bg-black/50 bg-opacity-50 z-40 lg:hidden"
           onClick={() => setIsOpen(false)}
         />
       )}

@@ -11,6 +11,8 @@ import {
   Phone,
 } from "lucide-react";
 import moment from "moment";
+import PageHeader from "../components/PageHeader";
+import CustomDropdown from "../components/CustomDropdown";
 
 // User Page Component
 const UserPage = () => {
@@ -66,14 +68,17 @@ const UserPage = () => {
     password: "",
   });
 
-  const roles = ["Admin", "Manager", "User"];
-  const passwords = [
-    "Management",
-    "Operations",
-    "Customer Service",
-    "Sales",
-    "Marketing",
-    "IT Support",
+  const roleOptions = [
+    { id: "All", title: "All Roles" },
+    { id: "Admin", title: "Admin" },
+    { id: "Manager", title: "Manager" },
+    { id: "User", title: "User" }
+  ];
+
+  const formRoleOptions = [
+    { id: "Admin", title: "Admin" },
+    { id: "Manager", title: "Manager" },
+    { id: "User", title: "User" }
   ];
 
   const handleSubmit = () => {
@@ -165,8 +170,9 @@ const UserPage = () => {
   return (
     <div className="p-4 lg:p-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-        <h1 className="text-2xl lg:text-2xl font-semibold">User Management</h1>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-2 gap-4">
+        <PageHeader title="User Management" />
+
         <button
           onClick={() => setShowDialog(true)}
           className="bg-orange-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 hover:bg-orange-700"
@@ -194,22 +200,11 @@ const UserPage = () => {
           </div>
           <div className="flex gap-4">
             <div className="relative">
-              <Filter
-                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                size={20}
-              />
-              <select
+              <CustomDropdown
                 value={filterRole}
-                onChange={(e) => setFilterRole(e.target.value)}
-                className="pl-10 pr-8 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-              >
-                <option value="All">All Roles</option>
-                {roles.map((role) => (
-                  <option key={role} value={role}>
-                    {role}
-                  </option>
-                ))}
-              </select>
+                onChange={setFilterRole}
+                options={roleOptions}
+              />
             </div>
           </div>
         </div>
@@ -380,20 +375,12 @@ const UserPage = () => {
                   <label className="block text-sm font-medium mb-1">
                     Role *
                   </label>
-                  <select
+                  <CustomDropdown
                     value={formData.role}
-                    onChange={(e) =>
-                      setFormData({ ...formData, role: e.target.value })
-                    }
-                    className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                    required
-                  >
-                    {roles.map((role) => (
-                      <option key={role} value={role}>
-                        {role}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(value) => setFormData({ ...formData, role: value })}
+                    options={formRoleOptions}
+                    placeholder="Select role"
+                  />
                 </div>
 
                 <div>

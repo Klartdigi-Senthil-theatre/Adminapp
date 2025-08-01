@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Users, Eye, Calendar, Clock, Film, MapPin } from "lucide-react";
 import moment from "moment/moment";
 import TimingDropDown from "../components/TimingDropDown"
+import PageHeader from "../components/PageHeader";
 
 // Seat Layout Component (recreated without framer-motion)
 const SeatLayout = ({ selectedSeats, onSeatSelect }) => {
@@ -28,7 +29,7 @@ const SeatLayout = ({ selectedSeats, onSeatSelect }) => {
   ];
 
   return (
-    <div className="w-full overflow-x-auto py-8 animate-fadeIn">
+    <div className="w-full overflow-x-auto py-2 animate-fadeIn">
       <div className="min-w-max flex flex-col gap-3 items-center px-4">
         {rows.map((row, rowIndex) => {
           // Generate left section seats (1 to leftSeats)
@@ -238,10 +239,8 @@ const SeatsPage = () => {
   return (
     <div className="p-4 lg:p-6">
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl lg:text-2xl font-semibold mb-4">
-          Seat Allocation
-        </h1>
+      <div>
+        <PageHeader title="Seact Allocation" />
 
         {/* Show Information */}
         <div className="bg-white rounded-lg shadow-md p-4 lg:p-6 mb-6">

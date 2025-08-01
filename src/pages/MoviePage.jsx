@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { Plus, Edit, Trash2, X, Upload, Image } from "lucide-react";
 import moment from "moment/moment";
+import PageHeader from "../components/PageHeader";
+import CustomDropdown from "../components/CustomDropdown";
 
 // Movie Page Component
 const MoviePage = () => {
@@ -41,17 +43,28 @@ const MoviePage = () => {
   });
 
   const languages = [
-    "English",
-    "Hindi",
-    "Tamil",
-    "Telugu",
-    "Malayalam",
-    "Kannada",
-    "Bengali",
-    "Marathi",
-    "Gujarati",
+    { id: "English", title: "English" },
+    { id: "Hindi", title: "Hindi" },
+    { id: "Tamil", title: "Tamil" },
+    { id: "Telugu", title: "Telugu" },
+    { id: "Malayalam", title: "Malayalam" },
+    { id: "Kannada", title: "Kannada" },
+    { id: "Bengali", title: "Bengali" },
+    { id: "Marathi", title: "Marathi" },
+    { id: "Gujarati", title: "Gujarati" },
   ];
-  const certificates = ["U", "U/A", "A", "S"];
+
+  const certificates = [
+    { id: "U", title: "U - Universal" },
+    { id: "U/A", title: "U/A - Parental Guidance" },
+    { id: "A", title: "A - Adults Only" },
+    { id: "S", title: "S - Special" },
+  ];
+
+  const statusOptions = [
+    { id: "Active", title: "Active (Now Showing)" },
+    { id: "Inactive", title: "Inactive (Coming Soon)" },
+  ];
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -125,10 +138,9 @@ const MoviePage = () => {
   return (
     <div className="p-4 lg:p-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-        <h1 className="text-2xl lg:text-2xl font-semibold">
-          Movies Management
-        </h1>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
+        <PageHeader title="Movie Management" />
+
         <button
           onClick={() => setShowDialog(true)}
           className="bg-orange-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 hover:bg-orange-700"
@@ -137,40 +149,6 @@ const MoviePage = () => {
           <span>Add Movie</span>
         </button>
       </div>
-
-      {/* Search and Filter */}
-      {/* <div className="bg-white rounded-lg shadow-md p-4 mb-6">
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="flex-1 relative">
-            <Search
-              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-              size={20}
-            />
-            <input
-              type="text"
-              placeholder="Search movie..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-            />
-          </div>
-          <div className="relative">
-            <Filter
-              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-              size={20}
-            />
-            <select
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-              className="pl-10 pr-8 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-            >
-              <option value="All">All Status</option>
-              <option value="Active">Active</option>
-              <option value="Inactive">Inactive</option>
-            </select>
-          </div>
-        </div>
-      </div> */}
 
       {/* Movies Table */}
       <div className="bg-white rounded-lg shadow-md overflow-hidden">
@@ -228,11 +206,10 @@ const MoviePage = () => {
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap">
                     <span
-                      className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        movie.status === "Active"
+                      className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${movie.status === "Active"
                           ? "bg-green-100 text-green-800"
                           : "bg-gray-100 text-gray-800"
-                      }`}
+                        }`}
                     >
                       {movie.status}
                     </span>
@@ -280,7 +257,7 @@ const MoviePage = () => {
                 </button>
               </div>
 
-              <div onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium mb-1">
                     Movie Title
@@ -301,47 +278,26 @@ const MoviePage = () => {
                   <label className="block text-sm font-medium mb-1">
                     Language *
                   </label>
-                  <select
+                  <CustomDropdown
                     value={formData.language}
-                    onChange={(e) =>
-                      setFormData({ ...formData, language: e.target.value })
+                    onChange={(value) =>
+                      setFormData({ ...formData, language: value })
                     }
-                    className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                    required
-                  >
-                    {languages.map((language) => (
-                      <option key={language} value={language}>
-                        {language}
-                      </option>
-                    ))}
-                  </select>
+                    options={languages}
+                  />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium mb-1">
                     Certificate *
                   </label>
-                  <select
+                  <CustomDropdown
                     value={formData.certificate}
-                    onChange={(e) =>
-                      setFormData({ ...formData, certificate: e.target.value })
+                    onChange={(value) =>
+                      setFormData({ ...formData, certificate: value })
                     }
-                    className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                    required
-                  >
-                    {certificates.map((cert) => (
-                      <option key={cert} value={cert}>
-                        {cert} -{" "}
-                        {cert === "U"
-                          ? "Universal"
-                          : cert === "U/A"
-                          ? "Parental Guidance"
-                          : cert === "A"
-                          ? "Adults Only"
-                          : "Special"}
-                      </option>
-                    ))}
-                  </select>
+                    options={certificates}
+                  />
                 </div>
 
                 <div>
@@ -381,22 +337,18 @@ const MoviePage = () => {
                   <label className="block text-sm font-medium mb-1">
                     Status
                   </label>
-                  <select
+                  <CustomDropdown
                     value={formData.status}
-                    onChange={(e) =>
-                      setFormData({ ...formData, status: e.target.value })
+                    onChange={(value) =>
+                      setFormData({ ...formData, status: value })
                     }
-                    className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                  >
-                    <option value="Active">Active (Now Showing)</option>
-                    <option value="Inactive">Inactive (Coming Soon)</option>
-                  </select>
+                    options={statusOptions}
+                  />
                 </div>
 
                 <div className="flex space-x-3 pt-4">
                   <button
-                    type="button"
-                    onClick={handleSubmit}
+                    type="submit"
                     className="flex-1 bg-orange-600 text-white py-3 px-4 rounded-lg hover:bg-orange-700 font-medium"
                   >
                     {editingMovie ? "Update Movie" : "Add Movie"}
@@ -409,7 +361,7 @@ const MoviePage = () => {
                     Cancel
                   </button>
                 </div>
-              </div>
+              </form>
             </div>
           </div>
         </div>

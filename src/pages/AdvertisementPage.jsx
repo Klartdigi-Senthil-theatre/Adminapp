@@ -13,6 +13,7 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import moment from "moment/moment";
+import PageHeader from "../components/PageHeader";
 
 // Advertisement Page Component
 const AdvertisementPage = () => {
@@ -113,10 +114,9 @@ const AdvertisementPage = () => {
   return (
     <div className="p-4 lg:p-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-        <h1 className="text-2xl lg:text-2xl font-semibold">
-          Advertisement Management
-        </h1>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
+        <PageHeader title="Advertisement Management" />
+
         <button
           onClick={() => setShowDialog(true)}
           className="bg-orange-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 hover:bg-orange-700"
@@ -208,11 +208,10 @@ const AdvertisementPage = () => {
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap">
                     <span
-                      className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        ad.status === "Active"
-                          ? "bg-green-100 text-green-800"
-                          : "bg-gray-100 text-gray-800"
-                      }`}
+                      className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${ad.status === "Active"
+                        ? "bg-green-100 text-green-800"
+                        : "bg-gray-100 text-gray-800"
+                        }`}
                     >
                       {ad.status}
                     </span>

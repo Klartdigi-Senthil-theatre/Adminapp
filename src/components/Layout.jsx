@@ -35,11 +35,11 @@ const Layout = ({ children }) => {
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Mobile Header */}
-        <div className="lg:hidden bg-white shadow-sm border-b p-4 flex items-center justify-between">
-          <h1 className="text-xl font-bold text-gray-800">Theatre Admin</h1>
+        <div className="lg:hidden bg-orange-50 shadow-sm border-b p-4 flex items-center justify-between">
+          <h1 className="text-xl font-bold text-orange-800">Theatre Admin</h1>
           <button
             onClick={() => setSidebarOpen(true)}
-            className="p-2 rounded-lg hover:bg-gray-100"
+            className="p-2 rounded-lg hover:bg-gray-100 text-orange-800"
           >
             <Menu size={24} />
           </button>

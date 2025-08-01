@@ -1,10 +1,11 @@
 import { Calendar, DollarSign, Percent, TrendingUp } from 'lucide-react';
 import React from 'react'
+import PageHeader from '../components/PageHeader';
 
 const DashboardPage = () => {
   return (
     <div className="p-4 lg:p-6">
-      <h1 className="text-2xl lg:text-2xl font-semibold mb-6">Theatre Dashboard</h1>
+      <PageHeader title="Theatre Dashboard" />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-8">
         {/* Stats Cards */}

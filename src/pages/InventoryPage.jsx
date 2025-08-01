@@ -5,11 +5,12 @@ import {
   Trash2,
   X,
   Search,
-  Filter,
   Package,
   AlertTriangle
 } from "lucide-react";
 import moment from "moment";
+import PageHeader from "../components/PageHeader";
+import CustomDropdown from "../components/CustomDropdown";
 
 // Inventory Page Component
 const InventoryPage = () => {
@@ -81,6 +82,22 @@ const InventoryPage = () => {
     "Supplies",
     "Cleaning",
     "Equipment",
+  ];
+
+  const categoryOptions = [
+    { id: "All", title: "All Categories" },
+    { id: "Snacks", title: "Snacks" },
+    { id: "Beverages", title: "Beverages" },
+    { id: "Supplies", title: "Supplies" },
+    { id: "Cleaning", title: "Cleaning" },
+    { id: "Equipment", title: "Equipment" }
+  ];
+
+  const statusOptions = [
+    { id: "All", title: "All Status" },
+    { id: "In Stock", title: "In Stock" },
+    { id: "Low Stock", title: "Low Stock" },
+    { id: "Out of Stock", title: "Out of Stock" }
   ];
 
   const handleSubmit = () => {
@@ -179,10 +196,9 @@ const InventoryPage = () => {
   return (
     <div className="p-4 lg:p-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-        <h1 className="text-2xl lg:text-2xl font-semibold">
-          Inventory Management
-        </h1>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
+        <PageHeader title="Inventory Management" />
+
         <button
           onClick={() => setShowDialog(true)}
           className="bg-orange-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 hover:bg-orange-700"
@@ -217,42 +233,24 @@ const InventoryPage = () => {
             {/* Category Filter */}
             <div className="relative flex-1">
               <div className="relative">
-                <Filter
-                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                  size={15}
-                />
-                <select
+                <CustomDropdown
                   value={filterCategory}
-                  onChange={(e) => setFilterCategory(e.target.value)}
-                  className="w-full text-sm pl-10 pr-8 py-2 border rounded-lg focus:border-orange-500"
-                >
-                  <option value="All">All Categories</option>
-                  {categories.map((category) => (
-                    <option key={category} value={category}>
-                      {category}
-                    </option>
-                  ))}
-                </select>
+                  onChange={setFilterCategory}
+                  options={categoryOptions}
+                  className="pl-10" // Add padding for the filter icon
+                />
               </div>
             </div>
 
             {/* Status Filter */}
             <div className="relative flex-1">
               <div className="relative">
-                <Package
-                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                  size={15}
-                />
-                <select
+                <CustomDropdown
                   value={filterStatus}
-                  onChange={(e) => setFilterStatus(e.target.value)}
-                  className="w-full text-sm pl-10 pr-12 py-2 border rounded-lg focus:border-orange-500"
-                >
-                  <option value="All">All Status</option>
-                  <option value="In Stock">In Stock</option>
-                  <option value="Low Stock">Low Stock</option>
-                  <option value="Out of Stock">Out of Stock</option>
-                </select>
+                  onChange={setFilterStatus}
+                  options={statusOptions}
+                  className="pl-10" // Add padding for the package icon
+                />
               </div>
             </div>
           </div>
@@ -463,21 +461,12 @@ const InventoryPage = () => {
                   <label className="block text-sm font-medium mb-1">
                     Category *
                   </label>
-                  <select
+                  <CustomDropdown
                     value={formData.category}
-                    onChange={(e) =>
-                      setFormData({ ...formData, category: e.target.value })
-                    }
-                    className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                    required
-                  >
-                    <option value="">Select Category</option>
-                    {categories.map((category) => (
-                      <option key={category} value={category}>
-                        {category}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(value) => setFormData({ ...formData, category: value })}
+                    options={categories.map(cat => ({ id: cat, title: cat }))}
+                    placeholder="Select Category"
+                  />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">

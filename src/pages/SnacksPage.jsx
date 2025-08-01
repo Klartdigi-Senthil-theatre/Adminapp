@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { ShoppingCart, X, Plus, Minus, Trash2 } from "lucide-react";
 import { notify } from "../components/Notification";
+import PageHeader from "../components/PageHeader";
 
 export default function SnacksPage() {
   const [cart, setCart] = useState([]);
@@ -110,7 +111,7 @@ export default function SnacksPage() {
     <div className="p-4 lg:p-6 relative">
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-        <h1 className="text-2xl lg:text-2xl font-semibold">Snack Items</h1>
+        <PageHeader title="Snack Items" />
 
         {/* Cart Button - Desktop Only */}
         <button
