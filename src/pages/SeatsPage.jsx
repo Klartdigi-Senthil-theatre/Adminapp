@@ -25,12 +25,18 @@ const SeatLayout = ({ selectedSeats, onSeatSelect }) => {
     { letter: "O", leftSeats: 10, rightSeats: 10, hasGap: true },
     { letter: "P", leftSeats: 10, rightSeats: 10, hasGap: true },
     { letter: "Q", leftSeats: 10, rightSeats: 10, hasGap: true },
-    { letter: "R", leftSeats: 7, rightSeats: 8, hasGap: true, centerAlign: true },
+    {
+      letter: "R",
+      leftSeats: 7,
+      rightSeats: 8,
+      hasGap: true,
+      centerAlign: true,
+    },
   ];
 
   return (
     <div className="w-full overflow-x-auto py-1 animate-fadeIn">
-      <div className="min-w-max flex flex-col gap-1 items-center px-2">
+      <div className="min-w-max flex flex-col gap-1 items-center px-3">
         {rows.map((row, rowIndex) => {
           // Generate left section seats (1 to leftSeats)
           const leftSeats = Array.from({ length: row.leftSeats }, (_, i) => ({
@@ -70,10 +76,10 @@ const SeatLayout = ({ selectedSeats, onSeatSelect }) => {
               </div>
 
               {/* Left section with padding for center alignment */}
-              <div className={`flex gap-1 ${row.centerAlign ? 'pl-9' : ''}`}>
+              <div className={`flex gap-1 ${row.centerAlign ? "pl-9" : ""}`}>
                 {/* Entry indicator for L row */}
                 {row.hasEntry && (
-                  <div className="w-6 h-8 flex items-center justify-center bg-blue-100 border-2 border-blue-300 rounded text-[8px] text-blue-600 font-bold mr-1">
+                  <div className="w-7 h-6 flex items-center justify-center bg-blue-100 border-2 border-blue-300 rounded text-[8px] text-blue-600 font-bold">
                     ENTRY
                   </div>
                 )}
@@ -83,10 +89,11 @@ const SeatLayout = ({ selectedSeats, onSeatSelect }) => {
                   return (
                     <button
                       key={seat.id}
-                      className={`relative w-6 h-8 flex justify-center items-center rounded-t-lg rounded-b-sm font-bold text-xs border-2 transition-all duration-200 shadow-sm animate-seatPop ${isSelected
-                        ? "bg-gradient-to-b from-orange-400 to-orange-600 text-white border-orange-700 shadow-lg scale-105"
-                        : "bg-gradient-to-b from-orange-100 to-orange-200 text-orange-800 border-orange-300 hover:border-orange-500 hover:from-orange-200 hover:to-orange-300 hover:shadow-md hover:scale-110"
-                        }`}
+                      className={`relative w-6 h-6 flex justify-center items-center rounded-t-lg rounded-b-sm font-bold text-xs border-2 transition-all duration-200 shadow-sm animate-seatPop ${
+                        isSelected
+                          ? "bg-gradient-to-b from-orange-400 to-orange-600 text-white border-orange-700 shadow-lg scale-105"
+                          : "bg-gradient-to-b from-orange-100 to-orange-200 text-orange-800 border-orange-300 hover:border-orange-500 hover:from-orange-200 hover:to-orange-300 hover:shadow-md hover:scale-110"
+                      }`}
                       onClick={() => onSeatSelect(seat.id)}
                       style={{
                         animationDelay: `${rowIndex * 50 + seatIndex * 10}ms`,
@@ -97,8 +104,9 @@ const SeatLayout = ({ selectedSeats, onSeatSelect }) => {
                       </span>
                       {/* Seat cushion effect */}
                       <div
-                        className={`absolute bottom-0 left-0.5 right-0.5 h-1.5 rounded-sm ${isSelected ? "bg-orange-700" : "bg-orange-300"
-                          }`}
+                        className={`absolute bottom-0 left-0.5 right-0.5 h-1.5 rounded-sm ${
+                          isSelected ? "bg-orange-700" : "bg-orange-300"
+                        }`}
                       />
                     </button>
                   );
@@ -113,20 +121,22 @@ const SeatLayout = ({ selectedSeats, onSeatSelect }) => {
               )}
 
               {/* Right section */}
-              <div className={`flex gap-1 ${row.centerAlign ? 'pr-3' : ''}`}>
+              <div className={`flex gap-1 ${row.centerAlign ? "pr-3" : ""}`}>
                 {rightSeats.map((seat, seatIndex) => {
                   const isSelected = selectedSeats.includes(seat.id);
                   return (
                     <button
                       key={seat.id}
-                      className={`relative w-6 h-8 flex justify-center items-center rounded-t-lg rounded-b-sm font-bold text-xs border-2 transition-all duration-200 shadow-sm animate-seatPop ${isSelected
-                        ? "bg-gradient-to-b from-orange-400 to-orange-600 text-white border-orange-700 shadow-lg scale-105"
-                        : "bg-gradient-to-b from-orange-100 to-orange-200 text-orange-800 border-orange-300 hover:border-orange-500 hover:from-orange-200 hover:to-orange-300 hover:shadow-md hover:scale-110"
-                        }`}
+                      className={`relative w-6 h-6 flex justify-center items-center rounded-t-lg rounded-b-sm font-bold text-xs border-2 transition-all duration-200 shadow-sm animate-seatPop ${
+                        isSelected
+                          ? "bg-gradient-to-b from-orange-400 to-orange-600 text-white border-orange-700 shadow-lg scale-105"
+                          : "bg-gradient-to-b from-orange-100 to-orange-200 text-orange-800 border-orange-300 hover:border-orange-500 hover:from-orange-200 hover:to-orange-300 hover:shadow-md hover:scale-110"
+                      }`}
                       onClick={() => onSeatSelect(seat.id)}
                       style={{
-                        animationDelay: `${rowIndex * 50 + (leftSeats.length + seatIndex) * 10
-                          }ms`,
+                        animationDelay: `${
+                          rowIndex * 50 + (leftSeats.length + seatIndex) * 10
+                        }ms`,
                       }}
                     >
                       <span className="relative z-10 text-[10px]">
@@ -134,8 +144,9 @@ const SeatLayout = ({ selectedSeats, onSeatSelect }) => {
                       </span>
                       {/* Seat cushion effect */}
                       <div
-                        className={`absolute bottom-0 left-0.5 right-0.5 h-1.5 rounded-sm ${isSelected ? "bg-orange-700" : "bg-orange-300"
-                          }`}
+                        className={`absolute bottom-0 left-0.5 right-0.5 h-1.5 rounded-sm ${
+                          isSelected ? "bg-orange-700" : "bg-orange-300"
+                        }`}
                       />
                     </button>
                   );
@@ -143,7 +154,7 @@ const SeatLayout = ({ selectedSeats, onSeatSelect }) => {
 
                 {/* Exit indicator for L row */}
                 {row.hasEntry && (
-                  <div className="w-6 h-8 flex items-center justify-center bg-red-100 border-2 border-red-300 rounded text-[8px] text-red-600 font-bold ml-1">
+                  <div className="w-7 h-6 flex items-center justify-center bg-red-100 border-2 border-red-300 rounded text-[8px] text-red-600 font-bold">
                     EXIT
                   </div>
                 )}
@@ -262,40 +273,46 @@ const SeatsPage = () => {
         <div className="bg-white rounded-lg shadow-md p-2">
           <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
             {/* Left Side - Date, Time, Movie */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 flex-1">
-              <div className="flex items-center gap-2">
-                <Calendar className="text-green-600" size={20} />
-                <div>
-                  <p className="text-sm text-gray-500">Date</p>
-                  <input
-                    type="date"
-                    value={currentShow.date}
-                    onChange={(e) =>
-                      setCurrentShow({ ...currentShow, date: e.target.value })
-                    }
-                    className="font-semibold border rounded p-1 text-sm md:text-base"
-                    min={new Date().toISOString().split("T")[0]}
-                  />
+            <div className="flex flex-col lg:flex-row lg:items-center lg:gap-6 flex-1">
+              {/* Mobile: Date and Time in same row */}
+              <div className="flex items-center gap-6 mb-4 lg:mb-0">
+                <div className="flex items-center gap-2">
+                  <Calendar className="text-green-600" size={20} />
+                  <div>
+                    <p className="text-sm text-gray-500">Date</p>
+                    <input
+                      type="date"
+                      value={currentShow.date}
+                      onChange={(e) =>
+                        setCurrentShow({ ...currentShow, date: e.target.value })
+                      }
+                      className="w-35 font-semibold border rounded text-sm md:text-base"
+                      min={new Date().toISOString().split("T")[0]}
+                    />
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Clock className="text-orange-600" size={20} />
+                  <div>
+                    <TimingDropDown
+                      currentShow={currentShow}
+                      onTimeSelect={(time) =>
+                        setCurrentShow({ ...currentShow, time })
+                      }
+                    />
+                  </div>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
-                <Clock className="text-orange-600" size={20} />
-                <div>
-                  <TimingDropDown
-                    currentShow={currentShow}
-                    onTimeSelect={(time) =>
-                      setCurrentShow({ ...currentShow, time })
-                    }
-                  />
-                </div>
-              </div>
-
+              {/* Movie name - shows below on mobile, inline on desktop */}
               <div className="flex items-center gap-2">
                 <Film className="text-blue-600" size={20} />
                 <div>
                   <p className="text-sm text-gray-500">Movie</p>
-                  <p className="font-semibold text-sm md:text-base">{currentShow.movie}</p>
+                  <p className="font-semibold text-sm md:text-base">
+                    {currentShow.movie}
+                  </p>
                 </div>
               </div>
             </div>
@@ -334,19 +351,28 @@ const SeatsPage = () => {
         {/* Seat Layout */}
         <div className="lg:col-span-2">
           <div className="bg-white rounded-lg shadow-md p-2">
-            <h2 className="text-lg font-semibold text-gray-800 mb-2">
+            <h2 className="text-md text-center font-semibold text-gray-800 mb-2">
               Select Your Seats
             </h2>
             <SeatLayout
               selectedSeats={selectedSeats}
               onSeatSelect={handleSeatSelect}
             />
+
+            <div className="relative w-full h-8 flex justify-center items-end">
+              {/* Curved screen base */}
+              <div className="w-[70%] h-6 bg-gradient-to-b from-gray-700 to-gray-900 rounded-b-[50%] shadow-2xl border-t-4 border-yellow-400 flex items-end justify-center">
+                <span className="text-orange-400 font-semibold text-sm sm:text-base md:text-md">
+                  SCREEN
+                </span>
+              </div>
+            </div>
           </div>
         </div>
 
         {/* Booking Summary */}
         <div className="lg:col-span-1">
-          <div className="bg-white rounded-lg shadow-md p-2 h-[40vh] lg:h-[82vh] flex flex-col">
+          <div className="bg-white rounded-lg shadow-md p-2 h-[40vh] lg:h-[84vh] flex flex-col">
             <h2 className="text-lg font-semibold mb-4">Booking Summary</h2>
 
             <div className="flex-1 flex flex-col overflow-hidden">
