@@ -1,15 +1,8 @@
 import React, { useState } from "react";
-<<<<<<< HEAD
 import { Users, Eye, Calendar, Clock, Film } from "lucide-react";
 import TimingDropDown from "../components/TimingDropDown";
 import BookingPopup from "../dialog/BookingPopup";
 import { notify } from "../components/Notification";
-=======
-import { Users, Eye, Calendar, Clock, Film, MapPin } from "lucide-react";
-import moment from "moment/moment";
-import TimingDropDown from "../components/TimingDropDown";
-import PageHeader from "../components/PageHeader";
->>>>>>> f22516433a75a1cc5d76e79a488ff851987538e2
 
 // Seat Layout Component (recreated without framer-motion)
 const SeatLayout = ({ selectedSeats, onSeatSelect }) => {
@@ -26,11 +19,7 @@ const SeatLayout = ({ selectedSeats, onSeatSelect }) => {
     { letter: "I", leftSeats: 10, rightSeats: 10, hasGap: true },
     { letter: "J", leftSeats: 10, rightSeats: 10, hasGap: true },
     { letter: "K", leftSeats: 10, rightSeats: 10, hasGap: true },
-<<<<<<< HEAD
     { letter: "L", leftSeats: 9, rightSeats: 9, hasGap: true, hasEntry: true }, // L1-L9 (left) | L10-L20 (right)
-=======
-    { letter: "L", leftSeats: 9, rightSeats: 9, hasGap: true }, // L1-L9 (left) | L10-L20 (right)
->>>>>>> f22516433a75a1cc5d76e79a488ff851987538e2
     { letter: "M", leftSeats: 10, rightSeats: 10, hasGap: true },
     { letter: "N", leftSeats: 10, rightSeats: 10, hasGap: true },
     { letter: "O", leftSeats: 10, rightSeats: 10, hasGap: true },
@@ -94,18 +83,10 @@ const SeatLayout = ({ selectedSeats, onSeatSelect }) => {
                   return (
                     <button
                       key={seat.id}
-<<<<<<< HEAD
                       className={`relative w-6 h-8 flex justify-center items-center rounded-t-lg rounded-b-sm font-bold text-xs border-2 transition-all duration-200 shadow-sm animate-seatPop ${isSelected
                         ? "bg-gradient-to-b from-orange-400 to-orange-600 text-white border-orange-700 shadow-lg scale-105"
                         : "bg-gradient-to-b from-orange-100 to-orange-200 text-orange-800 border-orange-300 hover:border-orange-500 hover:from-orange-200 hover:to-orange-300 hover:shadow-md hover:scale-110"
                         }`}
-=======
-                      className={`relative w-6 h-8 flex justify-center items-center rounded-t-lg rounded-b-sm font-bold text-xs border-2 transition-all duration-200 shadow-sm animate-seatPop ${
-                        isSelected
-                          ? "bg-gradient-to-b from-orange-400 to-orange-600 text-white border-orange-700 shadow-lg scale-105"
-                          : "bg-gradient-to-b from-orange-100 to-orange-200 text-orange-800 border-orange-300 hover:border-orange-500 hover:from-orange-200 hover:to-orange-300 hover:shadow-md hover:scale-110"
-                      }`}
->>>>>>> f22516433a75a1cc5d76e79a488ff851987538e2
                       onClick={() => onSeatSelect(seat.id)}
                       style={{
                         animationDelay: `${rowIndex * 50 + seatIndex * 10}ms`,
@@ -116,14 +97,8 @@ const SeatLayout = ({ selectedSeats, onSeatSelect }) => {
                       </span>
                       {/* Seat cushion effect */}
                       <div
-<<<<<<< HEAD
                         className={`absolute bottom-0 left-0.5 right-0.5 h-1.5 rounded-sm ${isSelected ? "bg-orange-700" : "bg-orange-300"
                           }`}
-=======
-                        className={`absolute bottom-0 left-0.5 right-0.5 h-1.5 rounded-sm ${
-                          isSelected ? "bg-orange-700" : "bg-orange-300"
-                        }`}
->>>>>>> f22516433a75a1cc5d76e79a488ff851987538e2
                       />
                     </button>
                   );
@@ -144,23 +119,14 @@ const SeatLayout = ({ selectedSeats, onSeatSelect }) => {
                   return (
                     <button
                       key={seat.id}
-<<<<<<< HEAD
                       className={`relative w-6 h-8 flex justify-center items-center rounded-t-lg rounded-b-sm font-bold text-xs border-2 transition-all duration-200 shadow-sm animate-seatPop ${isSelected
                         ? "bg-gradient-to-b from-orange-400 to-orange-600 text-white border-orange-700 shadow-lg scale-105"
                         : "bg-gradient-to-b from-orange-100 to-orange-200 text-orange-800 border-orange-300 hover:border-orange-500 hover:from-orange-200 hover:to-orange-300 hover:shadow-md hover:scale-110"
                         }`}
-=======
-                      className={`relative w-6 h-8 flex justify-center items-center rounded-t-lg rounded-b-sm font-bold text-xs border-2 transition-all duration-200 shadow-sm animate-seatPop ${
-                        isSelected
-                          ? "bg-gradient-to-b from-orange-400 to-orange-600 text-white border-orange-700 shadow-lg scale-105"
-                          : "bg-gradient-to-b from-orange-100 to-orange-200 text-orange-800 border-orange-300 hover:border-orange-500 hover:from-orange-200 hover:to-orange-300 hover:shadow-md hover:scale-110"
-                      }`}
->>>>>>> f22516433a75a1cc5d76e79a488ff851987538e2
                       onClick={() => onSeatSelect(seat.id)}
                       style={{
-                        animationDelay: `${
-                          rowIndex * 50 + (leftSeats.length + seatIndex) * 10
-                        }ms`,
+                        animationDelay: `${rowIndex * 50 + (leftSeats.length + seatIndex) * 10
+                          }ms`,
                       }}
                     >
                       <span className="relative z-10 text-[10px]">
@@ -168,14 +134,8 @@ const SeatLayout = ({ selectedSeats, onSeatSelect }) => {
                       </span>
                       {/* Seat cushion effect */}
                       <div
-<<<<<<< HEAD
                         className={`absolute bottom-0 left-0.5 right-0.5 h-1.5 rounded-sm ${isSelected ? "bg-orange-700" : "bg-orange-300"
                           }`}
-=======
-                        className={`absolute bottom-0 left-0.5 right-0.5 h-1.5 rounded-sm ${
-                          isSelected ? "bg-orange-700" : "bg-orange-300"
-                        }`}
->>>>>>> f22516433a75a1cc5d76e79a488ff851987538e2
                       />
                     </button>
                   );
@@ -252,11 +212,6 @@ const SeatLayout = ({ selectedSeats, onSeatSelect }) => {
   );
 };
 
-<<<<<<< HEAD
-=======
-
-// Main Seats Page Component
->>>>>>> f22516433a75a1cc5d76e79a488ff851987538e2
 const SeatsPage = () => {
   const [selectedSeats, setSelectedSeats] = useState([]);
   const [currentShow, setCurrentShow] = useState({
@@ -302,7 +257,6 @@ const SeatsPage = () => {
   return (
     <div className="p-4">
       {/* Header */}
-<<<<<<< HEAD
       <div className="mb-2">
         {/* Show Information */}
         <div className="bg-white rounded-lg shadow-md p-2">
@@ -310,15 +264,6 @@ const SeatsPage = () => {
             {/* Left Side - Date, Time, Movie */}
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 flex-1">
               <div className="flex items-center gap-2">
-=======
-      <div>
-        {/* Show Information */}
-        <div className="bg-white rounded-lg shadow-md p-4 lg:p-4 mb-6">
-          <div className="flex flex-col xl:flex-row items-start xl:items-center justify-between gap-4">
-            {/* Left Side - Date, Time, Movie in same line */}
-            <div className="flex flex-wrap sm:flex-nowrap items-start sm:items-center gap-2 sm:gap-4 lg:gap-6 flex-1">
-              <div className="flex items-center space-x-2">
->>>>>>> f22516433a75a1cc5d76e79a488ff851987538e2
                 <Calendar className="text-green-600" size={20} />
                 <div>
                   <p className="text-sm text-gray-500">Date</p>
@@ -328,22 +273,13 @@ const SeatsPage = () => {
                     onChange={(e) =>
                       setCurrentShow({ ...currentShow, date: e.target.value })
                     }
-<<<<<<< HEAD
                     className="font-semibold border rounded p-1 text-sm md:text-base"
                     min={new Date().toISOString().split("T")[0]}
-=======
-                    className="font-semibold border rounded p-1"
-                    min={new Date().toISOString().split("T")[0]} // Only allow future dates
->>>>>>> f22516433a75a1cc5d76e79a488ff851987538e2
                   />
                 </div>
               </div>
 
-<<<<<<< HEAD
               <div className="flex items-center gap-2">
-=======
-              <div className="flex items-center space-x-2">
->>>>>>> f22516433a75a1cc5d76e79a488ff851987538e2
                 <Clock className="text-orange-600" size={20} />
                 <div>
                   <TimingDropDown
@@ -355,25 +291,16 @@ const SeatsPage = () => {
                 </div>
               </div>
 
-<<<<<<< HEAD
               <div className="flex items-center gap-2">
                 <Film className="text-blue-600" size={20} />
                 <div>
                   <p className="text-sm text-gray-500">Movie</p>
                   <p className="font-semibold text-sm md:text-base">{currentShow.movie}</p>
-=======
-              <div className="flex items-center space-x-2">
-                <Film className="text-blue-600" size={20} />
-                <div>
-                  <p className="text-sm text-gray-500">Movie</p>
-                  <p className="font-semibold">{currentShow.movie}</p>
->>>>>>> f22516433a75a1cc5d76e79a488ff851987538e2
                 </div>
               </div>
             </div>
 
             {/* Right Side - Statistics */}
-<<<<<<< HEAD
             <div className="flex items-center gap-4 w-full lg:w-auto justify-start lg:justify-end">
               <div className="flex items-center gap-2">
                 <Users className="text-blue-600" size={20} />
@@ -396,36 +323,6 @@ const SeatsPage = () => {
                 <div>
                   <p className="text-gray-500 text-sm">Booked</p>
                   <p className="text-sm font-semibold text-red-600">75</p>
-=======
-            <div className="flex items-center gap-3 sm:gap-4 lg:gap-6 w-full xl:w-auto justify-center xl:justify-end">
-              <div className="text-center">
-                <div className="flex items-center justify-center mb-1">
-                  <div>
-                    <p className="text-gray-500 text-sm">Total Seats</p>
-                    <p className="text-xl font-semibold text-blue-600">360</p>
-                  </div>
-                  <Users className="text-blue-600" size={20} />
-                </div>
-              </div>
-
-              <div className="text-center">
-                <div className="flex items-center justify-center mb-1">
-                  <div>
-                    <p className="text-gray-500 text-sm">Available</p>
-                    <p className="text-xl font-semibold text-green-600">285</p>
-                  </div>
-                  <div className="w-4 h-4 bg-gradient-to-b from-orange-100 to-orange-200 border-2 border-orange-300 rounded"></div>
-                </div>
-              </div>
-
-              <div className="text-center">
-                <div className="flex items-center justify-center mb-1">
-                  <div>
-                    <p className="text-gray-500 text-sm">Booked</p>
-                    <p className="text-xl font-semibold text-red-600">75</p>
-                  </div>
-                  <div className="w-4 h-4 bg-gradient-to-b from-orange-400 to-orange-500 border-2 border-orange-600 rounded"></div>
->>>>>>> f22516433a75a1cc5d76e79a488ff851987538e2
                 </div>
               </div>
             </div>
@@ -433,7 +330,6 @@ const SeatsPage = () => {
         </div>
       </div>
 
-<<<<<<< HEAD
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Seat Layout */}
         <div className="lg:col-span-2">
@@ -441,16 +337,6 @@ const SeatsPage = () => {
             <h2 className="text-lg font-semibold text-gray-800 mb-2">
               Select Your Seats
             </h2>
-=======
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        {/* Seat Layout */}
-        <div className="xl:col-span-2">
-          <div className="bg-white rounded-lg shadow-md p-4 lg:p-6">
-            <h2 className="text-xl font-bold text-gray-800 mb-4">
-              Select Your Seats
-            </h2>
-
->>>>>>> f22516433a75a1cc5d76e79a488ff851987538e2
             <SeatLayout
               selectedSeats={selectedSeats}
               onSeatSelect={handleSeatSelect}
@@ -459,7 +345,6 @@ const SeatsPage = () => {
         </div>
 
         {/* Booking Summary */}
-<<<<<<< HEAD
         <div className="lg:col-span-1">
           <div className="bg-white rounded-lg shadow-md p-2 h-[40vh] lg:h-[82vh] flex flex-col">
             <h2 className="text-lg font-semibold mb-4">Booking Summary</h2>
@@ -470,18 +355,6 @@ const SeatsPage = () => {
                   {/* Scrollable seats list */}
                   <div className="overflow-y-auto flex-1 max-h-[calc(100%-120px)]">
                     <div className="flex flex-wrap gap-2 pb-2">
-=======
-        <div className="xl:col-span-1">
-          <div className="bg-white rounded-lg shadow-md p-4 lg:p-6 h-full flex flex-col">
-            <h2 className="text-lg font-semibold mb-2">Booking Summary</h2>
-
-            <div className="flex-1 flex flex-col">
-              {selectedSeats.length > 0 && (
-                <div className="space-y-4 flex-1 flex flex-col">
-                  <h3 className="text-lg font-semibold mb-2">Selected Seats</h3>
-                  <div>
-                    <div className="flex flex-wrap gap-2 mb-3">
->>>>>>> f22516433a75a1cc5d76e79a488ff851987538e2
                       {selectedSeats.map((seat) => (
                         <span
                           key={seat}
@@ -493,14 +366,8 @@ const SeatsPage = () => {
                     </div>
                   </div>
 
-<<<<<<< HEAD
                   {/* Fixed bottom section */}
                   <div className="mt-auto border-t pt-4">
-=======
-                  <div className="flex-1"></div>
-
-                  <div className="border-t pt-4">
->>>>>>> f22516433a75a1cc5d76e79a488ff851987538e2
                     <div className="flex justify-between items-center mb-2">
                       <span className="text-gray-600">
                         Seats ({selectedSeats.length})
@@ -515,7 +382,6 @@ const SeatsPage = () => {
                         ₹{getTotalPrice()}
                       </span>
                     </div>
-<<<<<<< HEAD
                     <div className="space-y-3">
                       <button
                         onClick={() => setSelectedSeats([])}
@@ -548,25 +414,6 @@ const SeatsPage = () => {
                   <p className="text-gray-500 text-center">
                     Select seats to see booking summary
                   </p>
-=======
-                  </div>
-
-                  <div className="space-y-3">
-                    <button
-                      onClick={() => setSelectedSeats([])}
-                      className="w-full px-6 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors"
-                    >
-                      Clear Selection
-                    </button>
-                    <button
-                      onClick={handleBookSeats}
-                      className="w-full px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center space-x-2"
-                    >
-                      <Users size={20} />
-                      <span>Book Seats (₹{getTotalPrice()})</span>
-                    </button>
-                  </div>
->>>>>>> f22516433a75a1cc5d76e79a488ff851987538e2
                 </div>
               )}
             </div>
