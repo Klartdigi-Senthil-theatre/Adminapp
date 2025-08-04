@@ -79,7 +79,7 @@ const SeatLayout = ({ selectedSeats, onSeatSelect }) => {
               <div className={`flex gap-1 ${row.centerAlign ? "pl-9" : ""}`}>
                 {/* Entry indicator for L row */}
                 {row.hasEntry && (
-                  <div className="w-7 h-6 flex items-center justify-center bg-blue-100 border-2 border-blue-300 rounded text-[8px] text-blue-600 font-bold">
+                  <div className="w-6 h-6 flex items-center justify-center rounded text-[8px] rotate-270 text-gray-600 tracking-wide font-bold">
                     ENTRY
                   </div>
                 )}
@@ -154,7 +154,7 @@ const SeatLayout = ({ selectedSeats, onSeatSelect }) => {
 
                 {/* Exit indicator for L row */}
                 {row.hasEntry && (
-                  <div className="w-7 h-6 flex items-center justify-center bg-red-100 border-2 border-red-300 rounded text-[8px] text-red-600 font-bold">
+                  <div className="w-6 h-6 flex items-center justify-center rounded text-[8px] rotate-90 tracking-widest font-bold">
                     EXIT
                   </div>
                 )}
@@ -225,6 +225,7 @@ const SeatLayout = ({ selectedSeats, onSeatSelect }) => {
 
 const SeatsPage = () => {
   const [selectedSeats, setSelectedSeats] = useState([]);
+  const [amountReceived, setAmountReceived] = useState("");
   const [currentShow, setCurrentShow] = useState({
     movie: "Avengers: Endgame",
     date: "2024-07-27",
@@ -246,6 +247,7 @@ const SeatsPage = () => {
     // Your booking confirmation logic here
     notify.success(`Booking confirmed for seats: ${selectedSeats.join(", ")}`);
     setSelectedSeats([]);
+    setAmountReceived("");
     setShowBookingPopup(false);
   };
 
@@ -265,82 +267,102 @@ const SeatsPage = () => {
     return selectedSeats.length * currentShow.price;
   };
 
+  const getAmountToReturn = () => {
+    const received = parseFloat(amountReceived) || 0;
+    const total = getTotalPrice();
+    return Math.max(0, received - total);
+  };
+
+  const handleAmountReceivedChange = (e) => {
+    const value = e.target.value;
+    // Only allow numbers and decimal point
+    if (value === "" || /^\d*\.?\d*$/.test(value)) {
+      setAmountReceived(value);
+    }
+  };
+
   return (
     <div className="p-4">
       {/* Header */}
       <div className="mb-2">
         {/* Show Information */}
-        <div className="bg-white rounded-lg shadow-md p-2">
-          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+        <div className="bg-white rounded-lg shadow-md p-4">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-2">
             {/* Left Side - Date, Time, Movie */}
-            <div className="flex flex-col lg:flex-row lg:items-center lg:gap-6 flex-1">
-              {/* Mobile: Date and Time in same row */}
-              <div className="flex items-center gap-6 mb-4 lg:mb-0">
-                <div className="flex items-center gap-2">
-                  <Calendar className="text-green-600" size={20} />
-                  <div>
-                    <p className="text-sm text-gray-500">Date</p>
+            <div className="flex flex-col gap-2">
+              {/* First row: Date and Time */}
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-1">
+                  <Calendar className="text-green-600" size={18} />
+                  <span className="text-sm font-medium">
+                    Date -{" "}
                     <input
                       type="date"
                       value={currentShow.date}
                       onChange={(e) =>
                         setCurrentShow({ ...currentShow, date: e.target.value })
                       }
-                      className="w-35 font-semibold border rounded text-sm md:text-base"
+                      className="w-35 font-medium border rounded text-sm md:text-base"
                       min={new Date().toISOString().split("T")[0]}
                     />
-                  </div>
+                  </span>
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <Clock className="text-orange-600" size={20} />
-                  <div>
+                <div className="flex items-center gap-1">
+                  <Clock className="text-orange-600" size={18} />
+                  <span className="text-sm font-medium">
                     <TimingDropDown
                       currentShow={currentShow}
                       onTimeSelect={(time) =>
                         setCurrentShow({ ...currentShow, time })
                       }
                     />
-                  </div>
+                  </span>
+                </div>
+
+                {/* Movie on same line for desktop, new line for mobile */}
+                <div className="hidden lg:flex items-center gap-1">
+                  <Film className="text-blue-600" size={18} />
+                  <span className="text-sm font-medium">
+                    Movie - {currentShow.movie}
+                  </span>
                 </div>
               </div>
 
-              {/* Movie name - shows below on mobile, inline on desktop */}
-              <div className="flex items-center gap-2">
-                <Film className="text-blue-600" size={20} />
-                <div>
-                  <p className="text-sm text-gray-500">Movie</p>
-                  <p className="font-semibold text-sm md:text-base">
-                    {currentShow.movie}
-                  </p>
-                </div>
+              {/* Second row: Movie (mobile only) */}
+              <div className="flex lg:hidden items-center gap-1">
+                <Film className="text-blue-600" size={18} />
+                <span className="text-sm font-medium">
+                  Movie - {currentShow.movie}
+                </span>
               </div>
             </div>
 
             {/* Right Side - Statistics */}
-            <div className="flex items-center gap-4 w-full lg:w-auto justify-start lg:justify-end">
-              <div className="flex items-center gap-2">
-                <Users className="text-blue-600" size={20} />
-                <div>
-                  <p className="text-gray-500 text-sm">Total Seats</p>
-                  <p className="text-sm font-semibold text-blue-600">360</p>
+            <div className="flex flex-col gap-2">
+              {/* First row: Total Seats and Available */}
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-1">
+                  <Users className="text-blue-600" size={18} />
+                  <span className="text-sm font-medium">Total Seats - 360</span>
+                </div>
+
+                <div className="flex items-center gap-1">
+                  <div className="w-3 h-3 bg-gradient-to-b from-orange-100 to-orange-200 border border-orange-300 rounded"></div>
+                  <span className="text-sm font-medium">Available - 285</span>
+                </div>
+
+                {/* Booked on same line for desktop, new line for mobile */}
+                <div className="hidden lg:flex items-center gap-1">
+                  <div className="w-3 h-3 bg-gradient-to-b from-orange-400 to-orange-500 border border-orange-600 rounded"></div>
+                  <span className="text-sm font-medium">Booked - 75</span>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 bg-gradient-to-b from-orange-100 to-orange-200 border-2 border-orange-300 rounded"></div>
-                <div>
-                  <p className="text-gray-500 text-sm">Available</p>
-                  <p className="text-sm font-semibold text-green-600">285</p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 bg-gradient-to-b from-orange-400 to-orange-500 border-2 border-orange-600 rounded"></div>
-                <div>
-                  <p className="text-gray-500 text-sm">Booked</p>
-                  <p className="text-sm font-semibold text-red-600">75</p>
-                </div>
+              {/* Second row: Booked (mobile only) */}
+              <div className="flex lg:hidden items-center gap-1">
+                <div className="w-3 h-3 bg-gradient-to-b from-orange-400 to-orange-500 border border-orange-600 rounded"></div>
+                <span className="text-sm font-medium">Booked - 75</span>
               </div>
             </div>
           </div>
@@ -350,7 +372,7 @@ const SeatsPage = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Seat Layout */}
         <div className="lg:col-span-2">
-          <div className="bg-white rounded-lg shadow-md p-2">
+          <div className="bg-white rounded-lg shadow-md h-full p-2">
             <h2 className="text-md text-center font-semibold text-gray-800 mb-2">
               Select Your Seats
             </h2>
@@ -372,14 +394,14 @@ const SeatsPage = () => {
 
         {/* Booking Summary */}
         <div className="lg:col-span-1">
-          <div className="bg-white rounded-lg shadow-md p-2 h-[40vh] lg:h-[84vh] flex flex-col">
+          <div className="bg-white rounded-lg shadow-md p-2 h-full flex flex-col">
             <h2 className="text-lg font-semibold mb-4">Booking Summary</h2>
 
             <div className="flex-1 flex flex-col overflow-hidden">
               {selectedSeats.length > 0 ? (
                 <div className="flex flex-col h-full">
                   {/* Scrollable seats list */}
-                  <div className="overflow-y-auto flex-1 max-h-[calc(100%-120px)]">
+                  <div className="overflow-y-auto flex-1 max-h-[calc(100%-200px)]">
                     <div className="flex flex-wrap gap-2 pb-2">
                       {selectedSeats.map((seat) => (
                         <span
@@ -393,24 +415,57 @@ const SeatsPage = () => {
                   </div>
 
                   {/* Fixed bottom section */}
-                  <div className="mt-auto border-t pt-4">
-                    <div className="flex justify-between items-center mb-2">
+                  <div className="mt-auto border-t pt-4 space-y-3">
+                    {/* Seats calculation */}
+                    <div className="flex justify-between items-center">
                       <span className="text-gray-600">
-                        Seats ({selectedSeats.length})
+                        Seats ({selectedSeats.length}) × ₹{currentShow.price}
                       </span>
                       <span className="font-semibold">
                         ₹{selectedSeats.length * currentShow.price}
                       </span>
                     </div>
-                    <div className="flex justify-between items-center mb-4">
-                      <span className="text-lg font-bold">Total</span>
+
+                    {/* Amount received input */}
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium text-gray-700">
+                        Amount Received:
+                      </span>
+                      <input
+                        type="text"
+                        value={amountReceived}
+                        onChange={handleAmountReceivedChange}
+                        placeholder="Enter amount"
+                        className="w-24 px-2 py-1 border border-gray-300 rounded text-right text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      />
+                    </div>
+
+                    {/* Amount to return */}
+                    {amountReceived && (
+                      <div className="flex justify-between items-center p-2 bg-blue-50 rounded-lg">
+                        <span className="text-sm font-medium text-blue-700">
+                          Amount to Return:
+                        </span>
+                        <span className="text-lg font-bold text-blue-600">
+                          ₹{getAmountToReturn().toFixed(2)}
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Total amount */}
+                    <div className="flex justify-between items-center mb-3">
+                      <span className="text-lg font-bold">Total Amount</span>
                       <span className="text-xl font-bold text-green-600">
                         ₹{getTotalPrice()}
                       </span>
                     </div>
-                    <div className="space-y-3">
+
+                    <div className="space-y-3 pt-2">
                       <button
-                        onClick={() => setSelectedSeats([])}
+                        onClick={() => {
+                          setSelectedSeats([]);
+                          setAmountReceived("");
+                        }}
                         className="w-full px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
                       >
                         Clear Selection
@@ -432,6 +487,7 @@ const SeatsPage = () => {
                       totalPrice={getTotalPrice()}
                       onConfirm={confirmBooking}
                       onCancel={cancelBooking}
+                      currentShow={currentShow}
                     />
                   )}
                 </div>

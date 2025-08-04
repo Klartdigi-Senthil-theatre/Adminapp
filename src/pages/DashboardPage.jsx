@@ -1,5 +1,12 @@
-import { Percent, Popcorn, TrendingUp, Calendar } from "lucide-react";
-import React, { useState, useMemo } from "react";
+import {
+  Percent,
+  Popcorn,
+  TrendingUp,
+  Calendar,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   Bar,
   BarChart,
@@ -38,6 +45,34 @@ const DashboardPage = () => {
       activeShows: 3,
     },
     screenData: [
+      {
+        name: "S1",
+        date: "Aug 4",
+        fullDate: "08/04/2025",
+        tickets: 25,
+        snacks: 10,
+      },
+      {
+        name: "S2",
+        date: "Aug 4",
+        fullDate: "08/04/2025",
+        tickets: 60,
+        snacks: 25,
+      },
+      {
+        name: "S3",
+        date: "Aug 4",
+        fullDate: "08/04/2025",
+        tickets: 70,
+        snacks: 26,
+      },
+      {
+        name: "S4",
+        date: "Aug 4",
+        fullDate: "08/04/2025",
+        tickets: 20,
+        snacks: 50,
+      },
       {
         name: "S1",
         date: "Aug 3",
@@ -188,9 +223,26 @@ const DashboardPage = () => {
   };
 
   const formatDate = (date) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Check if the date is today
+    if (date.getTime() === today.getTime()) {
+      return "Today";
+    }
+
     const month = date.toLocaleString("default", { month: "short" });
     const day = date.getDate();
     return `${month} ${day}`;
+  };
+
+  const formatFullDate = (date) => {
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    const year = date.getFullYear();
+    return `${month.toString().padStart(2, "0")}/${day
+      .toString()
+      .padStart(2, "0")}/${year}`;
   };
 
   const isDateInRange = (date, startDate, endDate) => {
@@ -204,19 +256,18 @@ const DashboardPage = () => {
   const allDates = [
     ...new Set(
       staticData.screenData
-        .filter((item) => item.fullDate) // Ensure fullDate exists
+        .filter((item) => item.fullDate)
         .map((item) => item.fullDate)
     ),
   ].sort((a, b) => {
-    // Sort by actual date values, not strings
     const dateA = parseDate(a);
     const dateB = parseDate(b);
-    return dateA - dateB; // Ascending order (oldest to newest)
+    return dateA - dateB;
   });
 
   // Find the earliest and latest dates in your data
-  const minAvailableDate = parseDate(allDates[0]); // First date (oldest)
-  const maxAvailableDate = parseDate(allDates[allDates.length - 1]); // Last date (newest)
+  const minAvailableDate = parseDate(allDates[0]);
+  const maxAvailableDate = parseDate(allDates[allDates.length - 1]);
 
   // Date range state
   const [dateRange, setDateRange] = useState([
@@ -228,6 +279,7 @@ const DashboardPage = () => {
   ]);
 
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [currentDateIndex, setCurrentDateIndex] = useState(0);
 
   // Filter data based on selected date range
   const filteredData = useMemo(() => {
@@ -241,6 +293,30 @@ const DashboardPage = () => {
       return isDateInRange(itemDate, startDate, endDate);
     });
   }, [dateRange]);
+
+  // Get unique dates in the filtered data for navigation
+  const uniqueFilteredDates = useMemo(() => {
+    const dates = [...new Set(filteredData.map((item) => item.fullDate))].sort(
+      (a, b) => {
+        const dateA = parseDate(a);
+        const dateB = parseDate(b);
+        return dateB - dateA; // Sort in descending order (newest to oldest)
+      }
+    );
+    return dates;
+  }, [filteredData]);
+
+  // Reset currentDateIndex when filtered dates change
+  useEffect(() => {
+    setCurrentDateIndex(0);
+  }, [uniqueFilteredDates]);
+
+  // Data for the current date in navigation
+  const currentDateData = useMemo(() => {
+    if (uniqueFilteredDates.length === 0) return [];
+    const currentDate = uniqueFilteredDates[currentDateIndex];
+    return filteredData.filter((item) => item.fullDate === currentDate);
+  }, [filteredData, uniqueFilteredDates, currentDateIndex]);
 
   // Calculate revenue and other metrics
   const rangeTicketRevenue = useMemo(() => {
@@ -275,51 +351,27 @@ const DashboardPage = () => {
       avgTicketsPerDay,
       avgSnacksPerDay,
       totalDays: uniqueDates.length,
+      selectedDate:
+        uniqueDates.length === 1 ? formatDate(parseDate(uniqueDates[0])) : null,
     };
   }, [filteredData]);
 
   const occupancyRate = useMemo(() => {
     if (filteredData.length === 0) return 0;
     const totalTickets = rangeStats.totalTickets;
-    const totalCapacity = filteredData.length * 100; // Assuming 100 seats per show
+    const totalCapacity = filteredData.length * 100;
     return Math.round((totalTickets / totalCapacity) * 100);
   }, [filteredData, rangeStats]);
 
   const upcomingShows = filteredData.length;
 
-  // Aggregate data for bar chart when multiple dates are selected
-  const aggregatedBarData = useMemo(() => {
-    const screenAggregates = {};
-
-    filteredData.forEach((item) => {
-      if (!screenAggregates[item.name]) {
-        screenAggregates[item.name] = {
-          name: item.name,
-          tickets: 0,
-          snacks: 0,
-          count: 0,
-        };
-      }
-      screenAggregates[item.name].tickets += item.tickets;
-      screenAggregates[item.name].snacks += item.snacks;
-      screenAggregates[item.name].count += 1;
-    });
-
-    // Convert to array and calculate averages
-    return ["S1", "S2", "S3", "S4"].map((screenName) => {
-      const screenData = screenAggregates[screenName] || {
-        name: screenName,
-        tickets: 0,
-        snacks: 0,
-        count: 1,
-      };
-      return {
-        name: screenName,
-        tickets: Math.round(screenData.tickets / screenData.count),
-        snacks: Math.round(screenData.snacks / screenData.count),
-      };
-    });
-  }, [filteredData]);
+  // Data for bar chart (always shows current date's data when navigating)
+  const barChartData = useMemo(() => {
+    if (uniqueFilteredDates.length <= 1) {
+      return currentDateData;
+    }
+    return currentDateData;
+  }, [currentDateData, uniqueFilteredDates]);
 
   const handleDateRangeChange = (item) => {
     setDateRange([item.selection]);
@@ -333,6 +385,16 @@ const DashboardPage = () => {
       return start;
     }
     return `${start} - ${end}`;
+  };
+
+  const handlePrevDate = () => {
+    setCurrentDateIndex((prev) => Math.max(0, prev - 1));
+  };
+
+  const handleNextDate = () => {
+    setCurrentDateIndex((prev) =>
+      Math.min(uniqueFilteredDates.length - 1, prev + 1)
+    );
   };
 
   return (
@@ -357,7 +419,13 @@ const DashboardPage = () => {
                 ranges={dateRange}
                 moveRangeOnFirstSelection={false}
                 showDateDisplay={false}
-                minDate={minAvailableDate}
+                minDate={
+                  new Date(
+                    minAvailableDate.getFullYear(),
+                    minAvailableDate.getMonth() - 1,
+                    1
+                  )
+                } // Allow selecting previous month
                 maxDate={maxAvailableDate}
                 rangeColors={["#3b82f6"]}
               />
@@ -484,8 +552,14 @@ const DashboardPage = () => {
 
         <div className="bg-white p-2 lg:p-2 rounded-lg shadow-md">
           <h2 className="text-xl font-semibold mb-4">
-            Range Summary ({rangeStats.totalDays} day
-            {rangeStats.totalDays > 1 ? "s" : ""})
+            {rangeStats.totalDays === 1 ? (
+              <span>Revenue Summary ({rangeStats.selectedDate})</span>
+            ) : (
+              <span>
+                Range Summary ({rangeStats.totalDays} day
+                {rangeStats.totalDays > 1 ? "s" : ""})
+              </span>
+            )}
           </h2>
           <div className="space-y-4">
             <div className="flex justify-between items-center py-2 border-b">
@@ -514,20 +588,55 @@ const DashboardPage = () => {
 
       {/* Screen Performance Section */}
       <div className="bg-white p-4 lg:p-6 rounded-lg shadow-md">
-        <h2 className="text-xl font-semibold mb-4">
-          Screen Performance
-          {rangeStats.totalDays > 1 && (
-            <span className="text-sm text-gray-500 ml-2">
-              (Average per day)
-            </span>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-semibold">
+            Screen Performance
+            {rangeStats.totalDays > 1 && uniqueFilteredDates.length <= 1 && (
+              <span className="text-sm text-gray-500 ml-2">
+                (Average per day)
+              </span>
+            )}
+          </h2>
+
+          {uniqueFilteredDates.length > 1 && (
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={handlePrevDate}
+                disabled={currentDateIndex === 0}
+                className={`p-1 rounded-md ${
+                  currentDateIndex === 0
+                    ? "text-gray-400"
+                    : "text-gray-700 hover:bg-gray-100"
+                }`}
+              >
+                <ChevronLeft size={20} />
+              </button>
+              <span className="text-sm">
+                {formatDate(parseDate(uniqueFilteredDates[currentDateIndex]))}
+              </span>
+              <button
+                onClick={handleNextDate}
+                disabled={currentDateIndex === uniqueFilteredDates.length - 1}
+                className={`p-1 rounded-md ${
+                  currentDateIndex === uniqueFilteredDates.length - 1
+                    ? "text-gray-400"
+                    : "text-gray-700 hover:bg-gray-100"
+                }`}
+              >
+                <ChevronRight size={20} />
+              </button>
+              <span className="text-sm text-gray-500">
+                ({currentDateIndex + 1}/{uniqueFilteredDates.length})
+              </span>
+            </div>
           )}
-        </h2>
+        </div>
 
         <div className="h-64 overflow-x-auto">
           <div className="min-w-[600px] h-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
-                data={aggregatedBarData}
+                data={barChartData}
                 margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
               >
                 <CartesianGrid strokeDasharray="3 3" />
@@ -559,8 +668,9 @@ const DashboardPage = () => {
 
         <div className="flex justify-center items-center mt-4">
           <div className="text-md font-semibold">
-            {formatDateRangeDisplay()}
-            {/* {rangeStats.totalDays > 1 && ` (${rangeStats.totalDays} days)`} */}
+            {uniqueFilteredDates.length === 1
+              ? formatDate(parseDate(uniqueFilteredDates[0]))
+              : formatDateRangeDisplay()}
           </div>
         </div>
       </div>
