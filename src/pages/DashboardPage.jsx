@@ -6,7 +6,7 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import {
   Bar,
   BarChart,
@@ -31,6 +31,8 @@ const PageHeader = ({ title, className }) => (
 );
 
 const DashboardPage = () => {
+  const datePickerRef = useRef(null);
+
   // Extended static data for the dashboard with 15 days of data
   const staticData = {
     ticketRevenue: 1234,
@@ -216,6 +218,8 @@ const DashboardPage = () => {
     ],
   };
 
+  const [isLifetime, setIsLifetime] = useState(false);
+
   // Helper functions for date operations
   const parseDate = (dateStr) => {
     const [month, day, year] = dateStr.split("/");
@@ -283,6 +287,10 @@ const DashboardPage = () => {
 
   // Filter data based on selected date range
   const filteredData = useMemo(() => {
+    if (isLifetime) {
+      return staticData.screenData;
+    }
+    
     const startDate = new Date(dateRange[0].startDate);
     startDate.setHours(0, 0, 0, 0);
     const endDate = new Date(dateRange[0].endDate);
@@ -292,7 +300,7 @@ const DashboardPage = () => {
       const itemDate = parseDate(item.fullDate);
       return isDateInRange(itemDate, startDate, endDate);
     });
-  }, [dateRange]);
+  }, [dateRange, isLifetime]);
 
   // Get unique dates in the filtered data for navigation
   const uniqueFilteredDates = useMemo(() => {
@@ -311,12 +319,48 @@ const DashboardPage = () => {
     setCurrentDateIndex(0);
   }, [uniqueFilteredDates]);
 
+  //DateRange EventListener
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        datePickerRef.current &&
+        !datePickerRef.current.contains(event.target)
+      ) {
+        setShowDatePicker(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   // Data for the current date in navigation
   const currentDateData = useMemo(() => {
+    if (isLifetime) {
+      // For lifetime view, aggregate data by screen name
+      const screenMap = {};
+      
+      filteredData.forEach(item => {
+        if (!screenMap[item.name]) {
+          screenMap[item.name] = {
+            name: item.name,
+            tickets: 0,
+            snacks: 0
+          };
+        }
+        screenMap[item.name].tickets += item.tickets;
+        screenMap[item.name].snacks += item.snacks;
+      });
+      
+      return Object.values(screenMap);
+    }
+    
     if (uniqueFilteredDates.length === 0) return [];
     const currentDate = uniqueFilteredDates[currentDateIndex];
     return filteredData.filter((item) => item.fullDate === currentDate);
-  }, [filteredData, uniqueFilteredDates, currentDateIndex]);
+  }, [filteredData, uniqueFilteredDates, currentDateIndex, isLifetime]);
 
   // Calculate revenue and other metrics
   const rangeTicketRevenue = useMemo(() => {
@@ -367,17 +411,24 @@ const DashboardPage = () => {
 
   // Data for bar chart (always shows current date's data when navigating)
   const barChartData = useMemo(() => {
+    if (isLifetime) {
+      return currentDateData;
+    }
+    
     if (uniqueFilteredDates.length <= 1) {
       return currentDateData;
     }
     return currentDateData;
-  }, [currentDateData, uniqueFilteredDates]);
+  }, [currentDateData, uniqueFilteredDates, isLifetime]);
 
   const handleDateRangeChange = (item) => {
+    setIsLifetime(false);
     setDateRange([item.selection]);
   };
 
   const formatDateRangeDisplay = () => {
+    if (isLifetime) return "Lifetime";
+    
     const start = formatDate(dateRange[0].startDate);
     const end = formatDate(dateRange[0].endDate);
 
@@ -397,48 +448,71 @@ const DashboardPage = () => {
     );
   };
 
+  const handleLifetime = () => {
+    setIsLifetime(true);
+    setDateRange([
+      {
+        startDate: minAvailableDate,
+        endDate: maxAvailableDate,
+        key: "selection",
+      },
+    ]);
+  };
+
   return (
     <div className="p-2 lg:p-6">
       <div className="flex justify-between items-center space-x-2">
         <PageHeader title="Theatre Dashboard" className="mb-2" />
 
-        <div className="relative">
+        <div className="flex items-center gap-2">
           <button
-            onClick={() => setShowDatePicker(!showDatePicker)}
-            className="border rounded-md px-3 py-1 text-sm flex items-center gap-2 hover:bg-gray-50"
-          >
-            <Calendar size={16} />
-            <span>{formatDateRangeDisplay()}</span>
+            onClick={handleLifetime}
+            className={`border rounded-md px-3 py-1 text-sm flex items-center gap-2 hover:bg-gray-50 ${
+              isLifetime ? "bg-gray-100" : ""
+            }`}          >
+            Lifetime
           </button>
 
-          {showDatePicker && (
-            <div className="absolute right-0 mt-1 z-10 shadow-lg bg-white rounded-md">
-              <DateRange
-                editableDateInputs={true}
-                onChange={handleDateRangeChange}
-                ranges={dateRange}
-                moveRangeOnFirstSelection={false}
-                showDateDisplay={false}
-                minDate={
-                  new Date(
-                    minAvailableDate.getFullYear(),
-                    minAvailableDate.getMonth() - 1,
-                    1
-                  )
-                } // Allow selecting previous month
-                maxDate={maxAvailableDate}
-                rangeColors={["#3b82f6"]}
-              />
-              <div className="p-2 border-t">
-                <button
-                  onClick={() => setShowDatePicker(false)}
-                  className="w-full bg-blue-600 text-white py-2 px-4 rounded text-sm hover:bg-blue-700"
-                >
-                  Apply Filter
-                </button>
+          <div className="relative" ref={datePickerRef}>
+            <button
+              onClick={(e) => {
+                e.stopPropagation(); 
+                setShowDatePicker(!showDatePicker)}}
+              className="border rounded-md px-3 py-1 text-sm flex items-center gap-2 hover:bg-gray-50"
+            >
+              <Calendar size={16} />
+              <span>{formatDateRangeDisplay()}</span>
+            </button>
+
+            {showDatePicker && (
+              <div className="absolute right-0 mt-1 z-10 shadow-lg bg-white rounded-md">
+                <DateRange
+                  editableDateInputs={true}
+                  onChange={handleDateRangeChange}
+                  ranges={dateRange}
+                  moveRangeOnFirstSelection={false}
+                  showDateDisplay={false}
+                  minDate={
+                    new Date(
+                      minAvailableDate.getFullYear(),
+                      minAvailableDate.getMonth() - 1,
+                      1
+                    )
+                  } // Allow selecting previous month
+                  maxDate={maxAvailableDate}
+                  rangeColors={["#3b82f6"]}
+                />
+                {/* <div className="p-2 border-t">
+                  <button
+                    onClick={() => setShowDatePicker(false)}
+                    className="w-full bg-blue-600 text-white py-2 px-4 rounded text-sm hover:bg-blue-700"
+                  >
+                    Apply Filter
+                  </button>
+                </div> */}
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
 
@@ -556,7 +630,7 @@ const DashboardPage = () => {
               <span>Revenue Summary ({rangeStats.selectedDate})</span>
             ) : (
               <span>
-                Range Summary ({rangeStats.totalDays} day
+                Revenue Summary ({rangeStats.totalDays} day
                 {rangeStats.totalDays > 1 ? "s" : ""})
               </span>
             )}
@@ -590,15 +664,10 @@ const DashboardPage = () => {
       <div className="bg-white p-4 lg:p-6 rounded-lg shadow-md">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold">
-            Screen Performance
-            {rangeStats.totalDays > 1 && uniqueFilteredDates.length <= 1 && (
-              <span className="text-sm text-gray-500 ml-2">
-                (Average per day)
-              </span>
-            )}
+            {isLifetime ? "Lifetime Performance" : "Screen Performance"}
           </h2>
 
-          {uniqueFilteredDates.length > 1 && (
+          {!isLifetime && uniqueFilteredDates.length > 1 && (
             <div className="flex items-center space-x-2">
               <button
                 onClick={handlePrevDate}
@@ -668,9 +737,13 @@ const DashboardPage = () => {
 
         <div className="flex justify-center items-center mt-4">
           <div className="text-md font-semibold">
-            {uniqueFilteredDates.length === 1
-              ? formatDate(parseDate(uniqueFilteredDates[0]))
-              : formatDateRangeDisplay()}
+            {isLifetime ? (
+              "Lifetime Data"
+            ) : uniqueFilteredDates.length > 0 ? (
+              formatDate(parseDate(uniqueFilteredDates[currentDateIndex]))
+            ) : (
+              formatDateRangeDisplay()
+            )}
           </div>
         </div>
       </div>

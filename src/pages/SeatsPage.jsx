@@ -34,6 +34,13 @@ const SeatLayout = ({ selectedSeats, onSeatSelect }) => {
     },
   ];
 
+  const confirmBooking = () => {
+    notify.success(`Booking confirmed for seats: ${selectedSeats.join(", ")}`);
+    setSelectedSeats([]);
+    setAmountReceived("");
+    setShowBookingPopup(false);
+  };
+
   return (
     <div className="w-full overflow-x-auto py-1 animate-fadeIn">
       <div className="min-w-max flex flex-col gap-1 items-center px-3">
@@ -294,7 +301,7 @@ const SeatsPage = () => {
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-1">
                   <Calendar className="text-green-600" size={18} />
-                  <span className="text-sm font-medium">
+                  <span className="text-sm text-gray-600 font-medium">
                     Date -{" "}
                     <input
                       type="date"
@@ -302,7 +309,7 @@ const SeatsPage = () => {
                       onChange={(e) =>
                         setCurrentShow({ ...currentShow, date: e.target.value })
                       }
-                      className="w-35 font-medium border rounded text-sm md:text-base"
+                      className="w-35 text-black font-medium border rounded text-sm md:text-base"
                       min={new Date().toISOString().split("T")[0]}
                     />
                   </span>
@@ -324,7 +331,7 @@ const SeatsPage = () => {
                 <div className="hidden lg:flex items-center gap-1">
                   <Film className="text-blue-600" size={18} />
                   <span className="text-sm font-medium">
-                    Movie - {currentShow.movie}
+                    <span className="text-gray-600 text-sm">Movie -</span> {currentShow.movie}
                   </span>
                 </div>
               </div>
@@ -436,7 +443,7 @@ const SeatsPage = () => {
                         value={amountReceived}
                         onChange={handleAmountReceivedChange}
                         placeholder="Enter amount"
-                        className="w-24 px-2 py-1 border border-gray-300 rounded text-right text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        className="w-35 px-2 py-1 border border-gray-300 rounded text-left text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
                       />
                     </div>
 

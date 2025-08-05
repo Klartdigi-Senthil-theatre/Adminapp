@@ -60,6 +60,60 @@ export default function SnacksPage() {
     },
     {
       id: 5,
+      name: "Chocolate Bar",
+      price: 119,
+      image:
+        "https://images.unsplash.com/photo-1575377427642-087cf684f29d?w=400&h=300&fit=crop",
+      stock: 45,
+      category: "Desserts",
+    },
+    {
+      id: 6,
+      name: "Burger",
+      price: 229,
+      image:
+        "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&h=300&fit=crop",
+      stock: 15,
+      category: "Meals",
+    },
+    {
+      id: 7,
+      name: "French Fries",
+      price: 169,
+      image:
+        "https://images.unsplash.com/photo-1541592106381-b31e9677c0e5?w=400&h=300&fit=crop",
+      stock: 30,
+      category: "Snacks",
+    },
+    {
+      id: 8,
+      name: "Mineral Water",
+      price: 99,
+      image:
+        "https://images.unsplash.com/photo-1561047029-3000c68339ca?w=400&h=300&fit=crop",
+      stock: 80,
+      category: "Beverages",
+    },
+    {
+      id: 9,
+      name: "Pizza Slice",
+      price: 249,
+      image:
+        "https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&h=300&fit=crop",
+      stock: 20,
+      category: "Meals",
+    },
+    {
+      id: 10,
+      name: "Pretzel",
+      price: 159,
+      image:
+        "https://images.unsplash.com/photo-1580837418631-9dd55f1c3a1a?w=400&h=300&fit=crop",
+      stock: 35,
+      category: "Snacks",
+    },
+    {
+      id: 11,
       name: "Hot Dog",
       price: 179,
       image:
@@ -68,13 +122,13 @@ export default function SnacksPage() {
       category: "Meals",
     },
     {
-      id: 6,
-      name: "Pizza Slice",
-      price: 249,
+      id: 12,
+      name: "Iced Tea",
+      price: 139,
       image:
-        "https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&h=300&fit=crop",
-      stock: 20,
-      category: "Meals",
+        "https://images.unsplash.com/photo-1567095761054-7a60e326e576?w=400&h=300&fit=crop",
+      stock: 60,
+      category: "Beverages",
     },
   ];
 
@@ -87,6 +141,31 @@ export default function SnacksPage() {
   ];
 
   const generatePDFReceipt = () => {
+    const doc = new jsPDF();
+
+    // Header
+    doc.setFontSize(18);
+    doc.setTextColor(255, 165, 0); // Orange color
+    doc.text("Movie Snacks & Concessions", 105, 20, { align: "center" });
+
+    doc.setFontSize(12);
+    doc.setTextColor(0, 0, 0);
+    doc.text("Order Receipt", 15, 35);
+    doc.text(`Date: ${new Date().toLocaleDateString()}`, 195, 35, {
+      align: "right",
+    });
+    doc.text(`Time: ${new Date().toLocaleTimeString()}`, 195, 45, {
+      align: "right",
+    });
+
+    // Decorative line
+    doc.setDrawColor(255, 165, 0);
+    doc.setLineWidth(1);
+    doc.line(15, 50, 195, 50);
+
+    let yPosition = 65;
+
+    // Group items by category
     const categorizedItems = cart.reduce((acc, item) => {
       if (!acc[item.category]) {
         acc[item.category] = [];
@@ -95,94 +174,117 @@ export default function SnacksPage() {
       return acc;
     }, {});
 
-    const doc = new jsPDF();
-
-    doc.setFontSize(16);
-    doc.text("Order Receipt", 15, 15);
-    doc.setFontSize(10);
-    doc.text(`Date: ${new Date().toLocaleDateString()}`, 180, 15, {
-      align: "right",
-    });
-
-    doc.setFontSize(12);
-    doc.text("Movie Snacks & Concessions", 105, 25, { align: "center" });
-
-    doc.line(15, 30, 195, 30);
-
-    let yPosition = 38;
-
+    // Draw each category and its items as cards
     Object.entries(categorizedItems).forEach(([category, items]) => {
-      doc.setFontSize(12);
-      doc.setTextColor(0, 0, 0);
+      // Category header
+      doc.setFontSize(14);
+      doc.setTextColor(255, 165, 0);
       doc.text(`${category}`, 15, yPosition);
-      yPosition += 5;
+      yPosition += 10;
 
-      const tableData = items.map((item) => [
-        item.name,
-        item.quantity,
-        `₹${item.price.toLocaleString("en-IN")}`,
-        `₹${(item.price * item.quantity).toLocaleString("en-IN")}`,
-      ]);
+      // Draw items as cards
+      items.forEach((item, index) => {
+        // Check if we need a new page
+        if (yPosition > 250) {
+          doc.addPage();
+          yPosition = 20;
+        }
 
-      autoTable(doc, {
-        startY: yPosition,
-        head: [["Item", "Qty", "Unit Price", "Total"]],
-        body: tableData,
-        headStyles: {
-          fillColor: [255, 165, 0],
-          textColor: [255, 255, 255],
-          fontSize: 10,
-        },
-        bodyStyles: {
-          fontSize: 9,
-        },
-        margin: { left: 15, right: 15 },
-        styles: {
-          cellPadding: 2,
-          lineWidth: 0.1,
-        },
-        columnStyles: {
-          0: { cellWidth: "auto" },
-          1: { cellWidth: 15 },
-          2: { cellWidth: 25 },
-          3: { cellWidth: 25 },
-        },
+        // Card background (light gray rectangle)
+        doc.setFillColor(248, 249, 250); // Light gray
+        doc.setDrawColor(200, 200, 200); // Border color
+        doc.setLineWidth(0.5);
+        doc.roundedRect(15, yPosition - 5, 180, 35, 3, 3, "FD"); // Rounded rectangle with fill and border
+
+        // Item details
+        doc.setFontSize(12);
+        doc.setTextColor(0, 0, 0);
+        doc.text(item.name, 20, yPosition + 5);
+
+        doc.setFontSize(10);
+        doc.setTextColor(100, 100, 100);
+        doc.text(`Category: ${item.category}`, 20, yPosition + 15);
+
+        // Quantity and price info (right side of card)
+        doc.setFontSize(11);
+        doc.setTextColor(0, 0, 0);
+        doc.text(`Qty: ${item.quantity}`, 130, yPosition + 5);
+        doc.text(
+          `Unit Price: ₹${item.price.toLocaleString("en-IN")}`,
+          130,
+          yPosition + 15
+        );
+
+        // Total price (highlighted)
+        doc.setFontSize(12);
+        doc.setTextColor(255, 165, 0); // Orange color
+        doc.text(
+          `Total: ₹${(item.price * item.quantity).toLocaleString("en-IN")}`,
+          130,
+          yPosition + 25
+        );
+
+        yPosition += 45; // Space between cards
       });
 
-      yPosition = doc.lastAutoTable.finalY + 5;
+      yPosition += 5; // Extra space between categories
     });
 
-    doc.setFontSize(12);
-    doc.text("Order Summary", 15, yPosition);
+    // Summary section - ensure it fits on current page
+    if (yPosition > 200) {
+      doc.addPage();
+      yPosition = 20;
+    }
+
+    // Add some space before summary
     yPosition += 5;
 
-    autoTable(doc, {
-      startY: yPosition,
-      body: [
-        ["Subtotal:", `₹${getTotalPrice().toLocaleString("en-IN")}`],
-        ["Total:", `₹${(getTotalPrice() * 1.1).toFixed(2)}`],
-      ],
-      margin: { left: 15, right: 15 },
-      styles: {
-        fontSize: 10,
-        cellPadding: 3,
-        halign: "right",
-      },
-      columnStyles: {
-        0: { cellWidth: 40, fontStyle: "bold", halign: "left" },
-        1: { cellWidth: 30, halign: "right" },
-      },
-    });
+    // Summary card
+    doc.setFillColor(255, 245, 235); // Light orange background
+    doc.setDrawColor(255, 165, 0); // Orange border
+    doc.setLineWidth(1);
+    doc.roundedRect(15, yPosition, 180, 60, 5, 5, "FD");
 
-    doc.setFontSize(8);
-    doc.setTextColor(100);
+    doc.setFontSize(16);
+    doc.setTextColor(255, 165, 0);
+    doc.text("Order Summary", 105, yPosition + 18, { align: "center" });
+
+    doc.setFontSize(12);
+    doc.setTextColor(0, 0, 0);
+    doc.text(`Total Items: ${getTotalItems()}`, 25, yPosition + 35);
     doc.text(
-      "Thank you for your purchase!",
+      `Subtotal: ₹${getTotalPrice().toLocaleString("en-IN")}`,
+      25,
+      yPosition + 45
+    );
+
+    // Final total (properly aligned)
+    doc.setFontSize(14);
+    doc.setTextColor(255, 165, 0);
+    doc.text(
+      `Grand Total: ₹${getTotalPrice().toLocaleString("en-IN")}`,
+      170,
+      yPosition + 45,
+      { align: "right" }
+    );
+
+    // Footer
+    doc.setFontSize(10);
+    doc.setTextColor(100, 100, 100);
+    doc.text(
+      "Thank you for your purchase! Enjoy your movie!",
       105,
-      doc.internal.pageSize.height - 15,
+      doc.internal.pageSize.height - 20,
+      { align: "center" }
+    );
+    doc.text(
+      "Visit us again for more delicious snacks!",
+      105,
+      doc.internal.pageSize.height - 10,
       { align: "center" }
     );
 
+    // Save the PDF
     doc.save(`snack_order_${new Date().getTime()}.pdf`);
   };
 
@@ -333,7 +435,7 @@ export default function SnacksPage() {
       <div className="hidden lg:flex gap-6 h-[calc(110vh-180px)]">
         {/* Left Side - Snacks Grid */}
         <div className="w-2/3 overflow-y-auto pr-2">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:gap-6">
+          <div className="grid grid-cols-4 gap-4 lg:gap-6">
             {filteredSnacks.map((snack) => (
               <div
                 key={snack.id}
@@ -343,7 +445,7 @@ export default function SnacksPage() {
                   <img
                     src={snack.image}
                     alt={snack.name}
-                    className="w-full h-40 sm:h-48 object-cover"
+                    className="w-full h-36 sm:h-40 object-cover"
                   />
                   {snack.stock < 10 && (
                     <div className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded">
@@ -353,12 +455,12 @@ export default function SnacksPage() {
                 </div>
 
                 <div className="p-4">
-                  <h3 className="text-lg font-semibold mb-2 truncate">
+                  <h3 className="text-md font-semibold truncate">
                     {snack.name}
                   </h3>
 
-                  <div className="flex justify-between items-center mb-3">
-                    <span className="text-xl font-medium text-orange-600">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-lg font-medium text-orange-600">
                       ₹{snack.price}
                     </span>
                     <span className="text-sm text-gray-500">
@@ -384,7 +486,7 @@ export default function SnacksPage() {
 
         {/* Right Side - Cart Panel */}
         <div className="w-1/3">
-          <div className="bg-white rounded-lg shadow-md p-4 h-full max-h-[70vh] sticky top-24 flex flex-col">
+          <div className="bg-white rounded-lg shadow-md p-4 h-full max-h-full sticky top-24 flex flex-col">
             <div className="border-b pb-4 mb-4">
               <h2 className="text-xl font-semibold">Your Cart</h2>
             </div>
@@ -425,7 +527,7 @@ export default function SnacksPage() {
                           onClick={() =>
                             updateQuantity(item.id, item.quantity - 1)
                           }
-                          className="w-8 h-8 bg-gray-200 rounded flex items-center justify-center hover:bg-gray-300"
+                          className="w-4 h-4 bg-gray-200 rounded flex items-center justify-center hover:bg-gray-300"
                         >
                           <Minus size={16} />
                         </button>
@@ -438,7 +540,7 @@ export default function SnacksPage() {
                           onClick={() =>
                             updateQuantity(item.id, item.quantity + 1)
                           }
-                          className="w-8 h-8 bg-gray-200 rounded flex items-center justify-center hover:bg-gray-300"
+                          className="w-4 h-4 bg-gray-200 rounded flex items-center justify-center hover:bg-gray-300"
                         >
                           <Plus size={16} />
                         </button>
@@ -487,7 +589,7 @@ export default function SnacksPage() {
 
       {/* Mobile View - Single Column */}
       <div className="lg:hidden">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:gap-6">
+        <div className="grid grid-cols-2 gap-4 lg:gap-6">
           {filteredSnacks.map((snack) => (
             <div
               key={snack.id}

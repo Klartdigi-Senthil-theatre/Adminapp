@@ -99,7 +99,6 @@ const ShowTimePage = () => {
     <div className="p-4 lg:p-6">
       <PageHeader title="Movie Showtimes" />
       <div className="flex flex-col lg:flex-row gap-6">
-
         {/* Calendar: Same as your code */}
         <div className="bg-white rounded-lg shadow-md p-4 lg:w-1/3">
           <div className="flex justify-between items-center mb-4">
@@ -139,12 +138,16 @@ const ShowTimePage = () => {
                 key={i}
                 onClick={() => handleDateSelect(day)}
                 className={`p-2 rounded-full text-center
-                   ${isSameDay(day, selectedDate)
-                    ? "bg-orange-600 text-white border hover:border-orange-600 hover:text-black"
-                    : ""
-                  }
-                   ${!isCurrentMonth(day) ? "text-gray-400" : "hover:bg-gray-100"
-                  }
+                   ${
+                     isSameDay(day, selectedDate)
+                       ? "bg-orange-600 text-white border hover:border-orange-600 hover:text-black"
+                       : ""
+                   }
+                   ${
+                     !isCurrentMonth(day)
+                       ? "text-gray-400"
+                       : "hover:bg-gray-100"
+                   }
                    ${isSameDay(day, moment()) ? "border border-orange-500" : ""}
                  `}
                 disabled={!isCurrentMonth(day)}
@@ -170,36 +173,49 @@ const ShowTimePage = () => {
             Showtimes for {selectedDate.format("dddd, MMMM D")}
           </h2>
 
+          <h2 className="font-semibold mb-4">
+            Price -{" "}
+            <span className="text-orange-600">
+              ₹ 250 <span className="text-sm text-gray-600 font-normal">(Per Ticket)</span>
+            </span>
+          </h2>
+
           <div className="flex flex-col gap-3">
-            {["10:00 AM", "1:30 PM", "5:00 PM", "8:30 PM"].map((time, index) => {
-              const assignedMovie = assignedTimes[time];
+            {["10:00 AM", "1:30 PM", "5:00 PM", "8:30 PM"].map(
+              (time, index) => {
+                const assignedMovie = assignedTimes[time];
 
-              return (
-                <div
-                  key={index}
-                  className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border p-3 rounded-lg"
-                >
-                  {/* Show timing label */}
-                  <div className="text-sm font-semibold">{time}</div>
+                return (
+                  <div
+                    key={index}
+                    className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border p-3 rounded-lg"
+                  >
+                    {/* Show timing label */}
+                    <div className="text-sm font-semibold">{time}</div>
 
-                  {/* Dropdown */}
-                  <CustomDropdown
-                    value={assignedMovie?.id}
-                    onChange={(id) => {
-                      const selectedMovie = allPossibleMovies.find(m => m.id === id);
-                      setAssignedTimes(prev => ({
-                        ...prev,
-                        [time]: selectedMovie ? {
-                          id: selectedMovie.id,
-                          title: selectedMovie.title
-                        } : null
-                      }));
-                    }}
-                    options={allPossibleMovies}
-                  />
-                </div>
-              );
-            })}
+                    {/* Dropdown */}
+                    <CustomDropdown
+                      value={assignedMovie?.id}
+                      onChange={(id) => {
+                        const selectedMovie = allPossibleMovies.find(
+                          (m) => m.id === id
+                        );
+                        setAssignedTimes((prev) => ({
+                          ...prev,
+                          [time]: selectedMovie
+                            ? {
+                                id: selectedMovie.id,
+                                title: selectedMovie.title,
+                              }
+                            : null,
+                        }));
+                      }}
+                      options={allPossibleMovies}
+                    />
+                  </div>
+                );
+              }
+            )}
           </div>
         </div>
       </div>
