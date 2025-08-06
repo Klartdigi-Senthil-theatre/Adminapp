@@ -25,9 +25,10 @@ import { BiCameraMovie } from "react-icons/bi";
 import { DateRange } from "react-date-range";
 import "react-date-range/dist/styles.css";
 import "react-date-range/dist/theme/default.css";
+import { ImPieChart } from "react-icons/im";
 
 const PageHeader = ({ title, className }) => (
-  <h1 className={`text-2xl font-bold text-gray-800 ${className}`}>{title}</h1>
+  <h1 className={`text-sm sm:text-xl md:text-2xl font-bold text-gray-800 ${className}`}>{title}</h1>
 );
 
 const DashboardPage = () => {
@@ -467,7 +468,7 @@ const DashboardPage = () => {
         <div className="flex items-center gap-2">
           <button
             onClick={handleLifetime}
-            className={`border rounded-md px-3 py-1 text-sm flex items-center gap-2 hover:bg-gray-50 ${
+            className={`border rounded-md px-3 py-1 text-sm flex items-center gap-2 text-orange-600 hover:border-gray-600 hover:text-black ${
               isLifetime ? "bg-gray-100" : ""
             }`}          >
             Lifetime
@@ -478,7 +479,7 @@ const DashboardPage = () => {
               onClick={(e) => {
                 e.stopPropagation(); 
                 setShowDatePicker(!showDatePicker)}}
-              className="border rounded-md px-3 py-1 text-sm flex items-center gap-2 hover:bg-gray-50"
+              className="border rounded-md px-3 py-1 text-sm flex items-center gap-2 hover:border-blue-600"
             >
               <Calendar size={16} />
               <span>{formatDateRangeDisplay()}</span>
@@ -502,14 +503,6 @@ const DashboardPage = () => {
                   maxDate={maxAvailableDate}
                   rangeColors={["#3b82f6"]}
                 />
-                {/* <div className="p-2 border-t">
-                  <button
-                    onClick={() => setShowDatePicker(false)}
-                    className="w-full bg-blue-600 text-white py-2 px-4 rounded text-sm hover:bg-blue-700"
-                  >
-                    Apply Filter
-                  </button>
-                </div> */}
               </div>
             )}
           </div>
