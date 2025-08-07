@@ -62,7 +62,7 @@ const MoviePage = () => {
     // Create FormData object
     const formDataToSend = new FormData();
     formDataToSend.append('movieName', formData.movieName);
-    formDataToSend.append('duration', formData.duration);
+    formDataToSend.append('duration', parseInt(formData.duration));
     formDataToSend.append('language', formData.language);
     formDataToSend.append('certificate', formData.certificate);
 
