@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Plus,
   Edit,
@@ -10,162 +10,114 @@ import {
   Mail,
   Phone,
 } from "lucide-react";
-import moment from "moment";
 import PageHeader from "../components/PageHeader";
-import CustomDropdown from "../components/CustomDropdown";
+import api from "../config/api";
+import moment from "moment";
 
 // User Page Component
 const UserPage = () => {
-  const [users, setUsers] = useState([
-    {
-      id: 1,
-      fullName: "John Smith",
-      email: "john.smith@example.com",
-      phone: "+1 (555) 123-4567",
-      role: "Admin",
-      password: "john@123",
-      lastLogin: "2024-07-25",
-    },
-    {
-      id: 2,
-      fullName: "Sarah Johnson",
-      email: "sarah.johnson@example.com",
-      phone: "+1 (555) 234-5678",
-      role: "Manager",
-      password: "sarh@123",
-      lastLogin: "2024-07-24",
-    },
-    {
-      id: 3,
-      fullName: "Mike Wilson",
-      email: "mike.wilson@example.com",
-      phone: "+1 (555) 345-6789",
-      role: "User",
-      password: "Mike@53452",
-      lastLogin: "2024-07-20",
-    },
-    {
-      id: 4,
-      fullName: "Emily Davis",
-      email: "emily.davis@example.com",
-      phone: "+1 (555) 456-7890",
-      role: "User",
-      password: "Emil@0854",
-      lastLogin: "2024-07-25",
-    },
-  ]);
-
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [showDialog, setShowDialog] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterRole, setFilterRole] = useState("All");
-  const [filterStatus, setFilterStatus] = useState("All");
   const [formData, setFormData] = useState({
-    fullName: "",
-    email: "",
-    phone: "",
-    role: "User",
-    password: "",
+    name: "",
+    emailId: "",
+    phoneNumber: "",
   });
 
-  const roleOptions = [
-    { id: "All", title: "All Roles" },
-    { id: "Admin", title: "Admin" },
-    { id: "Manager", title: "Manager" },
-    { id: "User", title: "User" }
-  ];
+  // Fetch users on component mount
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const data = await api.get('/users');
+        setUsers(data);
+        setLoading(false);
+      } catch (err) {
+        setError(err.message);
+        setLoading(false);
+      }
+    };
 
-  const formRoleOptions = [
-    { id: "Admin", title: "Admin" },
-    { id: "Manager", title: "Manager" },
-    { id: "User", title: "User" }
-  ];
+    fetchUsers();
+  }, []);
 
-  const handleSubmit = () => {
-    if (
-      !formData.fullName ||
-      !formData.email ||
-      !formData.role ||
-      !formData.password
-    ) {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!formData.name || !formData.emailId || !formData.phoneNumber) {
       alert("Please fill in all required fields");
       return;
     }
-
-    const userData = {
-      ...formData,
-      lastLogin: new Date().toISOString().split("T")[0],
-    };
-
-    if (editingUser) {
-      setUsers(
-        users.map((user) =>
-          user.id === editingUser.id ? { ...user, ...userData } : user
-        )
-      );
-    } else {
-      const newUser = {
-        id: Date.now(),
-        ...userData,
-      };
-      setUsers([...users, newUser]);
+    
+    try {
+      if (editingUser) {
+        const updatedUser = await api.put(`/users/${editingUser.id}`, formData);
+        setUsers(users.map((user) => (user.id === editingUser.id ? updatedUser : user)));
+      } else {
+        const newUser = await api.post('/users', formData);
+        setUsers([...users, newUser]);
+      }
+      resetForm();
+    } catch (error) {
+      console.error("Error saving user:", error);
+      alert("Failed to save user. Please try again.");
     }
-    resetForm();
   };
 
   const resetForm = () => {
     setFormData({
-      fullName: "",
-      email: "",
-      phone: "",
-      role: "User",
-      password: "",
+      name: "",
+      emailId: "",
+      phoneNumber: "",
     });
     setShowDialog(false);
     setEditingUser(null);
   };
 
-  const handleEdit = (user) => {
-    setEditingUser(user);
-    setFormData({
-      fullName: user.fullName,
-      email: user.email,
-      phone: user.phone,
-      role: user.role,
-      password: user.password,
-    });
-    setShowDialog(true);
+  const handleEdit = async (user) => {
+    try {
+      const userData = await api.get(`/users/${user.id}`);
+      setEditingUser(userData);
+      setFormData({
+        name: userData.name || userData.fullName, // Handle both field names
+        emailId: userData.emailId,
+        phoneNumber: userData.phoneNumber,
+      });
+      setShowDialog(true);
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      alert("Failed to load user for editing.");
+    }
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (confirm("Are you sure you want to delete this user?")) {
-      setUsers(users.filter((user) => user.id !== id));
+      try {
+        await api.delete(`/users/${id}`);
+        setUsers(users.filter((user) => user.id !== id));
+      } catch (error) {
+        console.error("Error deleting user:", error);
+        alert("Failed to delete user. Please try again.");
+      }
     }
   };
 
-  const getRoleColor = (role) => {
-    switch (role) {
-      case "Admin":
-        return "bg-red-100 text-red-800";
-      case "Manager":
-        return "bg-blue-100 text-blue-800";
-      case "User":
-        return "bg-green-100 text-green-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
-
+  // Filter users based on search term
   const filteredUsers = users.filter((user) => {
-    const matchesSearch =
-      user.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.password.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesRole = filterRole === "All" || user.role === filterRole;
-    const matchesStatus =
-      filterStatus === "All" || user.status === filterStatus;
-    return matchesSearch && matchesRole && matchesStatus;
+    const searchTermLower = searchTerm.toLowerCase();
+    return (
+      (user.name && user.name.toLowerCase().includes(searchTermLower)) ||
+      (user.fullName && user.fullName.toLowerCase().includes(searchTermLower)) ||
+      (user.emailId && user.emailId.toLowerCase().includes(searchTermLower)) ||
+      (user.phoneNumber && user.phoneNumber.toString().includes(searchTerm))
+    );
   });
+
+  if (loading) return <div className="p-4">Loading users...</div>;
+  if (error) return <div className="p-4 text-red-500">Error: {error}</div>;
 
   return (
     <div className="p-4 lg:p-6">
@@ -183,7 +135,7 @@ const UserPage = () => {
       </div>
 
       {/* Search and Filter */}
-      <div className="bg-white rounded-lg shadow-md p-4 mb-6">
+      <div className="rounded-lg w-xs mb-6">
         <div className="flex flex-col lg:flex-row gap-4">
           <div className="flex-1 relative">
             <Search
@@ -192,20 +144,11 @@ const UserPage = () => {
             />
             <input
               type="text"
-              placeholder="Search users ..."
+              placeholder="Search users..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-70 pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+              className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
             />
-          </div>
-          <div className="flex gap-4">
-            <div className="relative">
-              <CustomDropdown
-                value={filterRole}
-                onChange={setFilterRole}
-                options={roleOptions}
-              />
-            </div>
           </div>
         </div>
       </div>
@@ -220,19 +163,13 @@ const UserPage = () => {
                   Full Name
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Email
+                  Email ID
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Phone
+                  Phone Number
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Role
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Password
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Last Login
+                  Date
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Actions
@@ -244,35 +181,23 @@ const UserPage = () => {
                 <tr key={user.id} className="hover:bg-gray-50">
                   <td className="px-4 py-4">
                     <div className="text-sm font-medium text-gray-900">
-                      {user.fullName}
+                      {user.name || user.fullName}
                     </div>
                   </td>
                   <td className="px-4 py-4">
                     <div className="text-sm text-gray-600 flex items-center">
                       <Mail size={14} className="mr-2 text-gray-400" />
-                      {user.email}
+                      {user.emailId}
                     </div>
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-600 flex items-center">
                       <Phone size={14} className="mr-2 text-gray-400" />
-                      {user.phone || "N/A"}
+                      {user.phoneNumber}
                     </div>
-                  </td>
-                  <td className="px-4 py-4 whitespace-nowrap">
-                    <span
-                      className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getRoleColor(
-                        user.role
-                      )}`}
-                    >
-                      {user.role}
-                    </span>
-                  </td>
-                  <td className="px-4 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-600">{user.password}</div>
-                  </td>
+                  </td>                  
                   <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-600">
-                    {moment(user.lastLogin).calendar()}
+                    {moment(user.createdAt).format("MMM D, YYYY")}
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex space-x-2">
@@ -323,16 +248,16 @@ const UserPage = () => {
                 </button>
               </div>
 
-              <div className="space-y-4">
+              <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium mb-1">
                     Full Name *
                   </label>
                   <input
                     type="text"
-                    value={formData.fullName}
+                    value={formData.name}
                     onChange={(e) =>
-                      setFormData({ ...formData, fullName: e.target.value })
+                      setFormData({ ...formData, name: e.target.value })
                     }
                     className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                     placeholder="Enter full name"
@@ -346,9 +271,9 @@ const UserPage = () => {
                   </label>
                   <input
                     type="email"
-                    value={formData.email}
+                    value={formData.emailId}
                     onChange={(e) =>
-                      setFormData({ ...formData, email: e.target.value })
+                      setFormData({ ...formData, emailId: e.target.value })
                     }
                     className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                     placeholder="Enter email address"
@@ -358,50 +283,38 @@ const UserPage = () => {
 
                 <div>
                   <label className="block text-sm font-medium mb-1">
-                    Phone Number
+                    Phone Number *
                   </label>
                   <input
-                    type="tel"
-                    value={formData.phone}
-                    onChange={(e) =>
-                      setFormData({ ...formData, phone: e.target.value })
-                    }
+                    type="number"
+                    value={formData.phoneNumber}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      // Only allow up to 10 digits
+                      if (value.length <= 10) {
+                        setFormData({ ...formData, phoneNumber: value });
+                      }
+                    }}
                     className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                    placeholder="Enter phone number"
+                    placeholder="Enter 10-digit phone number"
+                    required
+                    min="0"
+                    max="9999999999"
+                    onInput={(e) => {
+                      // Remove any non-numeric characters and limit to 10 digits
+                      e.target.value = e.target.value.replace(/[^0-9]/g, '').slice(0, 10);
+                    }}
                   />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-1">
-                    Role *
-                  </label>
-                  <CustomDropdown
-                    value={formData.role}
-                    onChange={(value) => setFormData({ ...formData, role: value })}
-                    options={formRoleOptions}
-                    placeholder="Select role"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-1">
-                    Password *
-                  </label>
-                  <input
-                    type="password"
-                    value={formData.password}
-                    onChange={(e) =>
-                      setFormData({ ...formData, password: e.target.value })
-                    }
-                    className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                    placeholder="Enter password"
-                  />
+                  {formData.phoneNumber && formData.phoneNumber.length < 10 && (
+                    <p className="text-xs text-red-500 mt-1">
+                      Phone number must be exactly 10 digits
+                    </p>
+                  )}
                 </div>
 
                 <div className="flex space-x-3 pt-4">
                   <button
-                    type="button"
-                    onClick={handleSubmit}
+                    type="submit"
                     className="flex-1 bg-orange-600 text-white py-3 px-4 rounded-lg hover:bg-orange-700 font-medium"
                   >
                     {editingUser ? "Update User" : "Add User"}
@@ -414,7 +327,7 @@ const UserPage = () => {
                     Cancel
                   </button>
                 </div>
-              </div>
+              </form>
             </div>
           </div>
         </div>

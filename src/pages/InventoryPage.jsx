@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Plus,
   Edit,
@@ -6,74 +6,33 @@ import {
   X,
   Search,
   Package,
-  AlertTriangle
+  AlertTriangle,
 } from "lucide-react";
 import moment from "moment";
 import PageHeader from "../components/PageHeader";
 import CustomDropdown from "../components/CustomDropdown";
+import api from "../config/api"; // Import the global API file
 
 // Inventory Page Component
 const InventoryPage = () => {
-  const [inventory, setInventory] = useState([
-    {
-      id: 1,
-      itemName: "Popcorn - Large",
-      category: "Snacks",
-      quantity: 150,
-      unitPrice: 8.99,
-      minStock: 20,
-      supplier: "Snack Co.",
-      status: "In Stock",
-      lastUpdated: "2024-07-25",
-    },
-    {
-      id: 2,
-      itemName: "Coca Cola - 500ml",
-      category: "Beverages",
-      quantity: 12,
-      unitPrice: 3.5,
-      minStock: 50,
-      supplier: "Beverage Corp",
-      status: "Low Stock",
-      lastUpdated: "2024-07-24",
-    },
-    {
-      id: 3,
-      itemName: "Nachos with Cheese",
-      category: "Snacks",
-      quantity: 0,
-      unitPrice: 12.99,
-      minStock: 15,
-      supplier: "Snack Co.",
-      status: "Out of Stock",
-      lastUpdated: "2024-07-23",
-    },
-    {
-      id: 4,
-      itemName: "Movie Theater Butter",
-      category: "Supplies",
-      quantity: 75,
-      unitPrice: 15.5,
-      minStock: 10,
-      supplier: "Supply World",
-      status: "In Stock",
-      lastUpdated: "2024-07-25",
-    },
-  ]);
-
+  const [inventory, setInventory] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [showDialog, setShowDialog] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterCategory, setFilterCategory] = useState("All");
   const [filterStatus, setFilterStatus] = useState("All");
+  const [submitting, setSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     itemName: "",
+    image: "",
     category: "",
     quantity: "",
     unitPrice: "",
-    minStock: "",
+    minimumStockLevel: "",
     supplier: "",
-    status: "In Stock",
+    visibility: true,
   });
 
   const categories = [
@@ -90,19 +49,40 @@ const InventoryPage = () => {
     { id: "Beverages", title: "Beverages" },
     { id: "Supplies", title: "Supplies" },
     { id: "Cleaning", title: "Cleaning" },
-    { id: "Equipment", title: "Equipment" }
+    { id: "Equipment", title: "Equipment" },
   ];
 
   const statusOptions = [
     { id: "All", title: "All Status" },
     { id: "In Stock", title: "In Stock" },
     { id: "Low Stock", title: "Low Stock" },
-    { id: "Out of Stock", title: "Out of Stock" }
+    { id: "Out of Stock", title: "Out of Stock" },
   ];
 
-  const handleSubmit = () => {
+  // Fetch inventory data using the global API
+  const fetchInventory = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await api.get('/inventory');
+      setInventory(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error('Error fetching inventory:', err);
+      setError(err.message || 'Failed to fetch inventory data');
+      setInventory([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchInventory();
+  }, []);
+
+  const handleSubmit = async () => {
+    // Validate required fields
     if (
-      !formData.itemName ||
+      !formData.itemName.trim() ||
       !formData.category ||
       !formData.quantity ||
       !formData.unitPrice
@@ -111,87 +91,171 @@ const InventoryPage = () => {
       return;
     }
 
+    // Validate numeric fields
+    const quantity = parseInt(formData.quantity);
+    const unitPrice = parseFloat(formData.unitPrice);
+    const minimumStockLevel = parseInt(formData.minimumStockLevel) || 0;
+
+    if (isNaN(quantity) || quantity < 0) {
+      alert("Please enter a valid quantity");
+      return;
+    }
+
+    if (isNaN(unitPrice) || unitPrice < 0) {
+      alert("Please enter a valid unit price");
+      return;
+    }
+
     const itemData = {
-      ...formData,
-      quantity: parseInt(formData.quantity),
-      unitPrice: parseFloat(formData.unitPrice),
-      minStock: parseInt(formData.minStock) || 0,
-      lastUpdated: new Date().toISOString().split("T")[0],
+      itemName: formData.itemName.trim(),
+      image: formData.image.trim(),
+      category: formData.category,
+      quantity: quantity,
+      unitPrice: unitPrice,
+      minimumStockLevel: minimumStockLevel,
+      supplier: formData.supplier.trim(),
+      visibility: formData.visibility,
+      updatedAt: new Date().toISOString(), // Add timestamp
     };
 
-    if (editingItem) {
-      setInventory(
-        inventory.map((item) =>
-          item.id === editingItem.id ? { ...item, ...itemData } : item
-        )
-      );
-    } else {
-      const newItem = {
-        id: Date.now(),
-        ...itemData,
-      };
-      setInventory([...inventory, newItem]);
+    try {
+      setSubmitting(true);
+      
+      if (editingItem) {
+        // Update existing item
+        const updatedItem = await api.put(`/inventory/${editingItem.id}`, itemData);
+        
+        // Update local state with the response data or merge with existing data
+        const finalUpdatedItem = {
+          ...editingItem,
+          ...itemData,
+          ...updatedItem,
+          id: editingItem.id, // Ensure ID is preserved
+        };
+        
+        setInventory(prevInventory =>
+          prevInventory.map(item =>
+            item.id === editingItem.id ? finalUpdatedItem : item
+          )
+        );
+      } else {
+        // Create new item
+        const newItem = await api.post('/inventory', itemData);
+        
+        // Create a complete item object
+        const finalNewItem = {
+          ...itemData,
+          ...newItem,
+          id: newItem.id || Date.now(), // Use API response ID or generate one
+          createdAt: newItem.createdAt || new Date().toISOString(),
+          updatedAt: newItem.updatedAt || new Date().toISOString(),
+        };
+        
+        setInventory(prevInventory => [...prevInventory, finalNewItem]);
+      }
+      
+      resetForm();
+      
+      // Optional: Show success message
+      alert(editingItem ? 'Item updated successfully!' : 'Item added successfully!');
+      
+    } catch (err) {
+      console.error('Error saving item:', err);
+      alert(`Error: ${err.message || 'Failed to save item'}`);
+    } finally {
+      setSubmitting(false);
     }
-    resetForm();
   };
 
   const resetForm = () => {
     setFormData({
       itemName: "",
+      image: "",
       category: "",
       quantity: "",
       unitPrice: "",
-      minStock: "",
+      minimumStockLevel: "",
       supplier: "",
-      status: "In Stock",
+      visibility: true,
     });
     setShowDialog(false);
     setEditingItem(null);
   };
 
   const handleEdit = (item) => {
-    setEditingItem(item);
-    setFormData({
-      itemName: item.itemName,
-      category: item.category,
-      quantity: item.quantity.toString(),
-      unitPrice: item.unitPrice.toString(),
-      minStock: item.minStock.toString(),
-      supplier: item.supplier,
-      status: item.status,
-    });
-    setShowDialog(true);
-  };
+    if (!item) {
+      console.error('Item is null or undefined');
+      return;
+    }
 
-  const handleDelete = (id) => {
-    if (confirm("Are you sure you want to delete this inventory item?")) {
-      setInventory(inventory.filter((item) => item.id !== id));
+    try {
+      setEditingItem(item);
+      setFormData({
+        itemName: item.itemName || "",
+        image: item.image || "",
+        category: item.category || "",
+        quantity: (item.quantity || 0).toString(),
+        unitPrice: (item.unitPrice || 0).toString(),
+        minimumStockLevel: (item.minimumStockLevel || 0).toString(),
+        supplier: item.supplier || "",
+        visibility: item.visibility !== undefined ? item.visibility : true,
+      });
+      setShowDialog(true);
+    } catch (err) {
+      console.error('Error editing item:', err);
+      alert('Error opening item for editing');
     }
   };
 
-  const getStatusColor = (status, quantity, minStock) => {
+  const handleDelete = async (id) => {
+    if (!confirm("Are you sure you want to delete this inventory item?")) {
+      return;
+    }
+
+    try {
+      await api.delete(`/inventory/${id}`);
+      setInventory(prevInventory => 
+        prevInventory.filter(item => item.id !== id)
+      );
+      alert('Item deleted successfully!');
+    } catch (err) {
+      console.error('Error deleting item:', err);
+      alert(`Error: ${err.message || 'Failed to delete item'}`);
+    }
+  };
+
+  const getStatusColor = (quantity, minimumStockLevel) => {
     if (quantity === 0) return "bg-red-100 text-red-800";
-    if (quantity <= minStock) return "bg-yellow-100 text-yellow-800";
+    if (quantity <= minimumStockLevel) return "bg-yellow-100 text-yellow-800";
     return "bg-green-100 text-green-800";
   };
 
-  const getActualStatus = (quantity, minStock) => {
+  const getActualStatus = (quantity, minimumStockLevel) => {
     if (quantity === 0) return "Out of Stock";
-    if (quantity <= minStock) return "Low Stock";
+    if (quantity <= minimumStockLevel) return "Low Stock";
     return "In Stock";
   };
 
   const filteredInventory = inventory.filter((item) => {
+    if (!item) return false;
+    
+    const itemName = item.itemName || "";
+    const supplier = item.supplier || "";
+    const category = item.category || "";
+    
     const matchesSearch =
-      item.itemName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.supplier.toLowerCase().includes(searchTerm.toLowerCase());
+      itemName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      supplier.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory =
-      filterCategory === "All" || item.category === filterCategory;
-    const actualStatus = getActualStatus(item.quantity, item.minStock);
+      filterCategory === "All" || category === filterCategory;
+    const actualStatus = getActualStatus(item.quantity || 0, item.minimumStockLevel || 0);
     const matchesStatus =
       filterStatus === "All" || actualStatus === filterStatus;
     return matchesSearch && matchesCategory && matchesStatus;
   });
+
+  if (loading) return <div className="p-6">Loading...</div>;
+  if (error) return <div className="p-6 text-red-500">Error: {error}</div>;
 
   return (
     <div className="p-4 lg:p-6">
@@ -202,6 +266,7 @@ const InventoryPage = () => {
         <button
           onClick={() => setShowDialog(true)}
           className="bg-orange-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 hover:bg-orange-700"
+          disabled={submitting}
         >
           <Plus size={20} />
           <span>Add Item</span>
@@ -223,7 +288,7 @@ const InventoryPage = () => {
                 placeholder="Search items or suppliers..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-xs text-sm pl-10 pr-4 py-2 border rounded-lg focus:border-orange-500"
+                className="w-full text-sm pl-10 pr-4 py-2 border rounded-lg focus:border-orange-500"
               />
             </div>
           </div>
@@ -237,7 +302,7 @@ const InventoryPage = () => {
                   value={filterCategory}
                   onChange={setFilterCategory}
                   options={categoryOptions}
-                  className="pl-10" // Add padding for the filter icon
+                  className="pl-10"
                 />
               </div>
             </div>
@@ -249,7 +314,7 @@ const InventoryPage = () => {
                   value={filterStatus}
                   onChange={setFilterStatus}
                   options={statusOptions}
-                  className="pl-10" // Add padding for the package icon
+                  className="pl-10"
                 />
               </div>
             </div>
@@ -276,8 +341,9 @@ const InventoryPage = () => {
               <p className="text-sm text-gray-600">In Stock</p>
               <p className="text-2xl font-bold text-green-600">
                 {
-                  inventory.filter((item) => item.quantity > item.minStock)
-                    .length
+                  inventory.filter(
+                    (item) => (item?.quantity || 0) > (item?.minimumStockLevel || 0)
+                  ).length
                 }
               </p>
             </div>
@@ -292,7 +358,8 @@ const InventoryPage = () => {
                 {
                   inventory.filter(
                     (item) =>
-                      item.quantity > 0 && item.quantity <= item.minStock
+                      (item?.quantity || 0) > 0 &&
+                      (item?.quantity || 0) <= (item?.minimumStockLevel || 0)
                   ).length
                 }
               </p>
@@ -305,7 +372,7 @@ const InventoryPage = () => {
             <div>
               <p className="text-sm text-gray-600">Out of Stock</p>
               <p className="text-2xl font-bold text-red-600">
-                {inventory.filter((item) => item.quantity === 0).length}
+                {inventory.filter((item) => (item?.quantity || 0) === 0).length}
               </p>
             </div>
             <AlertTriangle className="text-red-500" size={32} />
@@ -353,43 +420,44 @@ const InventoryPage = () => {
                 <tr key={item.id} className="hover:bg-gray-50">
                   <td className="px-4 py-4">
                     <div className="text-sm font-medium text-gray-900">
-                      {item.itemName}
+                      {item.itemName || 'N/A'}
                     </div>
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-600">{item.category}</div>
+                    <div className="text-sm text-gray-600">{item.category || 'N/A'}</div>
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-gray-900">
-                      {item.quantity}
+                      {item.quantity || 0}
                     </div>
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-600">
-                      ${item.unitPrice.toFixed(2)}
+                      ₹{(item.unitPrice || 0).toFixed(2)}
                     </div>
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-600">{item.minStock}</div>
+                    <div className="text-sm text-gray-600">
+                      {item.minimumStockLevel || 0}
+                    </div>
                   </td>
                   <td className="px-4 py-4">
                     <div className="text-sm text-gray-600 max-w-xs truncate">
-                      {item.supplier}
+                      {item.supplier || 'N/A'}
                     </div>
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap">
                     <span
                       className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(
-                        item.status,
-                        item.quantity,
-                        item.minStock
+                        item.quantity || 0,
+                        item.minimumStockLevel || 0
                       )}`}
                     >
-                      {getActualStatus(item.quantity, item.minStock)}
+                      {getActualStatus(item.quantity || 0, item.minimumStockLevel || 0)}
                     </span>
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-600">
-                    {moment(item.lastUpdated).calendar()}
+                    {item.updatedAt ? moment(item.updatedAt).calendar() : 'N/A'}
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex space-x-2">
@@ -418,7 +486,9 @@ const InventoryPage = () => {
         {filteredInventory.length === 0 && (
           <div className="text-center py-8">
             <Package className="mx-auto text-gray-400 mb-4" size={48} />
-            <p className="text-gray-600">No inventory items found</p>
+            <p className="text-gray-600">
+              {inventory.length === 0 ? 'No inventory items found' : 'No items match your search criteria'}
+            </p>
           </div>
         )}
       </div>
@@ -435,6 +505,7 @@ const InventoryPage = () => {
                 <button
                   onClick={resetForm}
                   className="text-gray-500 hover:text-gray-700"
+                  disabled={submitting}
                 >
                   <X size={24} />
                 </button>
@@ -454,6 +525,22 @@ const InventoryPage = () => {
                     className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                     placeholder="Enter item name"
                     required
+                    disabled={submitting}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    Image URL
+                  </label>
+                  <input
+                    type="file"
+                    onChange={(e) =>
+                      setFormData({ ...formData, image: e.target.value })
+                    }
+                    className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                    placeholder="Enter image URL"
+                    disabled={submitting}
                   />
                 </div>
 
@@ -463,9 +550,12 @@ const InventoryPage = () => {
                   </label>
                   <CustomDropdown
                     value={formData.category}
-                    onChange={(value) => setFormData({ ...formData, category: value })}
-                    options={categories.map(cat => ({ id: cat, title: cat }))}
-                    placeholder="Select Category"
+                    onChange={(value) =>
+                      setFormData({ ...formData, category: value })
+                    }
+                    options={categories.map((cat) => ({ id: cat, title: cat }))}
+                    placeholder="Select category"
+                    disabled={submitting}
                   />
                 </div>
 
@@ -484,6 +574,7 @@ const InventoryPage = () => {
                       placeholder="0"
                       min="0"
                       required
+                      disabled={submitting}
                     />
                   </div>
                   <div>
@@ -501,6 +592,7 @@ const InventoryPage = () => {
                       placeholder="0.00"
                       min="0"
                       required
+                      disabled={submitting}
                     />
                   </div>
                 </div>
@@ -511,13 +603,17 @@ const InventoryPage = () => {
                   </label>
                   <input
                     type="number"
-                    value={formData.minStock}
+                    value={formData.minimumStockLevel}
                     onChange={(e) =>
-                      setFormData({ ...formData, minStock: e.target.value })
+                      setFormData({
+                        ...formData,
+                        minimumStockLevel: e.target.value,
+                      })
                     }
                     className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                     placeholder="0"
                     min="0"
+                    disabled={submitting}
                   />
                 </div>
 
@@ -533,6 +629,24 @@ const InventoryPage = () => {
                     }
                     className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                     placeholder="Enter supplier name"
+                    disabled={submitting}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    Visibility
+                  </label>
+                  <CustomDropdown
+                    value={formData.visibility ? "true" : "false"}
+                    onChange={(value) =>
+                      setFormData({ ...formData, visibility: value === "true" })
+                    }
+                    options={[
+                      { id: "true", title: "Visible" },
+                      { id: "false", title: "Hidden" },
+                    ]}
+                    disabled={submitting}
                   />
                 </div>
 
@@ -540,14 +654,19 @@ const InventoryPage = () => {
                   <button
                     type="button"
                     onClick={handleSubmit}
-                    className="flex-1 bg-orange-600 text-white py-3 px-4 rounded-lg hover:bg-orange-700 font-medium"
+                    className="flex-1 bg-orange-600 text-white py-3 px-4 rounded-lg hover:bg-orange-700 font-medium disabled:bg-gray-400"
+                    disabled={submitting}
                   >
-                    {editingItem ? "Update Item" : "Add Item"}
+                    {submitting 
+                      ? (editingItem ? "Updating..." : "Adding...") 
+                      : (editingItem ? "Update Item" : "Add Item")
+                    }
                   </button>
                   <button
                     type="button"
                     onClick={resetForm}
-                    className="flex-1 bg-gray-300 text-gray-700 py-3 px-4 rounded-lg hover:bg-gray-400 font-medium"
+                    className="flex-1 bg-gray-300 text-gray-700 py-3 px-4 rounded-lg hover:bg-gray-400 font-medium disabled:bg-gray-200"
+                    disabled={submitting}
                   >
                     Cancel
                   </button>

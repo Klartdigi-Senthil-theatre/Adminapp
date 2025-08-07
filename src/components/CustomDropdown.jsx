@@ -35,7 +35,7 @@ const CustomDropdown = ({ value, onChange, options }) => {
         onClick={() => setIsOpen((prev) => !prev)}
       >
         <span className="truncate">
-          {selectedOption?.title || "Select Movie"}
+          {selectedOption?.title || "Select"}
         </span>
         <span className="ml-2 text-gray-500 transition-transform duration-200">
           {isOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
