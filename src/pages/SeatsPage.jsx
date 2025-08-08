@@ -1,11 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Users, Eye, Calendar, Clock, Film } from "lucide-react";
 import TimingDropDown from "../components/TimingDropDown";
 import BookingPopup from "../dialog/BookingPopup";
 import { notify } from "../components/Notification";
+import api from "../config/api";
 
 // Seat Layout Component (recreated without framer-motion)
-const SeatLayout = ({ selectedSeats, onSeatSelect }) => {
+const SeatLayout = ({ selectedSeats, onSeatSelect, bookedSeats = [] }) => {
   // Define rows with their specific configurations
   const rows = [
     { letter: "A", leftSeats: 10, rightSeats: 10, hasGap: true },
@@ -33,13 +34,6 @@ const SeatLayout = ({ selectedSeats, onSeatSelect }) => {
       centerAlign: true,
     },
   ];
-
-  const confirmBooking = () => {
-    notify.success(`Booking confirmed for seats: ${selectedSeats.join(", ")}`);
-    setSelectedSeats([]);
-    setAmountReceived("");
-    setShowBookingPopup(false);
-  };
 
   return (
     <div className="w-full overflow-x-auto py-1 animate-fadeIn">
@@ -95,15 +89,20 @@ const SeatLayout = ({ selectedSeats, onSeatSelect }) => {
 
                 {leftSeats.map((seat, seatIndex) => {
                   const isSelected = selectedSeats.includes(seat.id);
+                  const isBooked = bookedSeats.includes(seat.id);
+                  
                   return (
                     <div key={seat.id} className="px-0.5 py-1">
                       <button
                         className={`relative w-6 h-6 flex justify-center items-center rounded-t-lg rounded-b-sm font-bold text-xs border-2 transition-all duration-200 shadow-sm animate-seatPop ${
-                          isSelected
+                          isBooked
+                            ? "bg-gradient-to-b from-gray-300 to-gray-500 text-white border-gray-700 cursor-not-allowed"
+                            : isSelected
                             ? "bg-gradient-to-b from-orange-400 to-orange-600 text-white border-orange-700 shadow-lg scale-105"
                             : "bg-gradient-to-b from-orange-100 to-orange-200 text-orange-800 border-orange-300 hover:border-orange-500 hover:from-orange-200 hover:to-orange-300 hover:shadow-md hover:scale-110"
                         }`}
-                        onClick={() => onSeatSelect(seat.id)}
+                        onClick={() => !isBooked && onSeatSelect(seat.id)}
+                        disabled={isBooked}
                         style={{
                           animationDelay: `${rowIndex * 50 + seatIndex * 10}ms`,
                         }}
@@ -114,7 +113,11 @@ const SeatLayout = ({ selectedSeats, onSeatSelect }) => {
                         {/* Seat cushion effect */}
                         <div
                           className={`absolute bottom-0 left-0.5 right-0.5 h-1.5 rounded-sm ${
-                            isSelected ? "bg-orange-700" : "bg-orange-300"
+                            isBooked
+                              ? "bg-gray-600"
+                              : isSelected
+                              ? "bg-orange-700"
+                              : "bg-orange-300"
                           }`}
                         />
                       </button>
@@ -134,15 +137,20 @@ const SeatLayout = ({ selectedSeats, onSeatSelect }) => {
               <div className={`flex ${row.centerAlign ? "pr-3" : ""}`}>
                 {rightSeats.map((seat, seatIndex) => {
                   const isSelected = selectedSeats.includes(seat.id);
+                  const isBooked = bookedSeats.includes(seat.id);
+                  
                   return (
                     <div key={seat.id} className="px-0.5 py-1">
                       <button
                         className={`relative w-6 h-6 flex justify-center items-center rounded-t-lg rounded-b-sm font-bold text-xs border-2 transition-all duration-200 shadow-sm animate-seatPop ${
-                          isSelected
+                          isBooked
+                            ? "bg-gradient-to-b from-gray-300 to-gray-500 text-white border-gray-700 cursor-not-allowed"
+                            : isSelected
                             ? "bg-gradient-to-b from-orange-400 to-orange-600 text-white border-orange-700 shadow-lg scale-105"
                             : "bg-gradient-to-b from-orange-100 to-orange-200 text-orange-800 border-orange-300 hover:border-orange-500 hover:from-orange-200 hover:to-orange-300 hover:shadow-md hover:scale-110"
                         }`}
-                        onClick={() => onSeatSelect(seat.id)}
+                        onClick={() => !isBooked && onSeatSelect(seat.id)}
+                        disabled={isBooked}
                         style={{
                           animationDelay: `${
                             rowIndex * 50 + (leftSeats.length + seatIndex) * 10
@@ -155,7 +163,11 @@ const SeatLayout = ({ selectedSeats, onSeatSelect }) => {
                         {/* Seat cushion effect */}
                         <div
                           className={`absolute bottom-0 left-0.5 right-0.5 h-1.5 rounded-sm ${
-                            isSelected ? "bg-orange-700" : "bg-orange-300"
+                            isBooked
+                              ? "bg-gray-600"
+                              : isSelected
+                              ? "bg-orange-700"
+                              : "bg-orange-300"
                           }`}
                         />
                       </button>
@@ -238,18 +250,87 @@ const SeatLayout = ({ selectedSeats, onSeatSelect }) => {
 
 const SeatsPage = () => {
   const [selectedSeats, setSelectedSeats] = useState([]);
+  const [bookedSeats, setBookedSeats] = useState([]);
+  const [availableSeats, setAvailableSeats] = useState(360);
+  const [totalBookedSeats, setTotalBookedSeats] = useState(0);
   const [amountReceived, setAmountReceived] = useState("");
+  const [loading, setLoading] = useState(false);
   const [currentShow, setCurrentShow] = useState({
     movie: "Select showtime",
     date: new Date().toISOString().split('T')[0], // Current date
     time: "",
     screen: "Screen 1",
     price: 250,
+    movieId: null,
+    showTimePlannerId: null,
   });
   const [showBookingPopup, setShowBookingPopup] = useState(false);
   const [paymentType, setPaymentType] = useState("cash");
 
+  // Fetch booked seats when date, time, or movie changes
+  useEffect(() => {
+    if (currentShow.date && currentShow.time) {
+      fetchBookedSeats();
+    }
+  }, [currentShow.date, currentShow.time]);
+
+  const fetchBookedSeats = async () => {
+    try {
+      setLoading(true);
+      
+      // Build query parameters for the selected date and time
+      const params = {
+        date: currentShow.date,
+        // Add other filters as needed based on your API
+      };
+
+      const response = await api.get('/movie-seat-bookings', params);
+      
+      // Extract seat numbers from the API response
+      const bookedSeatNumbers = [];
+      
+      if (response && Array.isArray(response)) {
+        response.forEach(booking => {
+          // Check if the booking matches the selected date
+          const bookingDate = new Date(booking.date).toISOString().split('T')[0];
+          if (bookingDate === currentShow.date) {
+            if (booking.seatNumber && Array.isArray(booking.seatNumber)) {
+              booking.seatNumber.forEach(seat => {
+                if (seat.seatNo) {
+                  bookedSeatNumbers.push(seat.seatNo);
+                }
+              });
+            }
+          }
+        });
+      }
+
+      setBookedSeats(bookedSeatNumbers);
+      setTotalBookedSeats(bookedSeatNumbers.length);
+      setAvailableSeats(360 - bookedSeatNumbers.length); // Total 360 seats
+      
+      // Clear selected seats that are now booked
+      setSelectedSeats(prev => prev.filter(seat => !bookedSeatNumbers.includes(seat)));
+      
+    } catch (error) {
+      console.error('Error fetching booked seats:', error);
+      notify.error('Failed to fetch booked seats. Please try again.');
+      
+      // Reset to default values on error
+      setBookedSeats([]);
+      setTotalBookedSeats(0);
+      setAvailableSeats(360);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSeatSelect = (seatId) => {
+    // Don't allow selection of booked seats
+    if (bookedSeats.includes(seatId)) {
+      return;
+    }
+
     setSelectedSeats((prev) =>
       prev.includes(seatId)
         ? prev.filter((id) => id !== seatId)
@@ -257,12 +338,43 @@ const SeatsPage = () => {
     );
   };
 
-  const confirmBooking = () => {
-    // Your booking confirmation logic here
-    notify.success(`Booking confirmed for seats: ${selectedSeats.join(", ")}`);
-    setSelectedSeats([]);
-    setAmountReceived("");
-    setShowBookingPopup(false);
+  const confirmBooking = async () => {
+    try {
+      setLoading(true);
+
+      // Prepare booking data in the required format
+      const bookingData = {
+        movieId: currentShow.movieId,
+        userId: 1, // You might want to get this from user context/auth
+        adminUserId: null, // Set if admin is making the booking
+        showTimePlannerId: currentShow.showTimePlannerId,
+        date: currentShow.date,
+        seatNumber: selectedSeats.map(seat => ({ seatNo: seat })),
+        paymentType: paymentType,
+        totalAmount: getTotalPrice(),
+        amountReceived: parseFloat(amountReceived) || 0
+      };
+
+      // Make API call to create booking
+      const response = await api.post('/movie-seat-bookings', bookingData);
+      
+      if (response) {
+        notify.success(`Booking confirmed for seats: ${selectedSeats.join(", ")}`);
+        
+        // Refresh booked seats after successful booking
+        await fetchBookedSeats();
+        
+        // Reset form
+        setSelectedSeats([]);
+        setAmountReceived("");
+        setShowBookingPopup(false);
+      }
+    } catch (error) {
+      console.error('Error confirming booking:', error);
+      notify.error('Failed to confirm booking. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const cancelBooking = () => {
@@ -274,6 +386,12 @@ const SeatsPage = () => {
       alert("Please select at least one seat");
       return;
     }
+    
+    if (!currentShow.time) {
+      alert("Please select a showtime first");
+      return;
+    }
+    
     setShowBookingPopup(true);
   };
 
@@ -297,6 +415,18 @@ const SeatsPage = () => {
 
   return (
     <div className="h-full flex flex-col p-4">
+      {/* Loading indicator */}
+      {loading && (
+        <div className="fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-4 rounded-lg">
+            <div className="flex items-center gap-2">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-orange-600"></div>
+              <span>Loading...</span>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="mb-2 flex-shrink-0">
         {/* Show Information */}
@@ -332,7 +462,9 @@ const SeatsPage = () => {
                         setCurrentShow({ 
                           ...currentShow, 
                           time,
-                          movie: movieData ? movieData.title : currentShow.movie
+                          movie: movieData ? movieData.title : currentShow.movie,
+                          movieId: movieData ? movieData.id : currentShow.movieId,
+                          showTimePlannerId: movieData ? movieData.showTimePlannerId : currentShow.showTimePlannerId
                         });
                       }}
                     />
@@ -368,20 +500,20 @@ const SeatsPage = () => {
 
                 <div className="flex items-center gap-1">
                   <div className="w-3 h-3 bg-gradient-to-b from-orange-100 to-orange-200 border border-orange-300 rounded"></div>
-                  <span className="text-sm font-medium">Available - 285</span>
+                  <span className="text-sm font-medium">Available - {availableSeats}</span>
                 </div>
 
                 {/* Booked on same line for desktop, new line for mobile */}
                 <div className="hidden lg:flex items-center gap-1">
-                  <div className="w-3 h-3 bg-gradient-to-b from-orange-400 to-orange-500 border border-orange-600 rounded"></div>
-                  <span className="text-sm font-medium">Booked - 75</span>
+                  <div className="w-3 h-3 bg-gradient-to-b from-gray-400 to-gray-500 border border-gray-600 rounded"></div>
+                  <span className="text-sm font-medium">Booked - {totalBookedSeats}</span>
                 </div>
               </div>
 
               {/* Second row: Booked (mobile only) */}
               <div className="flex lg:hidden items-center gap-1">
-                <div className="w-3 h-3 bg-gradient-to-b from-orange-400 to-orange-500 border border-orange-600 rounded"></div>
-                <span className="text-sm font-medium">Booked - 75</span>
+                <div className="w-3 h-3 bg-gradient-to-b from-gray-400 to-gray-500 border border-gray-600 rounded"></div>
+                <span className="text-sm font-medium">Booked - {totalBookedSeats}</span>
               </div>
             </div>
           </div>
@@ -399,6 +531,7 @@ const SeatsPage = () => {
               <SeatLayout
                 selectedSeats={selectedSeats}
                 onSeatSelect={handleSeatSelect}
+                bookedSeats={bookedSeats}
               />
             </div>
 
@@ -518,12 +651,14 @@ const SeatsPage = () => {
                           setAmountReceived("");
                         }}
                         className="w-full px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+                        disabled={loading}
                       >
                         Clear Selection
                       </button>
                       <button
                         onClick={handleBookSeats}
-                        className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
+                        className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                        disabled={loading}
                       >
                         <Users size={18} />
                         <span>Book Seats (₹{getTotalPrice()})</span>
@@ -539,6 +674,7 @@ const SeatsPage = () => {
                       onConfirm={confirmBooking}
                       onCancel={cancelBooking}
                       currentShow={currentShow}
+                      loading={loading}
                     />
                   )}
                 </div>
