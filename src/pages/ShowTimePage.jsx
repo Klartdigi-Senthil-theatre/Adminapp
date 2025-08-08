@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import moment from "moment";
 import PageHeader from "../components/PageHeader";
 import CustomDropdown from "../components/CustomDropdown";
+import { notify } from "../components/Notification";
 import api from "../config/api"
 
 const initialMovies = [
@@ -42,7 +43,8 @@ const ShowTimePage = () => {
   const [currentDate, setCurrentDate] = useState(moment());
   const [selectedDate, setSelectedDate] = useState(moment());
   const [assignedTimes, setAssignedTimes] = useState({});
-  const [editablePrice, setEditablePrice] = useState(null);
+  const [showtimePrices, setShowtimePrices] = useState({});
+  const DEFAULT_TICKET_PRICE = "150";
   const [movieOptions, setMovieOptions] = useState([]);
   const [allMovies, setAllMovies] = useState([]);
 
@@ -61,6 +63,7 @@ const ShowTimePage = () => {
       try {
         setLoading(true);
         const data = await api.get('/show-times');
+        console.log('API showtime data:', data); // Debug log to see API structure
         setApiShowTimes(data);
         setLoading(false);
       } catch (err) {
@@ -75,7 +78,42 @@ const ShowTimePage = () => {
 
   // Helper function to format API datetime to display time
   const formatShowTime = (dateTimeString) => {
-    return moment(dateTimeString).format('h:mm A');
+    if (!dateTimeString) {
+      console.warn('formatShowTime: No datetime string provided');
+      return 'Time not set';
+    }
+    
+    // Handle different possible formats and ensure we get a valid date
+    let momentDate;
+    
+    // Try parsing with moment's default parser first
+    momentDate = moment(dateTimeString);
+    
+    // If that fails, try some common datetime formats
+    if (!momentDate.isValid()) {
+      const formats = [
+        'YYYY-MM-DD HH:mm:ss',
+        'YYYY-MM-DDTHH:mm:ss',
+        'YYYY-MM-DDTHH:mm:ss.SSSZ',
+        'YYYY-MM-DDTHH:mm:ssZ',
+        'HH:mm:ss',
+        'HH:mm'
+      ];
+      
+      for (const format of formats) {
+        momentDate = moment(dateTimeString, format);
+        if (momentDate.isValid()) {
+          break;
+        }
+      }
+    }
+    
+    if (!momentDate.isValid()) {
+      console.warn('formatShowTime: Invalid datetime string after trying multiple formats:', dateTimeString);
+      return 'Invalid time';
+    }
+    
+    return momentDate.format('h:mm A');
   };
 
   useEffect(() => {
@@ -85,31 +123,66 @@ const ShowTimePage = () => {
       const response = await api.get(`/show-time-planner/date/${formattedDate}`);
 
       const assignments = {};
-      let extractedPrice = "";
+      const prices = {};
 
+      // First, set default prices for all active showtimes
+      const activeShowTimes = apiShowTimes
+        .filter(showTime => showTime.active);
+      
+      activeShowTimes.forEach((showTime) => {
+        prices[showTime.id] = DEFAULT_TICKET_PRICE;
+      });
+
+      // Then override with actual prices from planner data
       response.forEach((item) => {
-        const displayTime = moment(item.showTime.showTime).format("h:mm A");
+        const displayTime = formatShowTime(item.showTime.showTime);
+        const showTimeId = item.showTimeId;
 
-        assignments[displayTime] = {
+        // Debug logging to identify duplicate displayTime issues
+        if (assignments[showTimeId]) {
+          console.warn(`Duplicate showTimeId detected: ${showTimeId}`, {
+            existing: assignments[showTimeId],
+            new: {
+              id: item.movie.id,
+              title: item.movie.movieName,
+              showTimeId: item.showTimeId,
+              plannerId: item.id,
+              displayTime: displayTime,
+            },
+            rawTime: item.showTime.showTime
+          });
+        }
+
+        // Use showTimeId as key instead of displayTime for more reliable mapping
+        assignments[showTimeId] = {
           id: item.movie.id,
           title: item.movie.movieName,
           showTimeId: item.showTimeId,
           plannerId: item.id,
+          displayTime: displayTime,
         };
 
-        if (!extractedPrice) {
-          extractedPrice = item.price;
-        }
+        prices[showTimeId] = item.price || DEFAULT_TICKET_PRICE;
       });
 
       // ✅ Always use full movie list
       setMovieOptions(allMovies); // this will be from full movie list
       setAssignedTimes(assignments);
-      setEditablePrice(extractedPrice || "");
+      setShowtimePrices(prices);
     } catch (err) {
       console.error("Error fetching planner:", err);
       setAssignedTimes({});
-      setEditablePrice("");
+      
+      // Set default prices for all active showtimes when planner fetch fails
+      const activeShowTimes = apiShowTimes
+        .filter(showTime => showTime.active);
+      
+      const defaultPrices = {};
+      activeShowTimes.forEach((showTime) => {
+        defaultPrices[showTime.id] = DEFAULT_TICKET_PRICE;
+      });
+      setShowtimePrices(defaultPrices);
+      
       setMovieOptions(allMovies); // still allow dropdowns even if planner fails
     }
   };
@@ -150,15 +223,173 @@ useEffect(() => {
   fetchAllMovies();
 }, []);
 
-  // Get active showtimes for display
-  const getActiveShowTimes = () => {
-    return apiShowTimes
+// Initialize default prices for all active showtimes
+useEffect(() => {
+  if (apiShowTimes.length > 0) {
+    const activeShowTimes = apiShowTimes
       .filter(showTime => showTime.active)
       .map(showTime => ({
         ...showTime,
         displayTime: formatShowTime(showTime.showTime),
-        fullDateTime: showTime.showTime
-      }));
+      }))
+      .sort((a, b) => {
+        // Sort by time chronologically - access the nested showTime property
+        const timeA = moment(a.showTime);
+        const timeB = moment(b.showTime);
+        
+        console.log('UseEffect sorting:', a.displayTime, 'vs', b.displayTime);
+        
+        if (timeA.isValid() && timeB.isValid()) {
+          return timeA.diff(timeB);
+        }
+        
+        // Fallback to display time sorting
+        if (!timeA.isValid() || !timeB.isValid()) {
+          const convertTo24Hour = (timeStr) => {
+            const cleanTime = timeStr.toLowerCase().replace(/[^\d:apm]/g, '');
+            const [time, period] = cleanTime.split(/([ap]m)/);
+            let [hours, minutes] = time.split(':').map(Number);
+            if (period === 'pm' && hours !== 12) hours += 12;
+            if (period === 'am' && hours === 12) hours = 0;
+            return hours * 60 + minutes;
+          };
+          
+          const timeValueA = convertTo24Hour(a.displayTime);
+          const timeValueB = convertTo24Hour(b.displayTime);
+          return timeValueA - timeValueB;
+        }
+        
+        if (timeA.isValid() && !timeB.isValid()) return -1;
+        if (!timeA.isValid() && timeB.isValid()) return 1;
+        
+        return 0;
+      });
+    
+    setShowtimePrices((prev) => {
+      const newPrices = { ...prev };
+      
+      activeShowTimes.forEach((showTimeItem) => {
+        const showTimeId = showTimeItem.id;
+        // Set default if no price exists or if price is empty/undefined
+        if (!newPrices[showTimeId] || newPrices[showTimeId] === "") {
+          newPrices[showTimeId] = DEFAULT_TICKET_PRICE;
+        }
+      });
+      
+      return newPrices;
+    });
+  }
+}, [apiShowTimes]);
+
+// Ensure default prices are set when date changes
+useEffect(() => {
+  if (apiShowTimes.length > 0) {
+    setShowtimePrices((prev) => {
+      const newPrices = { ...prev };
+      const activeShowTimes = apiShowTimes.filter(showTime => showTime.active);
+      
+      activeShowTimes.forEach((showTime) => {
+        // Always ensure there's a price, set default if missing or empty
+        if (!newPrices[showTime.id] || newPrices[showTime.id] === "") {
+          newPrices[showTime.id] = DEFAULT_TICKET_PRICE;
+        }
+      });
+      
+      return newPrices;
+    });
+  }
+}, [selectedDate, apiShowTimes]);
+
+  // Check if the selected date allows editing (only future dates)
+  const isDateEditable = () => {
+    const today = moment().startOf('day');
+    const selected = selectedDate.clone().startOf('day');
+    return selected.isAfter(today);
+  };
+
+  // Get active showtimes for display
+  const getActiveShowTimes = () => {
+    console.log('=== DEBUG: Raw apiShowTimes ===', apiShowTimes);
+    
+    const filtered = apiShowTimes.filter(showTime => showTime.active);
+    console.log('=== DEBUG: Filtered active showtimes ===', filtered);
+    
+    const mapped = filtered.map(showTime => ({
+      ...showTime,
+      displayTime: formatShowTime(showTime.showTime),
+      fullDateTime: showTime.showTime
+    }));
+    console.log('=== DEBUG: Mapped showtimes ===', mapped);
+    
+    // Remove duplicates based on displayTime to prevent duplicate entries
+    const uniqueShowTimes = mapped.reduce((acc, current) => {
+      const existing = acc.find(item => item.displayTime === current.displayTime);
+      if (!existing) {
+        acc.push(current);
+      } else {
+        console.warn('Duplicate displayTime found in master showtimes:', {
+          displayTime: current.displayTime,
+          existing: existing,
+          current: current
+        });
+      }
+      return acc;
+    }, []);
+    
+    const sorted = uniqueShowTimes.sort((a, b) => {
+      // Try multiple sorting approaches
+      const timeA = moment(a.fullDateTime);
+      const timeB = moment(b.fullDateTime);
+      
+      console.log('Sorting:', {
+        aDisplay: a.displayTime,
+        bDisplay: b.displayTime,
+        aRaw: a.fullDateTime,
+        bRaw: b.fullDateTime,
+        aValid: timeA.isValid(),
+        bValid: timeB.isValid(),
+        aParsed: timeA.isValid() ? timeA.format('HH:mm') : 'Invalid',
+        bParsed: timeB.isValid() ? timeB.format('HH:mm') : 'Invalid'
+      });
+      
+      // If both are valid dates, sort by time
+      if (timeA.isValid() && timeB.isValid()) {
+        const diff = timeA.diff(timeB);
+        console.log('Time diff result:', diff);
+        return diff;
+      }
+      
+      // If moment parsing fails, try sorting by display time string
+      if (!timeA.isValid() || !timeB.isValid()) {
+        console.log('Falling back to display time string sorting');
+        const displayTimeA = a.displayTime.toLowerCase().replace(/[^\d:apm]/g, '');
+        const displayTimeB = b.displayTime.toLowerCase().replace(/[^\d:apm]/g, '');
+        
+        // Convert to 24-hour format for comparison
+        const convertTo24Hour = (timeStr) => {
+          const [time, period] = timeStr.split(/([ap]m)/);
+          let [hours, minutes] = time.split(':').map(Number);
+          if (period === 'pm' && hours !== 12) hours += 12;
+          if (period === 'am' && hours === 12) hours = 0;
+          return hours * 60 + minutes; // Return minutes since midnight
+        };
+        
+        const timeValueA = convertTo24Hour(displayTimeA);
+        const timeValueB = convertTo24Hour(displayTimeB);
+        console.log('Display time comparison:', timeValueA, 'vs', timeValueB);
+        return timeValueA - timeValueB;
+      }
+      
+      // If one is invalid, put valid ones first
+      if (timeA.isValid() && !timeB.isValid()) return -1;
+      if (!timeA.isValid() && timeB.isValid()) return 1;
+      
+      // If both invalid, maintain original order
+      return 0;
+    });
+    
+    console.log('=== DEBUG: Final sorted showtimes (after deduplication) ===', sorted);
+    return sorted;
   };
 
   // Date nav
@@ -181,7 +412,7 @@ useEffect(() => {
         bookedTimes.includes(time)
       );
       if (conflictingTimes.length > 0) {
-        alert(`Cannot add movie due to time conflicts: ${conflictingTimes.join(", ")}`);
+        notify.warning(`Cannot add movie due to time conflicts: ${conflictingTimes.join(", ")}`);
         return;
       }
       // Add for this date only
@@ -210,38 +441,212 @@ useEffect(() => {
   const isCurrentMonth = (d) => d.isSame(currentDate, "month");
 
   // Handle form submission
- const handleSubmit = async () => {
+const handleSubmit = async () => {
   try {
     const formattedDate = selectedDate.format("YYYY-MM-DD");
 
-    for (let [displayTime, assignment] of Object.entries(assignedTimes)) {
-      if (!assignment?.id || !assignment?.showTimeId) continue;
+    // Collect all assignments into arrays
+    const newEntries = [];
+    const updateEntries = [];
+    const deleteEntries = [];
 
-      const payload = {
-        movieId: assignment.id,
-        showTimeId: assignment.showTimeId,
-        date: `${formattedDate}T00:00:00Z`,
-        price: parseFloat(editablePrice),
-      };
+    // First, get all active showtimes to check for deletions
+    const activeShowTimes = getActiveShowTimes();
+    
+    // Check each active showtime for assignments or deletions needed
+    activeShowTimes.forEach((showTimeItem) => {
+      const assignment = assignedTimes[showTimeItem.id];
+      
+      if (assignment && assignment.id && assignment.showTimeId) {
+        // Has a current assignment
+        const showTimePrice = showtimePrices[assignment.showTimeId];
+        if (!showTimePrice) {
+          notify.warning(`Please enter a price for ${assignment.displayTime || showTimeItem.displayTime} showtime.`);
+          return;
+        }
 
-      console.log(
-        assignment.plannerId ? "PATCH →" : "POST →",
-        assignment.plannerId ? `/show-time-planner/${assignment.plannerId}` : `/show-time-planner`,
-        payload
-      );
+        const payload = {
+          movieId: assignment.id,
+          showTimeId: assignment.showTimeId,
+          date: `${formattedDate}T00:00:00Z`,
+          price: parseFloat(showTimePrice),
+        };
 
-      // 🔁 Send to backend
-      if (assignment.plannerId) {
-        await api.patch(`/show-time-planner/${assignment.plannerId}`, payload);
-      } else {
-        await api.post(`/show-time-planner`, payload);
+        // Separate new entries from updates
+        if (assignment.plannerId) {
+          updateEntries.push({
+            ...payload,
+            id: assignment.plannerId
+          });
+        } else {
+          newEntries.push(payload);
+        }
+      } else if (assignment && assignment.plannerId && (!assignment.id || !assignment.showTimeId)) {
+        // Had an assignment before but now deselected (plannerId exists but no current movie)
+        deleteEntries.push({
+          id: assignment.plannerId,
+          showTimeId: showTimeItem.id,
+          displayTime: showTimeItem.displayTime
+        });
+      }
+    });
+
+    // Process any remaining assignments that might not be in active showtimes
+    for (let [showTimeId, assignment] of Object.entries(assignedTimes)) {
+      // Skip if already processed in the activeShowTimes loop
+      const alreadyProcessed = activeShowTimes.some(st => st.id.toString() === showTimeId.toString());
+      if (alreadyProcessed) continue;
+
+      if (assignment && assignment.plannerId && (!assignment.id || !assignment.showTimeId)) {
+        // This is a deletion case
+        deleteEntries.push({
+          id: assignment.plannerId,
+          showTimeId: showTimeId,
+          displayTime: assignment.displayTime || 'Unknown'
+        });
       }
     }
 
-    alert("Showtimes submitted successfully.");
+    // Debug logging for submission summary
+    console.log("Submission Summary:", {
+      totalAssignments: Object.keys(assignedTimes).length,
+      newEntries: newEntries.length,
+      updateEntries: updateEntries.length,
+      deleteEntries: deleteEntries.length,
+      assignedTimes: assignedTimes,
+      deleteDetails: deleteEntries
+    });
+
+    // Handle new entries (POST as array)
+    if (newEntries.length > 0) {
+      console.log("POST → /show-time-planner", newEntries);
+      try {
+        await api.post("/show-time-planner", newEntries);
+      } catch (postError) {
+        if (postError.response?.status === 404) {
+          // Try alternative endpoint patterns
+          console.log("Primary POST endpoint failed, trying alternatives...");
+          try {
+            await api.post("/show-time-planners", newEntries);
+          } catch (altError) {
+            if (altError.response?.status === 404) {
+              try {
+                await api.post("/showtimes", newEntries);
+              } catch (altError2) {
+                // If all alternatives fail, throw the original error
+                throw postError;
+              }
+            } else {
+              throw altError;
+            }
+          }
+        } else {
+          throw postError;
+        }
+      }
+    }
+
+    // Handle updates (individual PUT/PATCH requests)
+    for (let updateEntry of updateEntries) {
+      const { id, ...updatePayload } = updateEntry;
+      console.log("PUT →", `/show-time-planner/${id}`, updatePayload);
+      
+      try {
+        await api.put(`/show-time-planner/${id}`, updatePayload);
+      } catch (putError) {
+        if (putError.response?.status === 404 || putError.response?.status === 405) {
+          // Try alternative endpoint patterns for updates
+          console.log("PUT failed, trying alternative endpoints...");
+          try {
+            await api.put(`/show-time-planners/${id}`, updatePayload);
+          } catch (altPutError) {
+            if (altPutError.response?.status === 404 || altPutError.response?.status === 405) {
+              // If PUT endpoints don't exist, try PATCH as fallback
+              console.log("PUT alternatives failed, trying PATCH as fallback...");
+              try {
+                await api.patch(`/show-time-planner/${id}`, updatePayload);
+              } catch (patchError) {
+                if (patchError.response?.status === 404) {
+                  await api.patch(`/show-time-planners/${id}`, updatePayload);
+                } else {
+                  throw patchError;
+                }
+              }
+            } else {
+              throw altPutError;
+            }
+          }
+        } else {
+          throw putError;
+        }
+      }
+    }
+
+    // Handle deletions (individual DELETE requests)
+    for (let deleteEntry of deleteEntries) {
+      console.log("DELETE →", `/show-time-planner/${deleteEntry.id}`, {
+        showTimeId: deleteEntry.showTimeId,
+        displayTime: deleteEntry.displayTime
+      });
+      
+      try {
+        await api.delete(`/show-time-planner/${deleteEntry.id}`);
+      } catch (deleteError) {
+        if (deleteError.response?.status === 404) {
+          // Try alternative endpoint patterns for deletion
+          console.log("Primary DELETE endpoint failed, trying alternatives...");
+          try {
+            await api.delete(`/show-time-planners/${deleteEntry.id}`);
+          } catch (altDeleteError) {
+            if (altDeleteError.response?.status === 404) {
+              // If the record doesn't exist, consider it already deleted (not an error)
+              console.log(`Record ${deleteEntry.id} not found, assuming already deleted`);
+            } else {
+              throw altDeleteError;
+            }
+          }
+        } else if (deleteError.response?.status === 405) {
+          // Some APIs might not support DELETE, try a different approach
+          console.log("DELETE method not allowed, this might be expected");
+        } else {
+          throw deleteError;
+        }
+      }
+    }
+
+    // Clear assignments for deleted entries from local state
+    if (deleteEntries.length > 0) {
+      setAssignedTimes((prev) => {
+        const updated = { ...prev };
+        deleteEntries.forEach((deleteEntry) => {
+          // Remove the assignment entirely or set to null
+          delete updated[deleteEntry.showTimeId];
+        });
+        return updated;
+      });
+    }
+
+    notify.success("Showtimes submitted successfully!");
   } catch (error) {
-    console.error("Submission error:", error?.response?.data || error.message);
-    alert("Failed to save one or more showtimes.");
+    console.error("Submission error details:", {
+      message: error.message,
+      response: error.response,
+      status: error.response?.status,
+      data: error.response?.data,
+      url: error.config?.url,
+      method: error.config?.method
+    });
+    
+    // More specific error messages
+    if (error.response?.status === 404) {
+      notify.error(`API endpoint not found. Please check if the endpoint exists: ${error.config?.url}`);
+    } else if (error.response?.status === 401) {
+      notify.error("Authentication failed. Please check your login credentials.");
+    } else if (error.response?.status === 500) {
+      notify.error("Server error occurred. Please try again later.");
+    } else {
+      notify.error(`Failed to save showtimes - ${error.response?.status} error. ${error.response?.data?.error || error.response?.data?.message || error.message}`);
+    }
   }
 };
 
@@ -252,7 +657,7 @@ useEffect(() => {
 
   return (
     <div className="p-4 lg:p-6">
-      <PageHeader title="Movie Showtimes" />
+      <PageHeader title="Showtime Planner" />
       <div className="flex flex-col lg:flex-row gap-6">
         {/* Calendar: Same as your code */}
         <div className="bg-white rounded-lg shadow-md p-4 lg:w-1/3">
@@ -328,58 +733,104 @@ useEffect(() => {
             Showtimes for <span className="text-orange-600">{selectedDate.format("dddd, MMMM D")}</span>
           </h2>
 
-          {/* Price Input - Left label, right input */}
-          <div className="flex justify-start items-center mb-4">
-            <label className="text-sm font-semibold text-gray-700 mr-2">Price (Per Ticket) ₹</label>
-            <input
-              type="text"
-              inputMode="numeric"
-              pattern="[0-9]*"
-              value={editablePrice || ""}
-              onChange={(e) => {
-                const val = e.target.value;
-                if (/^\d*\.?\d*$/.test(val)) {
-                  setEditablePrice(val);
-                }
-              }}
-              className="border border-gray-300 rounded px-2 py-1 w-35 text-left focus:outline-none focus:ring-2 focus:ring-orange-500"
-              placeholder="Enter price"
-            />
-          </div>
+          {/* Info message when editing is disabled */}
+          {!isDateEditable() && (
+            <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm text-yellow-800">
+                    <strong>Read-only mode:</strong> Price and movie changes are disabled for current and past dates. Select a future date to enable editing.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className="flex flex-col gap-3">
             {activeShowTimes.length > 0 ? (
               activeShowTimes.map((showTimeItem) => {
-                const assignedMovie = assignedTimes[showTimeItem.displayTime];
+                const assignedMovie = assignedTimes[showTimeItem.id];
 
                 return (
                   <div
                     key={showTimeItem.id}
-                    className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border p-3 rounded-lg"
+                    className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border p-3 rounded-lg"
                   >
                     {/* Show timing label */}
                     <div className="text-sm font-semibold">
                       {showTimeItem.displayTime}
                     </div>
 
+                    {/* Price Input */}
+                    <div className="flex items-center gap-2">
+                      <label className={`text-sm font-semibold ${!isDateEditable() ? 'text-gray-400' : 'text-gray-700'}`}>Price ₹</label>
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        value={showtimePrices[showTimeItem.id] || DEFAULT_TICKET_PRICE}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          if (/^\d*\.?\d*$/.test(val)) {
+                            setShowtimePrices((prev) => ({
+                              ...prev,
+                              [showTimeItem.id]: val,
+                            }));
+                          }
+                        }}
+                        disabled={!isDateEditable()}
+                        className={`border rounded px-2 py-1 w-20 text-center ${
+                          !isDateEditable() 
+                            ? 'border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed' 
+                            : 'border-gray-300 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500'
+                        }`}
+                        placeholder="150"
+                      />
+                    </div>
+
                     {/* Dropdown */}
                     <CustomDropdown
   value={assignedMovie?.id || ""}
   onChange={(id) => {
-    const selectedMovie = movieOptions.find((m) => m.id === id);
-    setAssignedTimes((prev) => ({
-      ...prev,
-      [showTimeItem.displayTime]: selectedMovie
-        ? {
+    if (id === null) {
+      // User deselected the movie
+      setAssignedTimes((prev) => ({
+        ...prev,
+        [showTimeItem.id]: assignedMovie?.plannerId 
+          ? {
+              // Keep plannerId for deletion but clear movie details
+              plannerId: assignedMovie.plannerId,
+              showTimeId: showTimeItem.id,
+              displayTime: showTimeItem.displayTime,
+              id: null,
+              title: null,
+            }
+          : null, // Completely remove if no plannerId (was never saved)
+      }));
+    } else {
+      // User selected a movie
+      const selectedMovie = movieOptions.find((m) => m.id === id);
+      if (selectedMovie) {
+        setAssignedTimes((prev) => ({
+          ...prev,
+          [showTimeItem.id]: {
             id: selectedMovie.id,
             title: selectedMovie.title,
             showTimeId: showTimeItem.id,
             plannerId: assignedMovie?.plannerId || null,
+            displayTime: showTimeItem.displayTime,
           }
-        : null,
-    }));
+        }));
+      }
+    }
   }}
   options={movieOptions}
+  disabled={!isDateEditable()}
 />
 
                   </div>
@@ -394,7 +845,13 @@ useEffect(() => {
             <div className="bottom-10 right-6 flex justify-end">
               <button
                 onClick={handleSubmit}
-                disabled={!editablePrice || activeShowTimes.length === 0}
+                disabled={
+                  !isDateEditable() ||
+                  activeShowTimes.length === 0 ||
+                  Object.entries(assignedTimes).some(([showTimeId, assignment]) => 
+                    assignment && !showtimePrices[assignment.showTimeId]
+                  )
+                }
                 className="bg-orange-600 text-white px-6 py-2 rounded-lg shadow hover:bg-orange-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
               >
                 Submit

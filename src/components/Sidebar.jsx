@@ -24,7 +24,7 @@ const Sidebar = ({ isOpen, setIsOpen, isMobile }) => {
     { path: "/inventory", icon: Package, name: "Inventory" },
     { path: "/movie", icon: Film, name: "Movie" },
     { path: "/users", icon: Users, name: "Users" },
-    { path: "/show-time", icon: Clock, name: "Show Time" },
+    { path: "/show-time", icon: Clock, name: "Showtime Planner" },
   ];
 
   return (
