@@ -461,7 +461,7 @@ const DashboardPage = () => {
   };
 
   return (
-    <div className="p-2 lg:p-6">
+    <div className="p-2 lg:p-6">       
       <div className="flex justify-between items-center space-x-2">
         <PageHeader title="Theatre Dashboard" className="mb-2" />
 

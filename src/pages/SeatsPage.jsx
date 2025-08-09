@@ -251,7 +251,7 @@ const SeatLayout = ({ selectedSeats, onSeatSelect, bookedSeats = [] }) => {
 const SeatsPage = () => {
   const [selectedSeats, setSelectedSeats] = useState([]);
   const [bookedSeats, setBookedSeats] = useState([]);
-  const [availableSeats, setAvailableSeats] = useState(360);
+  const [availableSeats, setAvailableSeats] = useState(353);
   const [totalBookedSeats, setTotalBookedSeats] = useState(0);
   const [amountReceived, setAmountReceived] = useState("");
   const [loading, setLoading] = useState(false);
@@ -259,8 +259,7 @@ const SeatsPage = () => {
     movie: "Select showtime",
     date: new Date().toISOString().split('T')[0], // Current date
     time: "",
-    screen: "Screen 1",
-    price: 250,
+    price: null,
     movieId: null,
     showTimePlannerId: null,
   });
@@ -307,7 +306,7 @@ const SeatsPage = () => {
 
       setBookedSeats(bookedSeatNumbers);
       setTotalBookedSeats(bookedSeatNumbers.length);
-      setAvailableSeats(360 - bookedSeatNumbers.length); // Total 360 seats
+      setAvailableSeats(353 - bookedSeatNumbers.length); // Total 353 seats
       
       // Clear selected seats that are now booked
       setSelectedSeats(prev => prev.filter(seat => !bookedSeatNumbers.includes(seat)));
@@ -319,7 +318,7 @@ const SeatsPage = () => {
       // Reset to default values on error
       setBookedSeats([]);
       setTotalBookedSeats(0);
-      setAvailableSeats(360);
+      setAvailableSeats(353);
     } finally {
       setLoading(false);
     }
@@ -495,7 +494,7 @@ const SeatsPage = () => {
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-1">
                   <Users className="text-blue-600" size={18} />
-                  <span className="text-sm font-medium">Total Seats - 360</span>
+                  <span className="text-sm font-medium">Total Seats - 353</span>
                 </div>
 
                 <div className="flex items-center gap-1">

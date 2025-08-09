@@ -6,34 +6,6 @@ import CustomDropdown from "../components/CustomDropdown";
 import { notify } from "../components/Notification";
 import api from "../config/api"
 
-const initialMovies = [
-  {
-    id: 1,
-    title: "Avengers: Endgame",
-    duration: "3h 1m",
-    rating: "PG-13",
-    showTimes: ["10:00 AM", "1:30 PM", "5:00 PM", "8:30 PM"],
-  }
-];
-
-const allPossibleMovies = [
-  ...initialMovies,
-  {
-    id: 3,
-    title: "Dune",
-    duration: "2h 35m",
-    rating: "PG-13",
-    showTimes: ["10:30 AM", "3:00 PM", "7:00 PM"],
-  },
-  {
-    id: 4,
-    title: "The Batman",
-    duration: "2h 56m",
-    rating: "PG-13",
-    showTimes: ["12:00 PM", "4:00 PM", "8:00 PM"],
-  }
-];
-
 const ShowTimePage = () => {
   const [showTimes, setShowTimes] = useState([]);
   const [apiShowTimes, setApiShowTimes] = useState([]); // New state for API data
@@ -50,7 +22,7 @@ const ShowTimePage = () => {
 
   // Core state: moviesByDate
   const [moviesByDate, setMoviesByDate] = useState({
-    [moment().format('YYYY-MM-DD')]: initialMovies
+    [moment().format('YYYY-MM-DD')]: [],
   });
 
   // dropdown
@@ -656,9 +628,21 @@ const handleSubmit = async () => {
   const activeShowTimes = getActiveShowTimes();
 
   return (
-    <div className="p-4 lg:p-6">
+    <div className="p-4 lg:p-6">    
+      {/* Loading indicator */}
+      {loading && (
+        <div className="fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-4 rounded-lg">
+            <div className="flex items-center gap-2">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-orange-600"></div>
+              <span>Loading...</span>
+            </div>
+          </div>
+        </div>
+      )}
+      
       <PageHeader title="Showtime Planner" />
-      <div className="flex flex-col lg:flex-row gap-6">
+      <div className="flex flex-col lg:flex-row gap-6 mt-2">
         {/* Calendar: Same as your code */}
         <div className="bg-white rounded-lg shadow-md p-4 lg:w-1/3">
           <div className="flex justify-between items-center mb-4">

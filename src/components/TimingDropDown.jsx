@@ -123,7 +123,7 @@ const TimingDropdown = ({ currentShow, onTimeSelect }) => {
 
     const handleTimeSelect = (time) => {
         // Find the movie data for the selected time
-        const selectedShowTime = showTimeData.find(item => item.time === time);
+  const selectedShowTime = showTimeData.find(item => item.time === time);
         const movieData = selectedShowTime ? selectedShowTime.movie : null;
         
         console.log('TimingDropdown: Selected time:', time, 'Movie data:', movieData);
