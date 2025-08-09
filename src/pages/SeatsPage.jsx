@@ -404,9 +404,11 @@ const SeatsPage = () => {
     // Integrate hold API before showing booking popup
     try {
       setLoading(true);
+      // Format date as 'YYYY-MM-DDT00:00:00Z'
+      const formattedDate = currentShow.date ? `${currentShow.date}T00:00:00Z` : undefined;
       const holdPayload = {
         movieId: currentShow.movieId,
-        date: currentShow.date,
+        date: formattedDate,
         bookedSeats: selectedSeats
       };
       if (currentShow.showTimePlannerId) {
@@ -487,14 +489,14 @@ const SeatsPage = () => {
                   <span className="text-sm font-medium">
                     <TimingDropDown
                       currentShow={currentShow}
-                      onTimeSelect={(time, movieData) => {
+                      onTimeSelect={(time, selectedShowTime) => {
                         // Use functional update to avoid stale closure
                         setCurrentShow(prev => ({
                           ...prev,
                           time,
-                          movie: movieData ? movieData.title : prev.movie,
-                          movieId: movieData ? movieData.id : prev.movieId,
-                          showTimePlannerId: movieData ? movieData.showTimePlannerId : prev.showTimePlannerId
+                          movie: selectedShowTime.movie ? selectedShowTime.movie.title : prev.movie,
+                          movieId: selectedShowTime.movie ? selectedShowTime.movie.id : prev.movieId,
+                          showTimePlannerId: selectedShowTime.showTimePlannerId ? selectedShowTime.showTimePlannerId : prev.showTimePlannerId
                         }));
                       }}
                     />
