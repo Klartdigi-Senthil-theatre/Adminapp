@@ -414,12 +414,21 @@ const SeatsPage = () => {
       if (currentShow.showTimePlannerId) {
         holdPayload.showTimePlannerId = currentShow.showTimePlannerId;
       }
-      await api.post('/movie-seat-holds', holdPayload);
+      const response = await api.post('/movie-seat-holds', holdPayload);
+      if (response && response.error === "Selected seats are already booked!") {
+        notify.error("Selected ticket got booked");
+        setLoading(false);
+        return;
+      }
       // Optionally, you can refresh booked seats here if needed
       // await fetchBookedSeats();
     } catch (error) {
       console.error('Error holding seats:', error);
-      notify.error('Failed to hold seats. Please try again.');
+      if (error && error.response.data.error === "Selected seats are already booked!") {
+        notify.error(error.response.data.error);
+      } else {
+        notify.error('Failed to hold seats. Please try again.');
+      }
       setLoading(false);
       return;
     }
