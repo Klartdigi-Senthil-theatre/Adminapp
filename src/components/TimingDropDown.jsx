@@ -73,7 +73,8 @@ const TimingDropdown = ({ currentShow, onTimeSelect }) => {
                             title: item.movie.movieName
                         },
                         showTimeId: item.showTimeId,
-                        originalTime: item.showTime.showTime
+                        originalTime: item.showTime.showTime,
+                        showtimePlannerId: item.id
                     }))
                     .sort((a, b) => {
                         // Sort chronologically
@@ -125,7 +126,7 @@ const TimingDropdown = ({ currentShow, onTimeSelect }) => {
         // Find the movie data for the selected time
         const selectedShowTime = showTimeData.find(item => item.time === time);
         const movieData = selectedShowTime ? selectedShowTime.movie : null;
-        
+        debugger
         console.log('TimingDropdown: Selected time:', time, 'Movie data:', movieData);
         onTimeSelect(time, movieData);
         setIsOpen(false);

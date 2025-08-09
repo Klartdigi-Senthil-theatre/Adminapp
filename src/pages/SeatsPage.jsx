@@ -391,17 +391,37 @@ const SeatsPage = () => {
     setShowBookingPopup(false);
   };
 
-  const handleBookSeats = () => {
+  const handleBookSeats = async () => {
     if (selectedSeats.length === 0) {
       alert("Please select at least one seat");
       return;
     }
-    
     if (!currentShow.time) {
       alert("Please select a showtime first");
       return;
     }
-    
+
+    // Integrate hold API before showing booking popup
+    try {
+      setLoading(true);
+      const holdPayload = {
+        movieId: currentShow.movieId,
+        date: currentShow.date,
+        bookedSeats: selectedSeats
+      };
+      if (currentShow.showTimePlannerId) {
+        holdPayload.showTimePlannerId = currentShow.showTimePlannerId;
+      }
+      await api.post('/movie-seat-holds', holdPayload);
+      // Optionally, you can refresh booked seats here if needed
+      // await fetchBookedSeats();
+    } catch (error) {
+      console.error('Error holding seats:', error);
+      notify.error('Failed to hold seats. Please try again.');
+      setLoading(false);
+      return;
+    }
+    setLoading(false);
     setShowBookingPopup(true);
   };
 
@@ -468,14 +488,14 @@ const SeatsPage = () => {
                     <TimingDropDown
                       currentShow={currentShow}
                       onTimeSelect={(time, movieData) => {
-                        // Update both time and movie when a showtime is selected
-                        setCurrentShow({ 
-                          ...currentShow, 
+                        // Use functional update to avoid stale closure
+                        setCurrentShow(prev => ({
+                          ...prev,
                           time,
-                          movie: movieData ? movieData.title : currentShow.movie,
-                          movieId: movieData ? movieData.id : currentShow.movieId,
-                          showTimePlannerId: movieData ? movieData.showTimePlannerId : currentShow.showTimePlannerId
-                        });
+                          movie: movieData ? movieData.title : prev.movie,
+                          movieId: movieData ? movieData.id : prev.movieId,
+                          showTimePlannerId: movieData ? movieData.showTimePlannerId : prev.showTimePlannerId
+                        }));
                       }}
                     />
                   </span>
