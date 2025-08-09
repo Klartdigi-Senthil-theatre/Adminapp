@@ -277,45 +277,55 @@ const SeatsPage = () => {
   const fetchBookedSeats = async () => {
     try {
       setLoading(true);
-      
       // Build query parameters for the selected date and time
       const params = {
         date: currentShow.date,
         // Add other filters as needed based on your API
       };
 
-      const response = await api.get('/movie-seat-bookings', params);
-      
-      // Extract seat numbers from the API response
-      const bookedSeatNumbers = [];
-      
-      if (response && Array.isArray(response)) {
-        response.forEach(booking => {
-          // Check if the booking matches the selected date
-          const bookingDate = new Date(booking.date).toISOString().split('T')[0];
-          if (bookingDate === currentShow.date) {
-            if (booking.seatNumber && Array.isArray(booking.seatNumber)) {
-              booking.seatNumber.forEach(seat => {
-                if (seat.seatNo) {
-                  bookedSeatNumbers.push(seat.seatNo);
-                }
-              });
+      // Fetch both bookings and holds
+      const [bookingsResponse, holdsResponse] = await Promise.all([
+        api.get('/movie-seat-bookings', params),
+        api.get('/movie-seat-holds', params)
+      ]);
+
+      // Helper to extract seat numbers from API response
+      const extractSeatNumbers = (response, key = 'seatNumber') => {
+        const seatNumbers = [];
+        if (response && Array.isArray(response)) {
+          response.forEach(booking => {
+            const bookingDate = new Date(booking.date).toISOString().split('T')[0];
+            if (bookingDate === currentShow.date) {
+              const seats = booking[key];
+              if (seats && Array.isArray(seats)) {
+                seats.forEach(seat => {
+                  if (seat.seatNo) {
+                    seatNumbers.push(seat.seatNo);
+                  }
+                });
+              }
             }
-          }
-        });
-      }
+          });
+        }
+        return seatNumbers;
+      };
+
+      const bookedSeatNumbers = [
+        ...extractSeatNumbers(bookingsResponse, 'seatNumber'),
+        ...extractSeatNumbers(holdsResponse, 'seatNumbers')
+      ];
 
       setBookedSeats(bookedSeatNumbers);
       setTotalBookedSeats(bookedSeatNumbers.length);
       setAvailableSeats(360 - bookedSeatNumbers.length); // Total 360 seats
-      
-      // Clear selected seats that are now booked
+
+      // Clear selected seats that are now bookeds
       setSelectedSeats(prev => prev.filter(seat => !bookedSeatNumbers.includes(seat)));
-      
+
     } catch (error) {
       console.error('Error fetching booked seats:', error);
       notify.error('Failed to fetch booked seats. Please try again.');
-      
+
       // Reset to default values on error
       setBookedSeats([]);
       setTotalBookedSeats(0);
