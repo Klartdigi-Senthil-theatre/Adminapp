@@ -4,6 +4,7 @@ import api from '../config/api';
 import moment from 'moment';
 
 const TimingDropdown = ({ currentShow, onTimeSelect }) => {
+  const [moviesMap, setMoviesMap] = useState(new Map());
   const [isOpen, setIsOpen] = useState(false);
   const [availableTimings, setAvailableTimings] = useState([]);
   const [showTimeData, setShowTimeData] = useState([]); // Store full showtime data with movies
@@ -12,7 +13,7 @@ const TimingDropdown = ({ currentShow, onTimeSelect }) => {
   // Helper function to format API datetime to display time
   const formatShowTime = (dateTimeString) => {
     if (!dateTimeString) {
-      console.warn('formatShowTime: No datetime string provided');
+      //console.warn('formatShowTime: No datetime string provided');
       return 'Time not set';
     }
 
@@ -37,7 +38,7 @@ const TimingDropdown = ({ currentShow, onTimeSelect }) => {
     }
 
     if (!momentDate.isValid()) {
-      console.warn('formatShowTime: Invalid datetime string:', dateTimeString);
+      //console.warn('formatShowTime: Invalid datetime string:', dateTimeString);
       return 'Invalid time';
     }
 
@@ -51,18 +52,74 @@ const TimingDropdown = ({ currentShow, onTimeSelect }) => {
         setLoading(true);
         const formattedDate = currentShow.date || moment().format('YYYY-MM-DD');
 
-        console.log('TimingDropdown: Fetching timings for date:', formattedDate);
-
         // Fetch assigned showtimes for the date
         const plannedShowtimes = await api.get(`/show-time-planner/date/${formattedDate}`);
-        console.log('TimingDropdown: Raw showtime data:', plannedShowtimes);
+
+        const moviesMap = new Map();
+        plannedShowtimes.forEach((entry) => {
+          // Skip inactive or invalid entries
+          if (!entry.active || !entry.movie || !entry.showTime) {
+            //console.warn(`Skipping invalid entry: ${JSON.stringify(entry)}`);
+            return;
+          }
+
+          const movieId = entry.movieId;
+          // Initialize movie entry if it doesn't exist
+          if (!moviesMap.has(movieId)) {
+            moviesMap.set(movieId, {
+              id: movieId,
+              title: entry.movie.movieName,
+              genre: entry.movie.genre || "Not specified", // Fallback for missing genre
+              language: entry.movie.language || "Not specified",
+              poster: entry.movie.image || "/default-poster.jpg",
+              certificate: entry.movie.certificate || "Not specified",
+              duration: entry.movie.duration || 0,
+              timings: [],
+              prices: new Map(), // Map showTimeId to price
+            });
+          }
+
+          // Add showtime to the movie's timings and prices
+          const movie = moviesMap.get(movieId);
+
+          // Handle both formats: "14:00" or "2023-10-05 10:00:00"
+          const rawShowTime = entry.showTime.showTime;
+          let showTimeStr;
+
+          if (rawShowTime.includes(" ")) {
+            // Format: "2023-10-05 10:00:00" - split and take time part
+            showTimeStr = rawShowTime.split(" ")[1];
+          } else {
+            // Format: "14:00" - use as is
+            showTimeStr = rawShowTime;
+          }
+
+          if (showTimeStr) {
+            const [hours, minutes] = showTimeStr.split(":").map(Number);
+            const showTime = new Date();
+            showTime.setHours(hours, minutes);
+            if (!isNaN(showTime.getTime())) {
+              const timeString = showTime.toLocaleTimeString("en-US", {
+                hour: "numeric",
+                minute: "2-digit",
+              });
+              movie.timings.push(timeString);
+              movie.prices.set(entry.showTimeId, entry.price);
+            } else {
+              console.warn(
+                `Invalid showTime for showTimeId ${entry.showTimeId}: ${rawShowTime}`
+              );
+            }
+          }
+        });
+        setMoviesMap(moviesMap);
 
         // Process showtime data with movie information
         const processedData = plannedShowtimes
           .filter(item => {
             const hasData = item.movie && item.showTime;
             if (!hasData) {
-              console.log('TimingDropdown: Skipping item without movie or showTime:', item);
+              //console.log('TimingDropdown: Skipping item without movie or showTime:', item);
             }
             return hasData;
           })
@@ -72,9 +129,15 @@ const TimingDropdown = ({ currentShow, onTimeSelect }) => {
               id: item.movie.id,
               title: item.movie.movieName
             },
+            genre: item.movie.genre,
+            language: item.movie.language,
+            poster: item.movie.image,
+            certificate: item.movie.certificate,
+            duration: item.movie.duration,
             showTimeId: item.showTimeId,
             originalTime: item.showTime.showTime,
-            showTimePlannerId: item.id
+            showTimePlannerId: item.id,
+            price: item.price
           }))
           .sort((a, b) => {
             // Sort chronologically
@@ -95,12 +158,10 @@ const TimingDropdown = ({ currentShow, onTimeSelect }) => {
           .map(item => item.time)
           .filter((time, index, array) => array.indexOf(time) === index); // Remove duplicates
 
-        console.log('TimingDropdown: Available timings for date:', formattedDate, timings);
         setAvailableTimings(timings);
 
         // If the currently selected time is not available for the new date, clear it
         if (currentShow.time && !timings.includes(currentShow.time)) {
-          console.log('TimingDropdown: Current time not available for new date, clearing selection');
           onTimeSelect("", null); // Clear the time selection and movie data
         }
 
@@ -120,15 +181,11 @@ const TimingDropdown = ({ currentShow, onTimeSelect }) => {
     if (currentShow.date) {
       fetchAvailableTimings();
     }
-  }, [currentShow.date]); // Re-fetch when date changes
+  }, [currentShow.date, onTimeSelect, currentShow.time]);
 
   const handleTimeSelect = (time) => {
-    // Find the movie data for the selected time
     const selectedShowTime = showTimeData.find(item => item.time === time);
-    const movieData = selectedShowTime ? selectedShowTime.movie : null;
-    debugger
-    console.log('TimingDropdown: Selected time:', time, 'Movie data:', movieData);
-    onTimeSelect(time, selectedShowTime);
+    onTimeSelect(time, selectedShowTime || null);
     setIsOpen(false);
   };
 
@@ -170,8 +227,8 @@ const TimingDropdown = ({ currentShow, onTimeSelect }) => {
                     key={time}
                     onClick={() => handleTimeSelect(time)}
                     className={`block w-full text-left px-4 py-2 text-sm ${currentShow.time === time
-                        ? "bg-orange-100 text-orange-700"
-                        : "text-gray-700 hover:bg-gray-100"
+                      ? "bg-orange-100 text-orange-700"
+                      : "text-gray-700 hover:bg-gray-100"
                       }`}
                   >
                     {time}
