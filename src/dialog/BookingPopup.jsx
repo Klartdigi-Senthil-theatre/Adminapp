@@ -8,14 +8,11 @@ const BookingPopup = ({
   onCancel,
   currentShow,
 }) => {
-  const [bookingId, setBookingId] = useState("");
-  const [isPrinting, setIsPrinting] = useState(false);
 
   console.log(currentShow);
 
   const handleConfirm = () => {
     const newBookingId = `ST-${Math.floor(100000 + Math.random() * 900000)}`;
-    setBookingId(newBookingId);
     onConfirm(newBookingId);
   };
 

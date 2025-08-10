@@ -270,7 +270,7 @@ const SeatsPage = () => {
     }
   }, [currentShow.date, currentShow.time, currentShow.price]);
 
-  const fetchBookedSeats = async () => {
+  const fetchBookedSeats = async (excludeSeats = null) => {
     try {
       setLoading(true);
       // Use showTimePlannerId in the bookings API endpoint
@@ -305,17 +305,18 @@ const SeatsPage = () => {
       };
 
       // Merge and deduplicate seat numbers
+      const seatsToExclude = excludeSeats !== null ? excludeSeats : selectedSeats;
       const bookedSeatNumbers = [
         ...extractSeatNumbers(bookingsResponse, 'seatNumber'),
         ...extractSeatNumbers(holdsResponse, 'seatNumbers')
-      ];
+      ].filter((seat)=> !seatsToExclude.includes(seat));
       const uniqueBookedSeats = Array.from(new Set(bookedSeatNumbers));
 
       setBookedSeats(uniqueBookedSeats);
       setTotalBookedSeats(uniqueBookedSeats.length);
       setAvailableSeats(353 - uniqueBookedSeats.length);
 
-      setSelectedSeats(prev => prev.filter(seat => !uniqueBookedSeats.includes(seat)));
+      // setSelectedSeats(prev => prev.filter(seat => !uniqueBookedSeats.includes(seat)));
 
     } catch (error) {
       console.error('Error fetching booked seats:', error);
@@ -329,10 +330,11 @@ const SeatsPage = () => {
   };
 
 
-  const handleCloseTicketPreview = () => {
+  const handleCloseTicketPreview = async () => {
     setShowTicketPreview(false);
-    setSelectedSeats([]);
     setAmountReceived("");
+    await fetchBookedSeats([]);  // Pass empty array to not exclude any seats
+    setSelectedSeats([]);
   };
 
   const handleSeatSelect = (seatId) => {
@@ -377,7 +379,6 @@ const SeatsPage = () => {
         });
 
         notify.success(`Booking confirmed for seats: ${selectedSeats.join(", ")}`);
-        await fetchBookedSeats();
 
         // Return the booking ID
         resolve(movieSeatBookingID);
@@ -731,6 +732,7 @@ const SeatsPage = () => {
                       selectedSeats={selectedSeats}
                       totalPrice={getTotalPrice()}
                       onConfirm={async () => {
+                        // setSelectedSeats([]);
                         const bookingId = await confirmBooking();
                         if (bookingId) {
                           setShowBookingPopup(false);
