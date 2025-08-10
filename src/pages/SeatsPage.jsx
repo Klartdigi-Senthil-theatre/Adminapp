@@ -95,12 +95,13 @@ const SeatLayout = ({ selectedSeats, onSeatSelect, bookedSeats = [] }) => {
                   return (
                     <div key={seat.id} className="px-0.5 py-1">
                       <button
-                        className={`relative w-6 h-6 flex justify-center items-center rounded-t-lg rounded-b-sm font-bold text-xs border-2 transition-all duration-200 shadow-sm animate-seatPop ${isBooked
-                          ? "bg-gradient-to-b from-gray-300 to-gray-500 text-white border-gray-700 cursor-not-allowed"
-                          : isSelected
+                        className={`relative w-6 h-6 flex justify-center items-center rounded-t-lg rounded-b-sm font-bold text-xs border-2 transition-all duration-200 shadow-sm animate-seatPop ${
+                          isBooked
+                            ? "bg-gradient-to-b from-gray-300 to-gray-500 text-white border-gray-700 cursor-not-allowed"
+                            : isSelected
                             ? "bg-gradient-to-b from-orange-400 to-orange-600 text-white border-orange-700 shadow-lg scale-105"
                             : "bg-gradient-to-b from-orange-100 to-orange-200 text-orange-800 border-orange-300 hover:border-orange-500 hover:from-orange-200 hover:to-orange-300 hover:shadow-md hover:scale-110"
-                          }`}
+                        }`}
                         onClick={() => !isBooked && onSeatSelect(seat.id)}
                         disabled={isBooked}
                         style={{
@@ -112,12 +113,13 @@ const SeatLayout = ({ selectedSeats, onSeatSelect, bookedSeats = [] }) => {
                         </span>
                         {/* Seat cushion effect */}
                         <div
-                          className={`absolute bottom-0 left-0.5 right-0.5 h-1.5 rounded-sm ${isBooked
-                            ? "bg-gray-600"
-                            : isSelected
+                          className={`absolute bottom-0 left-0.5 right-0.5 h-1.5 rounded-sm ${
+                            isBooked
+                              ? "bg-gray-600"
+                              : isSelected
                               ? "bg-orange-700"
                               : "bg-orange-300"
-                            }`}
+                          }`}
                         />
                       </button>
                     </div>
@@ -141,17 +143,19 @@ const SeatLayout = ({ selectedSeats, onSeatSelect, bookedSeats = [] }) => {
                   return (
                     <div key={seat.id} className="px-0.5 py-1">
                       <button
-                        className={`relative w-6 h-6 flex justify-center items-center rounded-t-lg rounded-b-sm font-bold text-xs border-2 transition-all duration-200 shadow-sm animate-seatPop ${isBooked
-                          ? "bg-gradient-to-b from-gray-300 to-gray-500 text-white border-gray-700 cursor-not-allowed"
-                          : isSelected
+                        className={`relative w-6 h-6 flex justify-center items-center rounded-t-lg rounded-b-sm font-bold text-xs border-2 transition-all duration-200 shadow-sm animate-seatPop ${
+                          isBooked
+                            ? "bg-gradient-to-b from-gray-300 to-gray-500 text-white border-gray-700 cursor-not-allowed"
+                            : isSelected
                             ? "bg-gradient-to-b from-orange-400 to-orange-600 text-white border-orange-700 shadow-lg scale-105"
                             : "bg-gradient-to-b from-orange-100 to-orange-200 text-orange-800 border-orange-300 hover:border-orange-500 hover:from-orange-200 hover:to-orange-300 hover:shadow-md hover:scale-110"
-                          }`}
+                        }`}
                         onClick={() => !isBooked && onSeatSelect(seat.id)}
                         disabled={isBooked}
                         style={{
-                          animationDelay: `${rowIndex * 50 + (leftSeats.length + seatIndex) * 10
-                            }ms`,
+                          animationDelay: `${
+                            rowIndex * 50 + (leftSeats.length + seatIndex) * 10
+                          }ms`,
                         }}
                       >
                         <span className="relative z-10 text-[10px]">
@@ -159,12 +163,13 @@ const SeatLayout = ({ selectedSeats, onSeatSelect, bookedSeats = [] }) => {
                         </span>
                         {/* Seat cushion effect */}
                         <div
-                          className={`absolute bottom-0 left-0.5 right-0.5 h-1.5 rounded-sm ${isBooked
-                            ? "bg-gray-600"
-                            : isSelected
+                          className={`absolute bottom-0 left-0.5 right-0.5 h-1.5 rounded-sm ${
+                            isBooked
+                              ? "bg-gray-600"
+                              : isSelected
                               ? "bg-orange-700"
                               : "bg-orange-300"
-                            }`}
+                          }`}
                         />
                       </button>
                     </div>
@@ -253,7 +258,7 @@ const SeatsPage = () => {
   const [loading, setLoading] = useState(false);
   const [currentShow, setCurrentShow] = useState({
     movie: "Select showtime",
-    date: new Date().toISOString().split('T')[0], // Current date
+    date: new Date().toISOString().split("T")[0], // Current date
     time: "",
     price: null,
     movieId: null,
@@ -280,19 +285,21 @@ const SeatsPage = () => {
       // Fetch both bookings and holds
       const [bookingsResponse, holdsResponse] = await Promise.all([
         api.get(bookingsUrl),
-        api.get(holdsUrl)
+        api.get(holdsUrl),
       ]);
 
       // Helper to extract seat numbers from API response
-      const extractSeatNumbers = (response, key = 'seatNumber') => {
+      const extractSeatNumbers = (response, key = "seatNumber") => {
         const seatNumbers = [];
         if (response && Array.isArray(response)) {
-          response.forEach(booking => {
-            const bookingDate = new Date(booking.date).toISOString().split('T')[0];
+          response.forEach((booking) => {
+            const bookingDate = new Date(booking.date)
+              .toISOString()
+              .split("T")[0];
             if (bookingDate === currentShow.date) {
               const seats = booking[key];
               if (seats && Array.isArray(seats)) {
-                seats.forEach(seat => {
+                seats.forEach((seat) => {
                   if (seat.seatNo) {
                     seatNumbers.push(seat.seatNo);
                   }
@@ -305,11 +312,12 @@ const SeatsPage = () => {
       };
 
       // Merge and deduplicate seat numbers
-      const seatsToExclude = excludeSeats !== null ? excludeSeats : selectedSeats;
+      const seatsToExclude =
+        excludeSeats !== null ? excludeSeats : selectedSeats;
       const bookedSeatNumbers = [
-        ...extractSeatNumbers(bookingsResponse, 'seatNumber'),
-        ...extractSeatNumbers(holdsResponse, 'seatNumbers')
-      ].filter((seat)=> !seatsToExclude.includes(seat));
+        ...extractSeatNumbers(bookingsResponse, "seatNumber"),
+        ...extractSeatNumbers(holdsResponse, "seatNumbers"),
+      ].filter((seat) => !seatsToExclude.includes(seat));
       const uniqueBookedSeats = Array.from(new Set(bookedSeatNumbers));
 
       setBookedSeats(uniqueBookedSeats);
@@ -317,10 +325,9 @@ const SeatsPage = () => {
       setAvailableSeats(353 - uniqueBookedSeats.length);
 
       // setSelectedSeats(prev => prev.filter(seat => !uniqueBookedSeats.includes(seat)));
-
     } catch (error) {
-      console.error('Error fetching booked seats:', error);
-      notify.error('Failed to fetch booked seats. Please try again.');
+      console.error("Error fetching booked seats:", error);
+      notify.error("Failed to fetch booked seats. Please try again.");
       setBookedSeats([]);
       setTotalBookedSeats(0);
       setAvailableSeats(353);
@@ -329,11 +336,10 @@ const SeatsPage = () => {
     }
   };
 
-
   const handleCloseTicketPreview = async () => {
     setShowTicketPreview(false);
     setAmountReceived("");
-    await fetchBookedSeats([]);  // Pass empty array to not exclude any seats
+    await fetchBookedSeats([]); // Pass empty array to not exclude any seats
     setSelectedSeats([]);
   };
 
@@ -354,7 +360,9 @@ const SeatsPage = () => {
     return new Promise(async (resolve) => {
       try {
         setLoading(true);
-        const formattedDate = currentShow.date ? `${currentShow.date}T00:00:00Z` : undefined;
+        const formattedDate = currentShow.date
+          ? `${currentShow.date}T00:00:00Z`
+          : undefined;
 
         const response = await api.post("/movie-seat-bookings", {
           movieId: currentShow.movieId,
@@ -378,13 +386,17 @@ const SeatsPage = () => {
           UDF2: "Admin",
         });
 
-        notify.success(`Booking confirmed for seats: ${selectedSeats.join(", ")}`);
+        console.log(transactionResponse);
+
+        notify.success(
+          `Booking confirmed for seats: ${selectedSeats.join(", ")}`
+        );
 
         // Return the booking ID
         resolve(movieSeatBookingID);
       } catch (error) {
-        console.error('Error confirming booking:', error);
-        notify.error('Failed to confirm booking. Please try again.');
+        console.error("Error confirming booking:", error);
+        notify.error("Failed to confirm booking. Please try again.");
       } finally {
         setLoading(false);
       }
@@ -409,32 +421,40 @@ const SeatsPage = () => {
     try {
       setLoading(true);
       // Format date as 'YYYY-MM-DDT00:00:00Z'
-      const formattedDate = currentShow.date ? `${currentShow.date}T00:00:00Z` : undefined;
+      const formattedDate = currentShow.date
+        ? `${currentShow.date}T00:00:00Z`
+        : undefined;
       const holdPayload = {
         movieId: currentShow.movieId,
         date: formattedDate,
-        bookedSeats: selectedSeats
+        bookedSeats: selectedSeats,
       };
       if (currentShow.showTimePlannerId) {
         holdPayload.showTimePlannerId = currentShow.showTimePlannerId;
       }
-      const response = await api.post('/movie-seat-holds', holdPayload);
-      if (response && response.error === "Selected seats are already booked!") {
-        notify.error("Selected ticket got booked");
-        setLoading(false);
-        return;
-      }
+      await api.post("/movie-seat-holds", holdPayload);
+      // if (response && response.error === "Selected seats are already booked!") {
+
+      //   notify.error("Selected ticket got booked");
+      //   setLoading(false);
+      //   return;
+      // }
+
+      setLoading(false);
+
       // Optionally, you can refresh booked seats here if needed
       // await fetchBookedSeats();
     } catch (error) {
-      console.error('Error holding seats:', error);
-      if (error && error.response.data.error === "Selected seats are already booked!") {
-        notify.error(error.response.data.error);
-      } else {
-        notify.error('Failed to hold seats. Please try again.');
-      }
+      console.error("Error holding seats:", error);
+      // if (
+      //   error &&
+      //   error.response.data.error === "Selected seats are already booked!"
+      // ) {
+      //   notify.error(error.response.data.error);
+      // } else {
+      //   notify.error("Failed to hold seats. Please try again.");
+      // }
       setLoading(false);
-      return;
     }
     setLoading(false);
     setShowBookingPopup(true);
@@ -458,12 +478,9 @@ const SeatsPage = () => {
     }
   };
 
-
   const handlePrintComplete = () => {
     setShowTicketPreview(false);
-    onConfirm(); // This will show booking confirmed
   };
-
 
   return (
     <div className="h-full flex flex-col p-4">
@@ -511,20 +528,28 @@ const SeatsPage = () => {
                       currentShow={currentShow}
                       onTimeSelect={(time, selectedShowTime) => {
                         // Use functional update to avoid stale closure
-                        setCurrentShow(prev => ({
+                        setCurrentShow((prev) => ({
                           ...prev,
                           time,
                           movieDetails: selectedShowTime || null,
                           price: selectedShowTime?.price || null,
-                          movie: selectedShowTime && selectedShowTime.movie && selectedShowTime.movie.title
-                            ? selectedShowTime.movie.title
-                            : "Select showtime",
-                          movieId: selectedShowTime && selectedShowTime.movie && selectedShowTime.movie.id
-                            ? selectedShowTime.movie.id
-                            : null,
-                          showTimePlannerId: selectedShowTime && selectedShowTime.showTimePlannerId
-                            ? selectedShowTime.showTimePlannerId
-                            : null
+                          movie:
+                            selectedShowTime &&
+                            selectedShowTime.movie &&
+                            selectedShowTime.movie.title
+                              ? selectedShowTime.movie.title
+                              : "Select showtime",
+                          movieId:
+                            selectedShowTime &&
+                            selectedShowTime.movie &&
+                            selectedShowTime.movie.id
+                              ? selectedShowTime.movie.id
+                              : null,
+                          showTimePlannerId:
+                            selectedShowTime &&
+                            selectedShowTime.showTimePlannerId
+                              ? selectedShowTime.showTimePlannerId
+                              : null,
                         }));
                       }}
                     />
@@ -535,7 +560,8 @@ const SeatsPage = () => {
                 <div className="hidden lg:flex items-center gap-1">
                   <Film className="text-blue-600" size={18} />
                   <span className="text-sm font-medium">
-                    <span className="text-gray-600 text-sm">Movie -</span> {currentShow.movie}
+                    <span className="text-gray-600 text-sm">Movie -</span>{" "}
+                    {currentShow.movie}
                   </span>
                 </div>
               </div>
@@ -560,20 +586,26 @@ const SeatsPage = () => {
 
                 <div className="flex items-center gap-1">
                   <div className="w-3 h-3 bg-gradient-to-b from-orange-100 to-orange-200 border border-orange-300 rounded"></div>
-                  <span className="text-sm font-medium">Available - {availableSeats}</span>
+                  <span className="text-sm font-medium">
+                    Available - {availableSeats}
+                  </span>
                 </div>
 
                 {/* Booked on same line for desktop, new line for mobile */}
                 <div className="hidden lg:flex items-center gap-1">
                   <div className="w-3 h-3 bg-gradient-to-b from-gray-400 to-gray-500 border border-gray-600 rounded"></div>
-                  <span className="text-sm font-medium">Booked - {totalBookedSeats}</span>
+                  <span className="text-sm font-medium">
+                    Booked - {totalBookedSeats}
+                  </span>
                 </div>
               </div>
 
               {/* Second row: Booked (mobile only) */}
               <div className="flex lg:hidden items-center gap-1">
                 <div className="w-3 h-3 bg-gradient-to-b from-gray-400 to-gray-500 border border-gray-600 rounded"></div>
-                <span className="text-sm font-medium">Booked - {totalBookedSeats}</span>
+                <span className="text-sm font-medium">
+                  Booked - {totalBookedSeats}
+                </span>
               </div>
             </div>
           </div>
@@ -609,7 +641,9 @@ const SeatsPage = () => {
         {/* Booking Summary */}
         <div className="lg:col-span-1 flex">
           <div className="bg-white rounded-lg shadow-md p-2 w-full flex flex-col">
-            <h2 className="text-lg font-semibold mb-4 flex-shrink-0">Booking Summary</h2>
+            <h2 className="text-lg font-semibold mb-4 flex-shrink-0">
+              Booking Summary
+            </h2>
 
             <div className="flex-1 flex flex-col overflow-hidden">
               {selectedSeats.length > 0 ? (
@@ -640,10 +674,11 @@ const SeatsPage = () => {
 
                   {/* Fixed bottom section */}
                   <div className="mt-auto border-t pt-4 space-y-3 border-gray-200">
-
                     {/* Payment type selection */}
                     <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium text-gray-700">Payment Type:</span>
+                      <span className="text-sm font-medium text-gray-700">
+                        Payment Type:
+                      </span>
                       <div className="flex gap-4">
                         <label className="flex items-center gap-2">
                           <input
