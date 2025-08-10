@@ -8,7 +8,7 @@ import TicketPreviewPopup from "../dialog/TicketPreviewPopup";
 
 // Seat Layout Component (recreated without framer-motion)
 const SeatLayout = ({ selectedSeats, onSeatSelect, bookedSeats = [], disabled }) => {
-  // Define rows with their specific configurations
+   // Define rows with their specific configurations
   const rows = [
     { letter: "A", leftSeats: 10, rightSeats: 10, hasGap: true },
     { letter: "B", leftSeats: 10, rightSeats: 10, hasGap: true },
@@ -95,13 +95,12 @@ const SeatLayout = ({ selectedSeats, onSeatSelect, bookedSeats = [], disabled })
                   return (
                     <div key={seat.id} className="px-0.5 py-1">
                       <button
-                        className={`relative w-6 h-6 flex justify-center items-center rounded-t-lg rounded-b-sm font-bold text-xs border-2 transition-all duration-200 shadow-sm animate-seatPop ${
-                          isBooked
-                            ? "bg-gradient-to-b from-gray-300 to-gray-500 text-white border-gray-700 cursor-not-allowed"
-                            : isSelected
+                        className={`relative w-6 h-6 flex justify-center items-center rounded-t-lg rounded-b-sm font-bold text-xs border-2 transition-all duration-200 shadow-sm animate-seatPop ${isBooked
+                          ? "bg-gradient-to-b from-gray-300 to-gray-500 text-white border-gray-700 cursor-not-allowed"
+                          : isSelected
                             ? "bg-gradient-to-b from-orange-400 to-orange-600 text-white border-orange-700 shadow-lg scale-105"
                             : "bg-gradient-to-b from-orange-100 to-orange-200 text-orange-800 border-orange-300 hover:border-orange-500 hover:from-orange-200 hover:to-orange-300 hover:shadow-md hover:scale-110"
-                        }`}
+                          }`}
                         onClick={() => !isBooked && onSeatSelect(seat.id)}
                         disabled={isBooked || disabled}
                         style={{
@@ -113,13 +112,12 @@ const SeatLayout = ({ selectedSeats, onSeatSelect, bookedSeats = [], disabled })
                         </span>
                         {/* Seat cushion effect */}
                         <div
-                          className={`absolute bottom-0 left-0.5 right-0.5 h-1.5 rounded-sm ${
-                            isBooked
-                              ? "bg-gray-600"
-                              : isSelected
+                          className={`absolute bottom-0 left-0.5 right-0.5 h-1.5 rounded-sm ${isBooked
+                            ? "bg-gray-600"
+                            : isSelected
                               ? "bg-orange-700"
                               : "bg-orange-300"
-                          }`}
+                            }`}
                         />
                       </button>
                     </div>
@@ -143,19 +141,17 @@ const SeatLayout = ({ selectedSeats, onSeatSelect, bookedSeats = [], disabled })
                   return (
                     <div key={seat.id} className="px-0.5 py-1">
                       <button
-                        className={`relative w-6 h-6 flex justify-center items-center rounded-t-lg rounded-b-sm font-bold text-xs border-2 transition-all duration-200 shadow-sm animate-seatPop ${
-                          isBooked
-                            ? "bg-gradient-to-b from-gray-300 to-gray-500 text-white border-gray-700 cursor-not-allowed"
-                            : isSelected
+                        className={`relative w-6 h-6 flex justify-center items-center rounded-t-lg rounded-b-sm font-bold text-xs border-2 transition-all duration-200 shadow-sm animate-seatPop ${isBooked
+                          ? "bg-gradient-to-b from-gray-300 to-gray-500 text-white border-gray-700 cursor-not-allowed"
+                          : isSelected
                             ? "bg-gradient-to-b from-orange-400 to-orange-600 text-white border-orange-700 shadow-lg scale-105"
                             : "bg-gradient-to-b from-orange-100 to-orange-200 text-orange-800 border-orange-300 hover:border-orange-500 hover:from-orange-200 hover:to-orange-300 hover:shadow-md hover:scale-110"
-                        }`}
+                          }`}
                         onClick={() => !isBooked && onSeatSelect(seat.id)}
                         disabled={isBooked}
                         style={{
-                          animationDelay: `${
-                            rowIndex * 50 + (leftSeats.length + seatIndex) * 10
-                          }ms`,
+                          animationDelay: `${rowIndex * 50 + (leftSeats.length + seatIndex) * 10
+                            }ms`,
                         }}
                       >
                         <span className="relative z-10 text-[10px]">
@@ -163,13 +159,12 @@ const SeatLayout = ({ selectedSeats, onSeatSelect, bookedSeats = [], disabled })
                         </span>
                         {/* Seat cushion effect */}
                         <div
-                          className={`absolute bottom-0 left-0.5 right-0.5 h-1.5 rounded-sm ${
-                            isBooked
-                              ? "bg-gray-600"
-                              : isSelected
+                          className={`absolute bottom-0 left-0.5 right-0.5 h-1.5 rounded-sm ${isBooked
+                            ? "bg-gray-600"
+                            : isSelected
                               ? "bg-orange-700"
                               : "bg-orange-300"
-                          }`}
+                            }`}
                         />
                       </button>
                     </div>
@@ -258,13 +253,14 @@ const SeatsPage = () => {
   const [loading, setLoading] = useState(false);
   const [currentShow, setCurrentShow] = useState({
     movie: "Select showtime",
-    date: new Date().toISOString().split("T")[0], // Current date
+    date: new Date().toISOString().split("T")[0],
     time: "",
     price: null,
     movieId: null,
     showTimePlannerId: null,
   });
   const [showBookingPopup, setShowBookingPopup] = useState(false);
+   const [bookingId, setBookingId] = useState(null);
   const [showTicketPreview, setShowTicketPreview] = useState(false);
   const [paymentType, setPaymentType] = useState("cash");
 
@@ -339,6 +335,7 @@ const SeatsPage = () => {
   const handleCloseTicketPreview = async () => {
     setShowTicketPreview(false);
     setAmountReceived("");
+    setBookingId(null);
     await fetchBookedSeats([]); // Pass empty array to not exclude any seats
     setSelectedSeats([]);
   };
@@ -357,50 +354,49 @@ const SeatsPage = () => {
   };
 
   const confirmBooking = async () => {
-    return new Promise(async (resolve) => {
-      try {
-        setLoading(true);
-        const formattedDate = currentShow.date
-          ? `${currentShow.date}T00:00:00Z`
-          : undefined;
+    try {
+      setLoading(true);
+      const formattedDate = currentShow.date
+        ? `${currentShow.date}T00:00:00Z`
+        : undefined;
 
-        const response = await api.post("/movie-seat-bookings", {
-          movieId: currentShow.movieId,
-          userId: 1,
-          adminUserId: null,
-          showTimePlannerId: currentShow.showTimePlannerId,
-          date: formattedDate,
-          bookingSeats: selectedSeats,
-        });
-        //console.log(response);
+      const response = await api.post("/movie-seat-bookings", {
+        movieId: currentShow.movieId,
+        userId: 1,
+        adminUserId: null,
+        showTimePlannerId: currentShow.showTimePlannerId,
+        date: formattedDate,
+        bookingSeats: selectedSeats,
+      });
 
-        const movieSeatBookingID = response.id;
-        const totalPrice = getTotalPrice();
+      const movieSeatBookingID = response.id;
+      setBookingId(movieSeatBookingID); // Store the booking ID in state
+      console.log(movieSeatBookingID);
+      const totalPrice = getTotalPrice();
 
-        const transactionResponse = await api.post("/transactions", {
-          movieSeatBookingId: movieSeatBookingID,
-          paymentMode: paymentType,
-          easePayId: "POS",
-          amount: totalPrice,
-          UDF1: "Admin",
-          UDF2: "Admin",
-        });
+      const transactionResponse = await api.post("/transactions", {
+        movieSeatBookingId: movieSeatBookingID,
+        paymentMode: paymentType,
+        easePayId: "POS",
+        amount: totalPrice,
+        UDF1: "Admin",
+        UDF2: "Admin",
+      });
 
-        console.log(transactionResponse);
+      console.log(transactionResponse);
 
-        notify.success(
-          `Booking confirmed for seats: ${selectedSeats.join(", ")}`
-        );
+      notify.success(
+        `Booking confirmed for seats: ${selectedSeats.join(", ")}`
+      );
 
-        // Return the booking ID
-        resolve(movieSeatBookingID);
-      } catch (error) {
-        console.error("Error confirming booking:", error);
-        notify.error("Failed to confirm booking. Please try again.");
-      } finally {
-        setLoading(false);
-      }
-    });
+      return movieSeatBookingID; // Return the booking ID
+    } catch (error) {
+      console.error("Error confirming booking:", error);
+      notify.error(`Failed to confirm booking. ${error.message}`);
+      return null;
+    } finally {
+      setLoading(false);
+    }
   };
 
   const cancelBooking = () => {
@@ -535,19 +531,19 @@ const SeatsPage = () => {
                           price: selectedShowTime?.price || null,
                           movie:
                             selectedShowTime &&
-                            selectedShowTime.movie &&
-                            selectedShowTime.movie.title
+                              selectedShowTime.movie &&
+                              selectedShowTime.movie.title
                               ? selectedShowTime.movie.title
                               : "Select showtime",
                           movieId:
                             selectedShowTime &&
-                            selectedShowTime.movie &&
-                            selectedShowTime.movie.id
+                              selectedShowTime.movie &&
+                              selectedShowTime.movie.id
                               ? selectedShowTime.movie.id
                               : null,
                           showTimePlannerId:
                             selectedShowTime &&
-                            selectedShowTime.showTimePlannerId
+                              selectedShowTime.showTimePlannerId
                               ? selectedShowTime.showTimePlannerId
                               : null,
                         }));
@@ -768,7 +764,6 @@ const SeatsPage = () => {
                       selectedSeats={selectedSeats}
                       totalPrice={getTotalPrice()}
                       onConfirm={async () => {
-                        // setSelectedSeats([]);
                         const bookingId = await confirmBooking();
                         if (bookingId) {
                           setShowBookingPopup(false);
@@ -786,7 +781,7 @@ const SeatsPage = () => {
                       selectedSeats={selectedSeats}
                       currentShow={currentShow}
                       onClose={handleCloseTicketPreview}
-                      bookingId={"1"}
+                      bookingId={bookingId}
                       onPrintComplete={handlePrintComplete}
                       movie={currentShow.movie}
                       timing={currentShow.time}

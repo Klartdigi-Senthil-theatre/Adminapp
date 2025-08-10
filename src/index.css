@@ -10,3 +10,17 @@ body {
 button {
   cursor: pointer;
 }
+
+/* Transparent scrollbar for sidebar */
+.sidebar-scroll::-webkit-scrollbar {
+  width: 8px;
+  background: transparent;
+}
+.sidebar-scroll::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,0.08);
+  border-radius: 4px;
+}
+.sidebar-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}

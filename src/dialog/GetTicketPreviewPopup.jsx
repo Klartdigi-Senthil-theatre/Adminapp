@@ -1,4 +1,5 @@
 import { Calendar, MapPin, Printer, Users, X } from "lucide-react";
+import moment from "moment";
 import { useState } from "react";
 
 // Mock notify function for demo
@@ -8,7 +9,7 @@ const notify = {
   error: (msg) => console.log("Error:", msg),
 };
 
-const TicketPreviewPopup = ({
+const GetTicketPreviewPopup = ({
   selectedSeats,
   currentShow,
   onClose,
@@ -20,10 +21,10 @@ const TicketPreviewPopup = ({
   const poster = currentShow?.movieDetails?.poster;
 
   // Ticket data
-  const movieName = currentShow?.movie || "Movie Title";
+  const movieName = currentShow?.movieName || "Movie Title";
   const theatreName = "Senthil Cinemas A/C";
-  const showTime = currentShow?.time || "10:00 AM";
-  const showDate = currentShow?.date || new Date().toISOString().split("T")[0];
+  const showTime = currentShow?.time || null;
+  const showDate = currentShow?.date || null;
   const pricePerSeat = currentShow?.price || null; // Now using price per seat
 
   const generateQRCodeURL = (data) => {
@@ -112,7 +113,7 @@ const TicketPreviewPopup = ({
                   <div class="flex flex-col gap-2 bg-white">
                     <div class="flex justify-between items-center w-full">
                       <div class="text-sm font-semibold">
-                        <span class="text-xs font-normal">Date & Time : </span>${new Date(showDate).toLocaleDateString()} • ${showTime}
+                        <span class="text-xs font-normal">Date & Time : </span>${new Date(showDate).toLocaleDateString()} • ${moment(showTime, "HH:mm").format("h:mm A")}
                       </div>
                       <div class="text-sm font-semibold">
                         <span class="text-xs font-normal">Theatre : </span>${theatreName}
@@ -214,7 +215,7 @@ const TicketPreviewPopup = ({
                             </div>
                             <div className="font-medium text-xs">
                               {new Date(showDate).toLocaleDateString()} •{" "}
-                              {showTime}
+                              {moment(showTime, "HH:mm").format("h:mm A")}
                             </div>
                           </div>
                         </div>
@@ -235,11 +236,11 @@ const TicketPreviewPopup = ({
                               {theatreName}
                             </div>
                           </div>
-                        </div>                      
-
+                        </div>
+                        
                         <div className="flex items-center gap-3">
                           <div>
-                            <div className="text-xs text-gray-500">GST - </div>
+                            <div className="text-xs text-gray-500">GST</div>
                             <div className="font-medium text-xs">33CMMPP7822B1Z2</div>
                           </div>
                         </div>
@@ -274,4 +275,4 @@ const TicketPreviewPopup = ({
   );
 };
 
-export default TicketPreviewPopup;
+export default GetTicketPreviewPopup;

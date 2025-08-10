@@ -9,8 +9,6 @@ const BookingPopup = ({
   currentShow,
 }) => {
 
-  console.log(currentShow);
-
   const handleConfirm = () => {
     const newBookingId = `ST-${Math.floor(100000 + Math.random() * 900000)}`;
     onConfirm(newBookingId);

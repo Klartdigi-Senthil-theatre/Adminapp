@@ -10,6 +10,7 @@ import Movie from "../pages/MoviePage";
 import Users from "../pages/UserPage";
 import ShowTimePage from "../pages/ShowTimePage";
 import Notification from "../components/Notification";
+import GetTicketsPage from "../pages/GetTicketsPage";
 
 function AppRouter() {
   return (
@@ -25,6 +26,7 @@ function AppRouter() {
           <Route path="/movie" element={<Movie />} />
           <Route path="/users" element={<Users />} />
           <Route path="/show-time" element={<ShowTimePage />} />
+          <Route path="/get-tickets" element={<GetTicketsPage />} />
           <Route path="/" element={<Dashboard />} />
         </Routes>
       </Layout>

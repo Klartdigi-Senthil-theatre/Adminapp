@@ -11,6 +11,7 @@ import {
   ChevronLeft,
   Film,
   Clock,
+  Tickets,
 } from "lucide-react";
 import { GiOfficeChair } from "react-icons/gi";
 
@@ -25,6 +26,7 @@ const Sidebar = ({ isOpen, setIsOpen, isMobile }) => {
     { path: "/movie", icon: Film, name: "Movie" },
     { path: "/users", icon: Users, name: "Users" },
     { path: "/show-time", icon: Clock, name: "Showtime Planner" },
+    { path: "/get-tickets", icon: Tickets, name: "Get Tickets" },
   ];
 
   return (
@@ -66,8 +68,15 @@ const Sidebar = ({ isOpen, setIsOpen, isMobile }) => {
           </button>
         </div>
 
-        <nav className="mt-6">
-          <ul>
+
+        {/* Sidebar Navigation */}
+        <nav className="mt-3 flex-1 overflow-hidden">
+          <ul
+            className="sidebar-scroll overflow-y-auto pr-2"
+            style={{
+              maxHeight: "calc(100vh - 160px)", // Adjust for header + user profile
+            }}
+          >
             {navItems.map((item) => (
               <li key={item.path} className="mb-2">
                 <NavLink
@@ -91,7 +100,7 @@ const Sidebar = ({ isOpen, setIsOpen, isMobile }) => {
         </nav>
 
         {/* User profile at bottom */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-orange-700">
+        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-orange-700 bg-white">
           <div
             className={`flex items-center ${!isOpen && !isMobile ? "justify-center" : ""
               }`}
@@ -109,6 +118,7 @@ const Sidebar = ({ isOpen, setIsOpen, isMobile }) => {
             )}
           </div>
         </div>
+
       </div>
     </>
   );
