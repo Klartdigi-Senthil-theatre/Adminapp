@@ -418,8 +418,9 @@ const TicketPreviewPopup = ({
                         <div class="text-amber-300 text-sm">Premium Cinema Experience</div>
                       </div>
                       <div class="w-16 h-16 rounded-full overflow-hidden mr-2">
-                          <img src=${poster} className= "w-16 h-16 rounded-full" />
+                        <img src="${poster}" class="w-16 h-16 object-cover rounded-full" />
                       </div>
+
                     </div>
                     <div class="grid grid-cols-2">
                       <div class="text-left">
