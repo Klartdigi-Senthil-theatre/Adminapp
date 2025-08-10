@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   ShoppingCart,
   X,
@@ -15,11 +15,25 @@ import autoTable from "jspdf-autotable";
 import jsPDF from "jspdf";
 
 export default function SnacksPage() {
-  const [cart, setCart] = useState([]);
+  const [cart, setCart] = useState([]);  
+  const [loading, setLoading] = useState(true);
   const [filterCategory, setFilterCategory] = useState("All");
   const [currentShow, setCurrentShow] = useState({ time: "" });
   const [isMobileCartOpen, setIsMobileCartOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+
+   useEffect(() => {
+      const fetchSnacks = async () => {
+        try {
+          setCurrentShow(data);
+          setLoading(false);
+        } catch (err) {
+          setLoading(false);
+        }
+      };
+  
+      fetchSnacks();
+    }, []);
 
   const snacks = [
     {
@@ -352,6 +366,17 @@ export default function SnacksPage() {
 
   return (
     <div className="p-2 lg:p-4 relative">
+      {/* Loading indicator */}
+      {loading && (
+        <div className="fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-4 rounded-lg">
+            <div className="flex items-center gap-2">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-orange-600"></div>
+              <span>Loading...</span>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Header - Responsive Layout */}
       <div className="mb-4 bg-white sticky top-0 z-10 pt-2 pb-1 border border-white rounded-2xl">
         {/* Desktop Layout */}

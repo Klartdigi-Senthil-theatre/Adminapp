@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Plus, Edit, Trash2, X, Upload, Image } from "lucide-react";
+import { Plus, Edit, Trash2, X, Upload, Image, Package } from "lucide-react";
 import moment from "moment/moment";
 import PageHeader from "../components/PageHeader";
 import CustomDropdown from "../components/CustomDropdown";
@@ -158,11 +158,22 @@ const MoviePage = () => {
     return matchesSearch;
   });
 
-  if (loading) return <div className="p-4">Loading movies...</div>;
   if (error) return <div className="p-4 text-red-500">Error: {error}</div>;
 
   return (
     <div className="p-4 lg:p-6">
+      {/* Loading indicator */}
+      {loading && (
+        <div className="fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-4 rounded-lg">
+            <div className="flex items-center gap-2">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-orange-600"></div>
+              <span>Loading...</span>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
         <PageHeader title="Movie Management" />

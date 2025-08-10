@@ -7,7 +7,7 @@ import api from "../config/api";
 import TicketPreviewPopup from "../dialog/TicketPreviewPopup";
 
 // Seat Layout Component (recreated without framer-motion)
-const SeatLayout = ({ selectedSeats, onSeatSelect, bookedSeats = [] }) => {
+const SeatLayout = ({ selectedSeats, onSeatSelect, bookedSeats = [], disabled }) => {
   // Define rows with their specific configurations
   const rows = [
     { letter: "A", leftSeats: 10, rightSeats: 10, hasGap: true },
@@ -103,7 +103,7 @@ const SeatLayout = ({ selectedSeats, onSeatSelect, bookedSeats = [] }) => {
                             : "bg-gradient-to-b from-orange-100 to-orange-200 text-orange-800 border-orange-300 hover:border-orange-500 hover:from-orange-200 hover:to-orange-300 hover:shadow-md hover:scale-110"
                         }`}
                         onClick={() => !isBooked && onSeatSelect(seat.id)}
-                        disabled={isBooked}
+                        disabled={isBooked || disabled}
                         style={{
                           animationDelay: `${rowIndex * 50 + seatIndex * 10}ms`,
                         }}
@@ -624,6 +624,7 @@ const SeatsPage = () => {
                 selectedSeats={selectedSeats}
                 onSeatSelect={handleSeatSelect}
                 bookedSeats={bookedSeats}
+                disabled={!currentShow.time}
               />
             </div>
 
@@ -753,7 +754,7 @@ const SeatsPage = () => {
                       <button
                         onClick={handleBookSeats}
                         className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                        disabled={loading}
+                        disabled={loading || !currentShow.time}
                       >
                         <Users size={18} />
                         <span>Book Seats (₹{getTotalPrice()})</span>
