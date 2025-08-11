@@ -305,6 +305,16 @@ const DashboardPage = () => {
     return `${start} - ${end}`;
   };
 
+  const formatCalendarDisplay = () => {
+    const start = formatDate(dateRange[0].startDate);
+    const end = formatDate(dateRange[0].endDate);
+
+    if (start === end) {
+      return start;
+    }
+    return `${start} - ${end}`;
+  };
+
   const handlePrevDate = () => {
     setCurrentDateIndex((prev) => Math.max(0, prev - 1));
   };
@@ -316,14 +326,28 @@ const DashboardPage = () => {
   };
 
   const handleLifetime = () => {
-    setIsLifetime(true);
-    setDateRange([
-      {
-        startDate: minAvailableDate,
-        endDate: maxAvailableDate,
-        key: "selection",
-      },
-    ]);
+    if (isLifetime) {
+      // Switch to Today
+      setIsLifetime(false);
+      const today = new Date();
+      setDateRange([
+        {
+          startDate: today,
+          endDate: today,
+          key: "selection",
+        },
+      ]);
+    } else {
+      // Switch to Lifetime
+      setIsLifetime(true);
+      setDateRange([
+        {
+          startDate: minAvailableDate,
+          endDate: maxAvailableDate,
+          key: "selection",
+        },
+      ]);
+    }
   };
 
   return (
@@ -337,7 +361,7 @@ const DashboardPage = () => {
             className={`border rounded-md px-3 py-1 text-sm flex items-center gap-2 text-orange-600 hover:border-gray-600 hover:text-black ${
               isLifetime ? "bg-gray-100" : ""
             }`}          >
-            Lifetime
+            {isLifetime ? "Today" : "Lifetime"}
           </button>
 
           <div className="relative" ref={datePickerRef}>
@@ -348,7 +372,7 @@ const DashboardPage = () => {
               className="border rounded-md px-3 py-1 text-sm flex items-center gap-2 hover:border-blue-600"
             >
               <Calendar size={16} />
-              <span>{formatDateRangeDisplay()}</span>
+              <span>{formatCalendarDisplay()}</span>
             </button>
 
             {showDatePicker && (
