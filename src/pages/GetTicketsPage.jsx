@@ -47,23 +47,99 @@ const handleGetTickets = async () => {
       let showTimePlannerData = null;
       let ticketPrice = bookingResult.price; // fallback to booking price if present
 
-      if (bookingResult.date) {
+      // First try to get showtime planner data by showTimePlannerId (most direct approach)
+      if (bookingResult.showTimePlannerId) {
+        try {
+          showTimePlannerData = await api.get(`/show-time-planner/${bookingResult.showTimePlannerId}`);
+          if (showTimePlannerData && showTimePlannerData.price) {
+            ticketPrice = showTimePlannerData.price;
+          }
+          
+          // Get showTime details if available
+          if (showTimePlannerData && showTimePlannerData.showTimeId) {
+            try {
+              const showTimeResponse = await api.get(`/show-times/${showTimePlannerData.showTimeId}`);
+              if (showTimeResponse && showTimeResponse.showTime) {
+                showTimePlannerData.showTime = showTimeResponse.showTime;
+              }
+            } catch (showTimeError) {
+              console.warn("Could not fetch showTime details:", showTimeError);
+            }
+          }
+        } catch (plannerIdError) {
+          console.warn("Could not fetch showtime by planner ID:", plannerIdError);
+          
+          // Fallback to date-based lookup if planner ID fails
+          if (bookingResult.date) {
+            try {
+              const showTimeByDateResponse = await api.get(`/show-time-planner/date/${bookingResult.date}`);
+              
+              if (showTimeByDateResponse && showTimeByDateResponse.length > 0) {
+                // Try to find the specific showtime planner entry that matches this booking
+                const matchingEntry = showTimeByDateResponse.find(entry => 
+                  entry.id === bookingResult.showTimePlannerId || 
+                  (entry.movieId === bookingResult.movieId && entry.showTimeId === bookingResult.showTimeId)
+                );
+                
+                if (matchingEntry) {
+                  showTimePlannerData = matchingEntry;
+                  if (matchingEntry.price) {
+                    ticketPrice = matchingEntry.price;
+                  }
+                } else {
+                  // If no specific match found, use first entry as fallback
+                  console.warn("No exact match found, using first available entry");
+                  showTimePlannerData = showTimeByDateResponse[0];
+                  if (showTimePlannerData && showTimePlannerData.price) {
+                    ticketPrice = showTimePlannerData.price;
+                  }
+                }
+
+                // Get showTime details
+                if (showTimePlannerData && showTimePlannerData.showTimeId) {
+                  try {
+                    const showTimeResponse = await api.get(`/show-times/${showTimePlannerData.showTimeId}`);
+                    if (showTimeResponse && showTimeResponse.showTime) {
+                      showTimePlannerData.showTime = showTimeResponse.showTime;
+                    }
+                  } catch (showTimeError) {
+                    console.warn("Could not fetch showTime details:", showTimeError);
+                  }
+                }
+              }
+            } catch (dateApiError) {
+              console.warn("Could not fetch showtime by date:", dateApiError);
+            }
+          }
+        }
+      } else if (bookingResult.date) {
+        // If no showTimePlannerId available, try date-based lookup
         try {
           const showTimeByDateResponse = await api.get(`/show-time-planner/date/${bookingResult.date}`);
           
-          // If we get showtime data by date, use it
           if (showTimeByDateResponse && showTimeByDateResponse.length > 0) {
-            // Find the matching showtime (you might want to add more specific matching logic)
-            showTimePlannerData = showTimeByDateResponse[0]; // Using first result, adjust as needed
+            // Try to find entry matching the movieId
+            const matchingEntry = showTimeByDateResponse.find(entry => 
+              entry.movieId === bookingResult.movieId
+            );
             
-            if (showTimePlannerData && showTimePlannerData.price) {
-              ticketPrice = showTimePlannerData.price;
+            if (matchingEntry) {
+              showTimePlannerData = matchingEntry;
+              if (matchingEntry.price) {
+                ticketPrice = matchingEntry.price;
+              }
+            } else {
+              // Use first entry as fallback
+              showTimePlannerData = showTimeByDateResponse[0];
+              if (showTimePlannerData && showTimePlannerData.price) {
+                ticketPrice = showTimePlannerData.price;
+              }
             }
 
-            // Get showTime details using showtimeId from showTimePlannerData
-            if (showTimePlannerData && showTimePlannerData.showtimeId) {
+            // Get showTime details
+            if (showTimePlannerData && showTimePlannerData.showTimeId) {
               try {
-                const showTimeResponse = await api.get(`/show-times/${showTimePlannerData.showtimeId}`);
+                const showTimeResponse = await api.get(`/show-times/${showTimePlannerData.showTimeId}`);
                 if (showTimeResponse && showTimeResponse.showTime) {
                   showTimePlannerData.showTime = showTimeResponse.showTime;
                 }
@@ -74,28 +150,6 @@ const handleGetTickets = async () => {
           }
         } catch (dateApiError) {
           console.warn("Could not fetch showtime by date:", dateApiError);
-          
-          // Fallback to original method if date API fails
-          if (bookingResult.showTimePlannerId) {
-            try {
-              showTimePlannerData = await api.get(`/show-time-planner/${bookingResult.showTimePlannerId}`);
-              if (showTimePlannerData && showTimePlannerData.price) {
-                ticketPrice = showTimePlannerData.price;
-              }
-            } catch (plannerIdError) {
-              console.warn("Could not fetch showtime by ID:", plannerIdError);
-            }
-          }
-        }
-      } else if (bookingResult.showTimePlannerId) {
-        // Fallback to showTimePlannerId if date is not available
-        try {
-          showTimePlannerData = await api.get(`/show-time-planner/${bookingResult.showTimePlannerId}`);
-          if (showTimePlannerData && showTimePlannerData.price) {
-            ticketPrice = showTimePlannerData.price;
-          }
-        } catch (plannerIdError) {
-          console.warn("Could not fetch showtime by ID:", plannerIdError);
         }
       }
 
@@ -107,7 +161,24 @@ const handleGetTickets = async () => {
         price: ticketPrice
       };
 
-      console.log(combinedResult);
+      console.log('GetTicketsPage - Price retrieval debug:', {
+        bookingId: searchBookingId,
+        originalBookingPrice: bookingResult.price,
+        showTimePlannerPrice: showTimePlannerData?.price,
+        finalTicketPrice: ticketPrice,
+        showTimePlannerId: bookingResult.showTimePlannerId,
+        movieId: bookingResult.movieId,
+        date: bookingResult.date
+      });
+      
+      console.log('GetTicketsPage - ShowTime debug:', {
+        showTimePlannerData: showTimePlannerData,
+        showTimeFromPlanner: showTimePlannerData?.showTime,
+        showTimeValue: showTimePlannerData?.showTime?.showTime,
+        bookingResult: bookingResult
+      });
+      
+      console.log('GetTicketsPage - Combined result:', combinedResult);
 
       setBookingResult(combinedResult);
       setShowBookingSummary(true);
@@ -243,8 +314,22 @@ const handleNewSearch = () => {
                   <span>{moment(bookingResult.date).format("MMM D, YYYY")}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Date:</span>
-                  <span>{moment(bookingResult.showTimePlanner.showTime.showTime, "HH:mm").format("h:mm A")}</span>
+                  <span className="text-gray-600">Show Time:</span>
+                  <span>
+                    {(() => {
+                      // Try multiple possible sources for show time
+                      const timeValue = bookingResult.showTimePlanner?.showTime?.showTime || 
+                                       bookingResult.showTimePlanner?.showTime || 
+                                       bookingResult.time ||
+                                       bookingResult.showTime;
+                      
+                      if (timeValue) {
+                        const momentTime = moment(timeValue, ["HH:mm", "HH:mm:ss", "h:mm A", "h:mm a"]);
+                        return momentTime.isValid() ? momentTime.format("h:mm A") : timeValue;
+                      }
+                      return 'N/A';
+                    })()}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Seats:</span>
@@ -272,7 +357,10 @@ const handleNewSearch = () => {
               movieName: bookingResult.movieDetails?.movieName || "Movie Title",
               poster: bookingResult.movieDetails?.image,
               date: bookingResult.date || bookingResult.showTimePlanner?.date,
-              time: bookingResult.showTimePlanner.showTime.showTime,
+              time: bookingResult.showTimePlanner?.showTime?.showTime || 
+                    bookingResult.showTimePlanner?.showTime || 
+                    bookingResult.time ||
+                    bookingResult.showTime,
               price: bookingResult.price || bookingResult.showTimePlanner?.price,
               movieDetails: bookingResult.movieDetails,
               showTimePlanner: bookingResult.showTimePlanner,

@@ -34,193 +34,6 @@ const PageHeader = ({ title, className }) => (
 const DashboardPage = () => {
   const datePickerRef = useRef(null);
 
-  // Extended static data for the dashboard with 15 days of data
-  const staticData = {
-    ticketRevenue: 1234,
-    snacksRevenue: 5678,
-    totalBookings: 1234,
-    occupancyRate: 78,
-    upcomingShows: 5,
-    todaySummary: {
-      totalSales: 12450,
-      ticketsSold: 89,
-      snacksSold: 156,
-      activeShows: 3,
-    },
-    screenData: [
-      {
-        name: "S1",
-        date: "Aug 4",
-        fullDate: "08/04/2025",
-        tickets: 25,
-        snacks: 10,
-      },
-      {
-        name: "S2",
-        date: "Aug 4",
-        fullDate: "08/04/2025",
-        tickets: 60,
-        snacks: 25,
-      },
-      {
-        name: "S3",
-        date: "Aug 4",
-        fullDate: "08/04/2025",
-        tickets: 70,
-        snacks: 26,
-      },
-      {
-        name: "S4",
-        date: "Aug 4",
-        fullDate: "08/04/2025",
-        tickets: 20,
-        snacks: 50,
-      },
-      {
-        name: "S1",
-        date: "Aug 3",
-        fullDate: "08/03/2025",
-        tickets: 41,
-        snacks: 25,
-      },
-      {
-        name: "S2",
-        date: "Aug 3",
-        fullDate: "08/03/2025",
-        tickets: 35,
-        snacks: 33,
-      },
-      {
-        name: "S3",
-        date: "Aug 3",
-        fullDate: "08/03/2025",
-        tickets: 57,
-        snacks: 41,
-      },
-      {
-        name: "S4",
-        date: "Aug 3",
-        fullDate: "08/03/2025",
-        tickets: 58,
-        snacks: 26,
-      },
-      {
-        name: "S1",
-        date: "Aug 2",
-        fullDate: "08/02/2025",
-        tickets: 45,
-        snacks: 32,
-      },
-      {
-        name: "S2",
-        date: "Aug 2",
-        fullDate: "08/02/2025",
-        tickets: 38,
-        snacks: 28,
-      },
-      {
-        name: "S3",
-        date: "Aug 2",
-        fullDate: "08/02/2025",
-        tickets: 52,
-        snacks: 41,
-      },
-      {
-        name: "S4",
-        date: "Aug 2",
-        fullDate: "08/02/2025",
-        tickets: 29,
-        snacks: 22,
-      },
-      {
-        name: "S1",
-        date: "Aug 1",
-        fullDate: "08/01/2025",
-        tickets: 40,
-        snacks: 30,
-      },
-      {
-        name: "S2",
-        date: "Aug 1",
-        fullDate: "08/01/2025",
-        tickets: 35,
-        snacks: 25,
-      },
-      {
-        name: "S3",
-        date: "Aug 1",
-        fullDate: "08/01/2025",
-        tickets: 48,
-        snacks: 38,
-      },
-      {
-        name: "S4",
-        date: "Aug 1",
-        fullDate: "08/01/2025",
-        tickets: 25,
-        snacks: 20,
-      },
-      {
-        name: "S1",
-        date: "Jul 31",
-        fullDate: "07/31/2025",
-        tickets: 43,
-        snacks: 32,
-      },
-      {
-        name: "S2",
-        date: "Jul 31",
-        fullDate: "07/31/2025",
-        tickets: 36,
-        snacks: 26,
-      },
-      {
-        name: "S3",
-        date: "Jul 31",
-        fullDate: "07/31/2025",
-        tickets: 50,
-        snacks: 38,
-      },
-      {
-        name: "S4",
-        date: "Jul 31",
-        fullDate: "07/31/2025",
-        tickets: 27,
-        snacks: 20,
-      },
-      {
-        name: "S1",
-        date: "Jul 30",
-        fullDate: "07/30/2025",
-        tickets: 47,
-        snacks: 35,
-      },
-      {
-        name: "S2",
-        date: "Jul 30",
-        fullDate: "07/30/2025",
-        tickets: 40,
-        snacks: 29,
-      },
-      {
-        name: "S3",
-        date: "Jul 30",
-        fullDate: "07/30/2025",
-        tickets: 54,
-        snacks: 41,
-      },
-      {
-        name: "S4",
-        date: "Jul 30",
-        fullDate: "07/30/2025",
-        tickets: 31,
-        snacks: 24,
-      },
-    ],
-  };
-
-  const [isLifetime, setIsLifetime] = useState(false);
-
   // Helper functions for date operations
   const parseDate = (dateStr) => {
     const [month, day, year] = dateStr.split("/");
@@ -257,6 +70,58 @@ const DashboardPage = () => {
     return dateTime >= startTime && dateTime <= endTime;
   };
 
+  // Generate dynamic data for the dashboard
+  const generateScreenData = () => {
+    const data = [];
+    const screens = ["S1", "S2", "S3", "S4"];
+    const today = new Date();
+    
+    // Generate data for 60 days (30 days in the past and 30 days in the future)
+    for (let i = -30; i <= 30; i++) {
+      const currentDate = new Date(today);
+      currentDate.setDate(today.getDate() + i);
+      
+      const month = currentDate.toLocaleString("default", { month: "short" });
+      const day = currentDate.getDate();
+      const displayDate = `${month} ${day}`;
+      
+      const fullDate = formatFullDate(currentDate);
+      
+      screens.forEach(screenName => {
+        // Generate random but realistic data
+        const tickets = Math.floor(Math.random() * 80) + 20; // 20-100 tickets
+        const snacks = Math.floor(Math.random() * 50) + 10; // 10-60 snacks
+        
+        data.push({
+          name: screenName,
+          date: displayDate,
+          fullDate: fullDate,
+          tickets: tickets,
+          snacks: snacks,
+        });
+      });
+    }
+    
+    return data;
+  };
+
+  const staticData = {
+    ticketRevenue: 1234,
+    snacksRevenue: 5678,
+    totalBookings: 1234,
+    occupancyRate: 78,
+    upcomingShows: 5,
+    todaySummary: {
+      totalSales: 12450,
+      ticketsSold: 89,
+      snacksSold: 156,
+      activeShows: 3,
+    },
+    screenData: generateScreenData(),
+  };
+
+  const [isLifetime, setIsLifetime] = useState(false);
+
   // Get unique dates from screenData
   const allDates = [
     ...new Set(
@@ -270,15 +135,16 @@ const DashboardPage = () => {
     return dateA - dateB;
   });
 
-  // Find the earliest and latest dates in your data
-  const minAvailableDate = parseDate(allDates[0]);
-  const maxAvailableDate = parseDate(allDates[allDates.length - 1]);
+  // Set reasonable date range for the date picker (current year)
+  const today = new Date();
+  const minAvailableDate = new Date(today.getFullYear(), 0, 1); // January 1st of current year
+  const maxAvailableDate = new Date(today.getFullYear() + 1, 11, 31); // December 31st of next year
 
   // Date range state
   const [dateRange, setDateRange] = useState([
     {
-      startDate: maxAvailableDate,
-      endDate: maxAvailableDate,
+      startDate: today,
+      endDate: today,
       key: "selection",
     },
   ]);
@@ -493,13 +359,7 @@ const DashboardPage = () => {
                   ranges={dateRange}
                   moveRangeOnFirstSelection={false}
                   showDateDisplay={false}
-                  minDate={
-                    new Date(
-                      minAvailableDate.getFullYear(),
-                      minAvailableDate.getMonth() - 1,
-                      1
-                    )
-                  } // Allow selecting previous month
+                  minDate={minAvailableDate}
                   maxDate={maxAvailableDate}
                   rangeColors={["#3b82f6"]}
                 />
@@ -606,10 +466,14 @@ const DashboardPage = () => {
                   <Cell fill="#FF6C38" />
                 </Pie>
                 <Tooltip
-                  formatter={(value) => [
-                    `₹${value.toLocaleString()}`,
-                    "Revenue",
-                  ]}
+                  formatter={(value, name, props) => {
+                    const total = rangeTicketRevenue + rangeSnacksRevenue;
+                    const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                    return [
+                      `₹${value.toLocaleString()} (${percentage}%)`,
+                      name,
+                    ];
+                  }}
                 />
                 <Legend />
               </PieChart>
@@ -707,7 +571,7 @@ const DashboardPage = () => {
                 <Tooltip
                   formatter={(value, name) => [
                     value,
-                    name === "tickets" ? "Tickets" : "Snacks",
+                    name,
                   ]}
                 />
                 <Legend />

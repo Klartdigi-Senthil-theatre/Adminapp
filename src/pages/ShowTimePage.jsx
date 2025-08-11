@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import moment from "moment";
 import PageHeader from "../components/PageHeader";
@@ -47,6 +47,8 @@ const ShowTimePage = () => {
   const DEFAULT_TICKET_PRICE = "150";
   const [movieOptions, setMovieOptions] = useState([]);
   const [allMovies, setAllMovies] = useState([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [lastSubmissionData, setLastSubmissionData] = useState(null);
 
   // Core state: moviesByDate
   const [moviesByDate, setMoviesByDate] = useState({
@@ -116,8 +118,8 @@ const ShowTimePage = () => {
     return momentDate.format('h:mm A');
   };
 
-  useEffect(() => {
-  const fetchPlannerForDate = async () => {
+  // Extract planner fetching logic into reusable function
+  const refreshPlannerData = useCallback(async () => {
     try {
       const formattedDate = selectedDate.format("YYYY-MM-DD");
       const response = await api.get(`/show-time-planner/date/${formattedDate}`);
@@ -169,6 +171,8 @@ const ShowTimePage = () => {
       setMovieOptions(allMovies); // this will be from full movie list
       setAssignedTimes(assignments);
       setShowtimePrices(prices);
+      
+      console.log('✅ Planner data refreshed with updated plannerIds:', assignments);
     } catch (err) {
       console.error("Error fetching planner:", err);
       setAssignedTimes({});
@@ -185,12 +189,13 @@ const ShowTimePage = () => {
       
       setMovieOptions(allMovies); // still allow dropdowns even if planner fails
     }
-  };
+  }, [selectedDate, apiShowTimes, allMovies]);
 
-  if (allMovies.length > 0) {
-    fetchPlannerForDate();
-  }
-}, [selectedDate, allMovies]);
+  useEffect(() => {
+    if (allMovies.length > 0) {
+      refreshPlannerData();
+    }
+  }, [selectedDate, allMovies, refreshPlannerData]);
 
 
 useEffect(() => {
@@ -300,6 +305,20 @@ useEffect(() => {
   }
 }, [selectedDate, apiShowTimes]);
 
+// Reset submission tracking when assignments or prices change (with debounce)
+useEffect(() => {
+  // Only reset if we actually have submission data to reset
+  if (!lastSubmissionData) return;
+  
+  // Small delay to prevent resetting during rapid state updates or refresh operations
+  const timer = setTimeout(() => {
+    console.log('🔄 Resetting lastSubmissionData due to state changes');
+    setLastSubmissionData(null);
+  }, 1000); // Increased delay to account for refresh operations
+  
+  return () => clearTimeout(timer);
+}, [assignedTimes, showtimePrices, lastSubmissionData]);
+
   // Check if the selected date allows editing (only future dates)
   const isDateEditable = () => {
     const today = moment().startOf('day');
@@ -321,13 +340,14 @@ useEffect(() => {
     }));
     console.log('=== DEBUG: Mapped showtimes ===', mapped);
     
-    // Remove duplicates based on displayTime to prevent duplicate entries
+    // Remove duplicates based on ID to prevent duplicate entries
     const uniqueShowTimes = mapped.reduce((acc, current) => {
-      const existing = acc.find(item => item.displayTime === current.displayTime);
+      const existing = acc.find(item => item.id === current.id);
       if (!existing) {
         acc.push(current);
       } else {
-        console.warn('Duplicate displayTime found in master showtimes:', {
+        console.warn('Duplicate showtime ID found in master showtimes:', {
+          id: current.id,
           displayTime: current.displayTime,
           existing: existing,
           current: current
@@ -395,7 +415,11 @@ useEffect(() => {
   // Date nav
   const handlePrevMonth = () => setCurrentDate(currentDate.clone().subtract(1, "month"));
   const handleNextMonth = () => setCurrentDate(currentDate.clone().add(1, "month"));
-  const handleDateSelect = (date) => setSelectedDate(date);
+  const handleDateSelect = (date) => {
+    setSelectedDate(date);
+    // Reset last submission data when date changes
+    setLastSubmissionData(null);
+  };
 
   // Per this day
   const thisDayKey = selectedDate.format("YYYY-MM-DD");
@@ -442,8 +466,31 @@ useEffect(() => {
 
   // Handle form submission
 const handleSubmit = async () => {
+  // Prevent multiple submissions
+  if (isSubmitting) {
+    return;
+  }
+
   try {
+    setIsSubmitting(true);
     const formattedDate = selectedDate.format("YYYY-MM-DD");
+
+    // Create a unique identifier for this submission to prevent duplicate data
+    const submissionIdentifier = {
+      date: formattedDate,
+      assignments: JSON.stringify(assignedTimes),
+      prices: JSON.stringify(showtimePrices)
+    };
+
+    // Check if this exact same data was just submitted
+    if (lastSubmissionData && 
+        lastSubmissionData.date === submissionIdentifier.date &&
+        lastSubmissionData.assignments === submissionIdentifier.assignments &&
+        lastSubmissionData.prices === submissionIdentifier.prices) {
+      console.log('Identical submission detected - skipping to prevent duplicates');
+      notify.warning('No changes detected since last submission');
+      return;
+    }
 
     // Collect all assignments into arrays
     const newEntries = [];
@@ -456,6 +503,12 @@ const handleSubmit = async () => {
     // Check each active showtime for assignments or deletions needed
     activeShowTimes.forEach((showTimeItem) => {
       const assignment = assignedTimes[showTimeItem.id];
+      
+      console.log(`🔍 Processing showtime ${showTimeItem.displayTime} (ID: ${showTimeItem.id}):`, {
+        assignment,
+        hasPlannerId: !!assignment?.plannerId,
+        hasMovieAssignment: !!(assignment?.id && assignment?.showTimeId)
+      });
       
       if (assignment && assignment.id && assignment.showTimeId) {
         // Has a current assignment
@@ -474,20 +527,27 @@ const handleSubmit = async () => {
 
         // Separate new entries from updates
         if (assignment.plannerId) {
+          console.log(`📝 UPDATE: ${showTimeItem.displayTime} - PlannerId: ${assignment.plannerId}`);
           updateEntries.push({
             ...payload,
             id: assignment.plannerId
           });
         } else {
+          console.log(`➕ NEW: ${showTimeItem.displayTime} - No plannerId found`);
           newEntries.push(payload);
         }
       } else if (assignment && assignment.plannerId && (!assignment.id || !assignment.showTimeId)) {
         // Had an assignment before but now deselected (plannerId exists but no current movie)
+        console.log(`🗑️ DELETE: ${showTimeItem.displayTime} - PlannerId: ${assignment.plannerId}`);
         deleteEntries.push({
           id: assignment.plannerId,
           showTimeId: showTimeItem.id,
           displayTime: showTimeItem.displayTime
         });
+      } else if (!assignment) {
+        console.log(`⭕ SKIP: ${showTimeItem.displayTime} - No assignment`);
+      } else {
+        console.log(`❓ UNCLEAR: ${showTimeItem.displayTime} - Assignment state unclear:`, assignment);
       }
     });
 
@@ -507,31 +567,47 @@ const handleSubmit = async () => {
       }
     }
 
+    // Deduplicate entries to prevent duplicate API calls
+    const uniqueNewEntries = newEntries.filter((entry, index, arr) => 
+      arr.findIndex(e => e.movieId === entry.movieId && e.showTimeId === entry.showTimeId && e.date === entry.date) === index
+    );
+    
+    const uniqueUpdateEntries = updateEntries.filter((entry, index, arr) => 
+      arr.findIndex(e => e.id === entry.id) === index
+    );
+
+    const uniqueDeleteEntries = deleteEntries.filter((entry, index, arr) => 
+      arr.findIndex(e => e.id === entry.id) === index
+    );
+
     // Debug logging for submission summary
     console.log("Submission Summary:", {
       totalAssignments: Object.keys(assignedTimes).length,
-      newEntries: newEntries.length,
-      updateEntries: updateEntries.length,
-      deleteEntries: deleteEntries.length,
+      newEntries: uniqueNewEntries.length,
+      updateEntries: uniqueUpdateEntries.length,
+      deleteEntries: uniqueDeleteEntries.length,
+      originalNewEntries: newEntries.length,
+      originalUpdateEntries: updateEntries.length,
+      originalDeleteEntries: deleteEntries.length,
       assignedTimes: assignedTimes,
-      deleteDetails: deleteEntries
+      deleteDetails: uniqueDeleteEntries
     });
 
     // Handle new entries (POST as array)
-    if (newEntries.length > 0) {
-      console.log("POST → /show-time-planner", newEntries);
+    if (uniqueNewEntries.length > 0) {
+      console.log("POST → /show-time-planner", uniqueNewEntries);
       try {
-        await api.post("/show-time-planner", newEntries);
+        await api.post("/show-time-planner", uniqueNewEntries);
       } catch (postError) {
         if (postError.response?.status === 404) {
           // Try alternative endpoint patterns
           console.log("Primary POST endpoint failed, trying alternatives...");
           try {
-            await api.post("/show-time-planners", newEntries);
+            await api.post("/show-time-planners", uniqueNewEntries);
           } catch (altError) {
             if (altError.response?.status === 404) {
               try {
-                await api.post("/showtimes", newEntries);
+                await api.post("/showtimes", uniqueNewEntries);
               } catch (altError2) {
                 // If all alternatives fail, throw the original error
                 throw postError;
@@ -547,7 +623,7 @@ const handleSubmit = async () => {
     }
 
     // Handle updates (individual PUT/PATCH requests)
-    for (let updateEntry of updateEntries) {
+    for (let updateEntry of uniqueUpdateEntries) {
       const { id, ...updatePayload } = updateEntry;
       console.log("PUT →", `/show-time-planner/${id}`, updatePayload);
       
@@ -583,7 +659,7 @@ const handleSubmit = async () => {
     }
 
     // Handle deletions (individual DELETE requests)
-    for (let deleteEntry of deleteEntries) {
+    for (let deleteEntry of uniqueDeleteEntries) {
       console.log("DELETE →", `/show-time-planner/${deleteEntry.id}`, {
         showTimeId: deleteEntry.showTimeId,
         displayTime: deleteEntry.displayTime
@@ -614,17 +690,12 @@ const handleSubmit = async () => {
       }
     }
 
-    // Clear assignments for deleted entries from local state
-    if (deleteEntries.length > 0) {
-      setAssignedTimes((prev) => {
-        const updated = { ...prev };
-        deleteEntries.forEach((deleteEntry) => {
-          // Remove the assignment entirely or set to null
-          delete updated[deleteEntry.showTimeId];
-        });
-        return updated;
-      });
-    }
+    // Refresh planner data to get updated plannerIds from server
+    // This ensures we have the correct plannerId values for future operations
+    await refreshPlannerData();
+
+    // Store the submission data to prevent duplicate submissions
+    setLastSubmissionData(submissionIdentifier);
 
     notify.success("Showtimes submitted successfully!");
   } catch (error) {
@@ -647,6 +718,8 @@ const handleSubmit = async () => {
     } else {
       notify.error(`Failed to save showtimes - ${error.response?.status} error. ${error.response?.data?.error || error.response?.data?.message || error.message}`);
     }
+  } finally {
+    setIsSubmitting(false);
   }
 };
 
@@ -857,15 +930,19 @@ const handleSubmit = async () => {
               <button
                 onClick={handleSubmit}
                 disabled={
+                  isSubmitting ||
                   !isDateEditable() ||
                   activeShowTimes.length === 0 ||
                   Object.entries(assignedTimes).some(([showTimeId, assignment]) => 
                     assignment && !showtimePrices[assignment.showTimeId]
                   )
                 }
-                className="bg-orange-600 text-white px-6 py-2 rounded-lg shadow hover:bg-orange-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                className="bg-orange-600 text-white px-6 py-2 rounded-lg shadow hover:bg-orange-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center gap-2"
               >
-                Submit
+                {isSubmitting && (
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                )}
+                {isSubmitting ? "Submitting..." : "Submit"}
               </button>
             </div>
           </div>

@@ -508,9 +508,11 @@ const SeatsPage = () => {
                     <input
                       type="date"
                       value={currentShow.date}
-                      onChange={(e) =>
-                        setCurrentShow({ ...currentShow, date: e.target.value })
-                      }
+                      onChange={(e) => {
+                        setCurrentShow({ ...currentShow, date: e.target.value });
+                        // Clear selected seats when date changes
+                        setSelectedSeats([]);
+                      }}
                       className="w-35 text-black font-medium border rounded text-sm md:text-base"
                       min={new Date().toISOString().split("T")[0]}
                     />
@@ -547,6 +549,8 @@ const SeatsPage = () => {
                               ? selectedShowTime.showTimePlannerId
                               : null,
                         }));
+                        // Clear selected seats when show time changes
+                        setSelectedSeats([]);
                       }}
                     />
                   </span>
