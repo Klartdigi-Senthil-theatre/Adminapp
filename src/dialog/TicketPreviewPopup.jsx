@@ -40,102 +40,183 @@ const TicketPreviewPopup = ({
       <!DOCTYPE html>
       <html>
       <head>
-        <script src="https://cdn.tailwindcss.com"></script>
         <style>
-          .ticket-header::after {
-            content: '';
-            position: absolute;
-            bottom: -10px;
-            left: 0;
-            right: 0;
-            height: 20px;
-            background: radial-gradient(circle at 50% 0%, transparent 10px, white 10px);
-            background-size: 20px 20px;
-          }
-          
-          /* Force background colors to print */
+          /* 2-inch thermal paper optimized styles */
           * {
             -webkit-print-color-adjust: exact !important;
             color-adjust: exact !important;
             print-color-adjust: exact !important;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+          }
+          
+          body {
+            font-family: 'Courier New', monospace;
+            font-size: 8px;
+            line-height: 1.2;
+            background: white;
+            margin: 0;
+            padding: 0;
+          }
+          
+          .thermal-ticket {
+            width: 56mm; /* 2.2 inches for thermal paper */
+            max-width: 56mm;
+            margin: 0 auto 8mm auto; /* Increased gap between tickets */
+            padding: 1mm;
+            background: white;
+            border: 1px dashed #ccc; /* Visual separator */
+            page-break-inside: avoid; /* Prevent page breaks inside tickets */
+            break-inside: avoid; /* Modern CSS equivalent */
+          }
+          
+          .thermal-ticket:last-child {
+            margin-bottom: 0;
+          }
+          
+          .ticket-header {
+            background: #000 !important;
+            color: white !important;
+            padding: 1mm;
+            text-align: center;
+            margin-bottom: 1mm;
+          }
+          
+          .cinema-name {
+            font-size: 9px;
+            font-weight: bold;
+            margin-bottom: 0.5mm;
+          }
+          
+          .movie-title {
+            font-size: 8px;
+            font-weight: bold;
+            margin-bottom: 0.5mm;
+            word-wrap: break-word;
+          }
+          
+          .ticket-body {
+            padding: 1mm;
+            font-size: 7px;
+          }
+          
+          .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5mm;
+            line-height: 1.1;
+          }
+          
+          .label {
+            font-weight: bold;
+          }
+          
+          .value {
+            text-align: right;
+            max-width: 28mm;
+            word-wrap: break-word;
+          }
+          
+          .divider {
+            border-top: 1px dashed #000;
+            margin: 1mm 0;
+          }
+          
+          .center {
+            text-align: center;
+          }
+          
+          .large-text {
+            font-size: 9px;
+            font-weight: bold;
           }
           
           @media print {
             body {
-              background: white !important;
+              margin: 5mm !important;
               padding: 0 !important;
+              orphans: 3; /* Minimum lines at bottom of page */
+              widows: 3; /* Minimum lines at top of page */
             }
             
-            .ticket {
-              page-break-after: always;
-              margin: 0 !important;
-              box-shadow: none !important;
+            @page {
+              size: A4;
+              margin: 10mm;
             }
             
-            .ticket:last-child {
-              page-break-after: auto;
+            .thermal-ticket {
+              margin: 0 auto 6mm auto !important; /* Small gap between tickets in print */
+              border: 1px dashed #999 !important; /* Visible cut lines */
+              page-break-inside: avoid !important; /* Critical: Prevent splitting tickets */
+              break-inside: avoid !important; /* Modern CSS equivalent */
+              page-break-before: auto; /* Allow breaks before tickets if needed */
+              orphans: 1; /* Allow single lines if necessary */
+              widows: 1; /* Allow single lines if necessary */
             }
             
-            /* Ensure header background prints */
-            .ticket-header {
-              background: #1a1a1a !important;
-              color: white !important;
-              -webkit-print-color-adjust: exact !important;
-              color-adjust: exact !important;
-              print-color-adjust: exact !important;
+            .thermal-ticket:last-child {
+              margin-bottom: 0 !important;
+            }
+            
+            /* Ensure ticket content doesn't split */
+            .ticket-header, .ticket-body {
+              page-break-inside: avoid !important;
+              break-inside: avoid !important;
             }
           }
         </style>
       </head>
-      <body class="font-sans bg-gray-100 p-5">
-        <div class="flex flex-col gap-8 max-w-4xl mx-auto">
-          ${selectedSeats
-            .map((seat) => {
-              return `
-                <div class="bg-white rounded-xl shadow-2xl overflow-hidden mb-4 print:mb-0 print:shadow-none border border-gray-300">
-                  <div class="bg-gray-900 text-white p-2 ticket-header flex flex-col gap-2">
-                    <div class="flex justify-between items-center w-full">
-                      <div class="text-xl font-bold">${movieName}</div>
-                      <div class="font-mono text-sm text-orange-300 font-bold">
-                        <span class="text-white text-xs font-semibold">Booking ID : </span> ST - ${bookingId}
-                      </div>
-                    </div>
-                    <div class="flex justify-between items-center w-full">
-                      <div class="text-amber-300 text-sm">Premium Cinema Experience</div>
-                      <div class="text-sm font-bold text-orange-300">
-                        <span class="text-white text-xs font-semibold">Amount Paid : </span>  ₹${pricePerSeat.toFixed(2)}
-                      </div>
-                    </div>
+      <body>
+        ${selectedSeats
+          .map((seat) => {
+            return `
+              <div class="thermal-ticket">
+                <div class="ticket-header">
+                  <div class="cinema-name">SENTHIL CINEMAS A/C</div>
+                  <div class="movie-title">${movieName}</div>
+                </div>
+                
+                <div class="ticket-body">
+                  <div class="info-row">
+                    <span class="label">Booking ID:</span>
+                    <span class="value">ST-${bookingId}</span>
                   </div>
-
-                  <div class="p-4">
-                  <div class="flex flex-col gap-2 bg-white">
-                    <div class="flex justify-between items-center w-full">
-                      <div class="text-sm font-semibold">
-                        <span class="text-xs font-normal">Date & Time : </span>${new Date(showDate).toLocaleDateString()} • ${showTime}
-                      </div>
-                      <div class="text-sm font-semibold">
-                        <span class="text-xs font-normal">Theatre : </span>${theatreName}
-                      </div>
-                    </div>
+                  
+                  <div class="info-row">
+                    <span class="label">Date:</span>
+                    <span class="value">${new Date(showDate).toLocaleDateString('en-GB')}</span>
                   </div>
-
-                  <div class="flex flex-col gap-2 bg-white mt-2">
-                    <div class="flex justify-between items-center w-full">
-                      <div class="text-md font-semibold">
-                        <span class="text-xs  font-normal">Seat : </span>${seat}
-                      </div>
-                      <div class="text-sm font-semibold">
-                        <span class="text-xs font-normal">GST No : </span>33CMMPP7822B1Z2
-                      </div>
-                    </div>
+                  
+                  <div class="info-row">
+                    <span class="label">Time:</span>
+                    <span class="value">${showTime}</span>
                   </div>
+                  
+                  <div class="divider"></div>
+                  
+                  <div class="info-row">
+                    <span class="label large-text">SEAT:</span>
+                    <span class="value large-text">${seat}</span>
+                  </div>
+                  
+                  <div class="info-row">
+                    <span class="label">Amount:</span>
+                    <span class="value">₹${pricePerSeat.toFixed(0)}</span>
+                  </div>
+                  
+                  <div class="divider"></div>
+                  
+                  <div class="center" style="font-size: 6px; margin-top: 1mm;">
+                    <div>GST: 33CMMPP7822B1Z2</div>
+                    <div style="margin-top: 0.5mm;">Premium Cinema Experience</div>
+                    <div style="margin-top: 1mm;">Thank You!</div>
                   </div>
                 </div>
-              `;
-            })
-            .join("")}
-        </div>
+              </div>
+            `;
+          })
+          .join("")}
       </body>
       </html>
     `;
@@ -163,93 +244,64 @@ const TicketPreviewPopup = ({
           </button>
         </div>
 
-        {/* Visible content */}
+        {/* Visible content - 2-inch thermal paper preview */}
         <div className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="flex flex-col items-center gap-6">
             {selectedSeats.map((seat) => {
-              const qrCodeData = `Movie: ${movieName}\nDate: ${new Date(
-                showDate
-              ).toLocaleDateString()}\nTime: ${showTime}\nSeat: ${seat}\nBooking ID: ${bookingId}\nAmount: ₹${pricePerSeat.toFixed(
-                2
-              )}`;
-
               return (
                 <div
                   key={seat}
-                  className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-200"
+                  className="bg-white rounded-lg shadow-lg overflow-hidden border-2 border-gray-300"
+                  style={{ width: '200px', maxWidth: '200px' }} // Simulates 2-inch width
                 >
                   {/* Ticket Header */}
-                  <div className="bg-black p-4 text-white relative">
-                    <div className="flex justify-between items-start">
-                      {/* Left side */}
-                      <div>
-                        <h2 className="text-sm font-bold">{movieName}</h2>
-                        <p className="text-[11px] text-amber-200">
-                          Premium Cinema Experience
-                        </p>
-                      </div>
-                                
-                      {/* Right side */}
-                      <div className="space-y-1">
-                        <div className="flex justify-between text-[10px] opacity-80">
-                          <span>Booking ID : </span>
-                          <span className="text-xs font-medium text-orange-300"> ST-{bookingId}</span>
-                        </div>
-                        <div className="flex justify-between text-[10px] font-medium opacity-80">
-                          <span>Amount Paid : </span>
-                          <span className="text-xs font-medium text-orange-300"> ₹{pricePerSeat.toFixed(0)}</span>
-                        </div>
-                      </div>
-                    </div>
+                  <div className="bg-black text-white text-center py-2 px-2">
+                    <div className="text-xs font-bold mb-1">SENTHIL CINEMAS A/C</div>
+                    <div className="text-xs font-bold truncate">{movieName}</div>
                   </div>
 
                   {/* Ticket Body */}
-                  <div className="p-4 bg-white">
-                    <div className="grid grid-cols-2 gap-4 mb-">
-                      <div className="space-y-4">
-                        <div className="flex items-center gap-3">
-                          <div>
-                            <div className="text-xs text-gray-500">
-                              Date & Time
-                            </div>
-                            <div className="font-medium text-xs">
-                              {new Date(showDate).toLocaleDateString()} •{" "}
-                              {showTime}
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-3">
-                          <div>
-                            <div className="text-xs text-gray-500">Seat</div>
-                            <div className="font-medium text-md">{seat}</div>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="space-y-4">
-                        <div className="flex items-center gap-3">
-                          <div>
-                            <div className="text-xs text-gray-500">Theatre</div>
-                            <div className="font-medium text-xs">
-                              {theatreName}
-                            </div>
-                          </div>
-                        </div>                      
-
-                        <div className="flex items-center gap-3">
-                          <div>
-                            <div className="text-xs text-gray-500">GST - </div>
-                            <div className="font-medium text-xs">33CMMPP7822B1Z2</div>
-                          </div>
-                        </div>
-                      </div>
+                  <div className="p-2 text-xs space-y-1">
+                    <div className="flex justify-between">
+                      <span className="font-semibold">Booking ID:</span>
+                      <span>ST-{bookingId}</span>
+                    </div>
+                    
+                    <div className="flex justify-between">
+                      <span className="font-semibold">Date:</span>
+                      <span>{new Date(showDate).toLocaleDateString('en-GB')}</span>
+                    </div>
+                    
+                    <div className="flex justify-between">
+                      <span className="font-semibold">Time:</span>
+                      <span>{showTime}</span>
+                    </div>
+                    
+                    <div className="border-t border-dashed border-gray-400 my-2"></div>
+                    
+                    <div className="flex justify-between items-center">
+                      <span className="font-bold text-sm">SEAT:</span>
+                      <span className="font-bold text-sm">{seat}</span>
+                    </div>
+                    
+                    <div className="flex justify-between">
+                      <span className="font-semibold">Amount:</span>
+                      <span>₹{pricePerSeat.toFixed(0)}</span>
+                    </div>
+                    
+                    <div className="border-t border-dashed border-gray-400 my-2"></div>
+                    
+                    <div className="text-center text-xs text-gray-600 space-y-1">
+                      <div>GST: 33CMMPP7822B1Z2</div>
+                      <div>Premium Cinema Experience</div>
+                      <div className="font-semibold">Thank You!</div>
                     </div>
                   </div>
                 </div>
               );
             })}
           </div>
+          
         </div>
 
         {/* Action Buttons */}
