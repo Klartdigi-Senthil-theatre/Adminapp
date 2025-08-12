@@ -16,7 +16,7 @@ const TicketPreviewPopup = ({
 }) => {
   const [isPrinting, setIsPrinting] = useState(false);
   console.log(currentShow);
-  
+
   const poster = currentShow?.movieDetails?.poster;
 
   // Ticket data
@@ -53,17 +53,15 @@ const TicketPreviewPopup = ({
           
           body {
             font-family: 'Courier New', monospace;
-            font-size: 8px;
-            line-height: 1.2;
             background: white;
             margin: 0;
             padding: 0;
           }
           
           .thermal-ticket {
-            width: 75mm; /* 3 inches for thermal paper */
-            max-width: 75mm;
-            margin: 0 auto 8mm auto; /* Increased gap between tickets */
+            width: 100%; /* 3 inches for thermal paper */
+            max-width: 100vw;
+            margin: 0 2mm 2mm 0; /* Increased gap between tickets */
             padding: 2mm;
             background: white;
             border: 1px dashed #ccc; /* Visual separator */
@@ -84,28 +82,34 @@ const TicketPreviewPopup = ({
           }
           
           .cinema-name {
-            font-size: 11px;
+            font-size: 1.25rem;
             font-weight: bold;
+            line-height: calc(2/1.25);
             margin-bottom: 0.5mm;
           }
           
           .movie-title {
-            font-size: 10px;
+            font-size: 1.5rem;
             font-weight: bold;
+            line-height: calc(2/1.5);
             margin-bottom: 0.5mm;
             word-wrap: break-word;
           }
           
           .ticket-body {
             padding: 2mm;
-            font-size: 9px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            line-height: calc(2/1.5);
           }
           
           .info-row {
             display: flex;
             justify-content: space-between;
             margin-bottom: 1mm;
-            line-height: 1.2;
+            font-size: 1rem;
+            font-weight: bold;
+            line-height: calc(1.75/0.875);
           }
           
           .label {
@@ -128,25 +132,26 @@ const TicketPreviewPopup = ({
           }
           
           .large-text {
-            font-size: 11px;
+            font-size: 1rem;
             font-weight: bold;
+            line-height: calc(1.75/0.875);
           }
           
           @media print {
             body {
-              margin: 5mm !important;
+              margin: 2mm !important;
               padding: 0 !important;
               orphans: 3; /* Minimum lines at bottom of page */
               widows: 3; /* Minimum lines at top of page */
             }
             
             @page {
-              size: A4;
-              margin: 10mm;
+              size: 80mm auto;
+              margin: 0;
             }
             
             .thermal-ticket {
-              margin: 0 auto 6mm auto !important; /* Small gap between tickets in print */
+              margin: 0 2mm 2mm 0 !important; /* Small gap between tickets in print */
               border: 1px dashed #999 !important; /* Visible cut lines */
               page-break-inside: avoid !important; /* Critical: Prevent splitting tickets */
               break-inside: avoid !important; /* Modern CSS equivalent */
@@ -169,8 +174,8 @@ const TicketPreviewPopup = ({
       </head>
       <body>
         ${selectedSeats
-          .map((seat) => {
-            return `
+        .map((seat) => {
+          return `
               <div class="thermal-ticket">
                 <div class="ticket-header">
                   <div class="cinema-name">SENTHIL CINEMAS A/C</div>
@@ -207,7 +212,7 @@ const TicketPreviewPopup = ({
                   
                   <div class="divider"></div>
                   
-                  <div class="center" style="font-size: 8px; margin-top: 1.5mm;">
+                  <div class="center" style="font-size: 0.875rem; margin-top: 1.5mm;">
                     <div>GST: 33CMMPP7822B1Z2</div>
                     <div style="margin-top: 0.5mm;">Premium Cinema Experience</div>
                     <div style="margin-top: 1mm;">Thank You!</div>
@@ -215,8 +220,8 @@ const TicketPreviewPopup = ({
                 </div>
               </div>
             `;
-          })
-          .join("")}
+        })
+        .join("")}
       </body>
       </html>
     `;
@@ -266,31 +271,31 @@ const TicketPreviewPopup = ({
                       <span className="font-semibold">Booking ID:</span>
                       <span>ST-{bookingId}</span>
                     </div>
-                    
+
                     <div className="flex justify-between">
                       <span className="font-semibold">Date:</span>
                       <span>{new Date(showDate).toLocaleDateString('en-GB')}</span>
                     </div>
-                    
+
                     <div className="flex justify-between">
                       <span className="font-semibold">Time:</span>
                       <span>{showTime}</span>
                     </div>
-                    
+
                     <div className="border-t border-dashed border-gray-400 my-2"></div>
-                    
+
                     <div className="flex justify-between items-center">
                       <span className="font-bold text-base">SEAT:</span>
                       <span className="font-bold text-base">{seat}</span>
                     </div>
-                    
+
                     <div className="flex justify-between">
                       <span className="font-semibold">Amount:</span>
                       <span>₹{pricePerSeat.toFixed(0)}</span>
                     </div>
-                    
+
                     <div className="border-t border-dashed border-gray-400 my-2"></div>
-                    
+
                     <div className="text-center text-xs text-gray-600 space-y-1">
                       <div>GST: 33CMMPP7822B1Z2</div>
                       <div>Premium Cinema Experience</div>
@@ -301,7 +306,7 @@ const TicketPreviewPopup = ({
               );
             })}
           </div>
-          
+
         </div>
 
         {/* Action Buttons */}
