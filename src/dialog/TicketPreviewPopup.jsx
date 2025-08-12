@@ -41,7 +41,7 @@ const TicketPreviewPopup = ({
       <html>
       <head>
         <style>
-          /* 2-inch thermal paper optimized styles */
+          /* 3-inch thermal paper optimized styles */
           * {
             -webkit-print-color-adjust: exact !important;
             color-adjust: exact !important;
@@ -61,10 +61,10 @@ const TicketPreviewPopup = ({
           }
           
           .thermal-ticket {
-            width: 56mm; /* 2.2 inches for thermal paper */
-            max-width: 56mm;
+            width: 75mm; /* 3 inches for thermal paper */
+            max-width: 75mm;
             margin: 0 auto 8mm auto; /* Increased gap between tickets */
-            padding: 1mm;
+            padding: 2mm;
             background: white;
             border: 1px dashed #ccc; /* Visual separator */
             page-break-inside: avoid; /* Prevent page breaks inside tickets */
@@ -84,28 +84,28 @@ const TicketPreviewPopup = ({
           }
           
           .cinema-name {
-            font-size: 9px;
+            font-size: 11px;
             font-weight: bold;
             margin-bottom: 0.5mm;
           }
           
           .movie-title {
-            font-size: 8px;
+            font-size: 10px;
             font-weight: bold;
             margin-bottom: 0.5mm;
             word-wrap: break-word;
           }
           
           .ticket-body {
-            padding: 1mm;
-            font-size: 7px;
+            padding: 2mm;
+            font-size: 9px;
           }
           
           .info-row {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 0.5mm;
-            line-height: 1.1;
+            margin-bottom: 1mm;
+            line-height: 1.2;
           }
           
           .label {
@@ -114,13 +114,13 @@ const TicketPreviewPopup = ({
           
           .value {
             text-align: right;
-            max-width: 28mm;
+            max-width: 35mm;
             word-wrap: break-word;
           }
           
           .divider {
             border-top: 1px dashed #000;
-            margin: 1mm 0;
+            margin: 1.5mm 0;
           }
           
           .center {
@@ -128,7 +128,7 @@ const TicketPreviewPopup = ({
           }
           
           .large-text {
-            font-size: 9px;
+            font-size: 11px;
             font-weight: bold;
           }
           
@@ -207,7 +207,7 @@ const TicketPreviewPopup = ({
                   
                   <div class="divider"></div>
                   
-                  <div class="center" style="font-size: 6px; margin-top: 1mm;">
+                  <div class="center" style="font-size: 8px; margin-top: 1.5mm;">
                     <div>GST: 33CMMPP7822B1Z2</div>
                     <div style="margin-top: 0.5mm;">Premium Cinema Experience</div>
                     <div style="margin-top: 1mm;">Thank You!</div>
@@ -244,7 +244,7 @@ const TicketPreviewPopup = ({
           </button>
         </div>
 
-        {/* Visible content - 2-inch thermal paper preview */}
+        {/* Visible content - 3-inch thermal paper preview */}
         <div className="p-6">
           <div className="flex flex-col items-center gap-6">
             {selectedSeats.map((seat) => {
@@ -252,16 +252,16 @@ const TicketPreviewPopup = ({
                 <div
                   key={seat}
                   className="bg-white rounded-lg shadow-lg overflow-hidden border-2 border-gray-300"
-                  style={{ width: '200px', maxWidth: '200px' }} // Simulates 2-inch width
+                  style={{ width: '280px', maxWidth: '280px' }} // Simulates 3-inch width
                 >
                   {/* Ticket Header */}
-                  <div className="bg-black text-white text-center py-2 px-2">
-                    <div className="text-xs font-bold mb-1">SENTHIL CINEMAS A/C</div>
-                    <div className="text-xs font-bold truncate">{movieName}</div>
+                  <div className="bg-black text-white text-center py-2 px-3">
+                    <div className="text-sm font-bold mb-1">SENTHIL CINEMAS A/C</div>
+                    <div className="text-sm font-bold truncate">{movieName}</div>
                   </div>
 
                   {/* Ticket Body */}
-                  <div className="p-2 text-xs space-y-1">
+                  <div className="p-3 text-sm space-y-2">
                     <div className="flex justify-between">
                       <span className="font-semibold">Booking ID:</span>
                       <span>ST-{bookingId}</span>
@@ -280,8 +280,8 @@ const TicketPreviewPopup = ({
                     <div className="border-t border-dashed border-gray-400 my-2"></div>
                     
                     <div className="flex justify-between items-center">
-                      <span className="font-bold text-sm">SEAT:</span>
-                      <span className="font-bold text-sm">{seat}</span>
+                      <span className="font-bold text-base">SEAT:</span>
+                      <span className="font-bold text-base">{seat}</span>
                     </div>
                     
                     <div className="flex justify-between">
