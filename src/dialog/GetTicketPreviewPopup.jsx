@@ -42,183 +42,217 @@ const GetTicketPreviewPopup = ({
       <html>
       <head>
         <style>
-          /* 3-inch thermal paper optimized styles */
+          /* 80mm x 297mm thermal paper optimized layout */
           * {
             -webkit-print-color-adjust: exact !important;
             color-adjust: exact !important;
             print-color-adjust: exact !important;
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+            margin: 0 !important;
+            padding: 0 !important;
+            box-sizing: border-box !important;
           }
           
-          body {
-            font-family: 'Courier New', monospace;
-            font-size: 8px;
-            line-height: 1.2;
-            background: white;
-            margin: 0;
-            padding: 0;
+          html, body {
+            width: 80mm !important;
+            height: auto !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            background: white !important;
+            font-family: system-ui, -apple-system, sans-serif !important;
           }
           
-          .thermal-ticket {
-            width: 75mm; /* 3 inches for thermal paper */
-            max-width: 75mm;
-            margin: 0 auto 8mm auto; /* Increased gap between tickets */
-            padding: 2mm;
-            background: white;
-            border: 1px dashed #ccc; /* Visual separator */
-            page-break-inside: avoid; /* Prevent page breaks inside tickets */
-            break-inside: avoid; /* Modern CSS equivalent */
+          .print-container {
+            width: 80mm !important;
+            margin: 0 !important;
+            padding: 5mm !important;
+            background: white !important;
           }
           
-          .thermal-ticket:last-child {
-            margin-bottom: 0;
+          .ticket-wrapper {
+            width: 70mm !important;
+            max-width: 70mm !important;
+            margin: 0 auto 6mm auto !important;
+            background: white !important;
+            border-radius: 8px !important;
+            overflow: hidden !important;
+            border: 2px solid #d1d5db !important;
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
           }
           
           .ticket-header {
             background: #000 !important;
             color: white !important;
-            padding: 1mm;
-            text-align: center;
-            margin-bottom: 1mm;
+            text-align: center !important;
+            padding: 8px 12px !important;
           }
           
-          .cinema-name {
-            font-size: 11px;
-            font-weight: bold;
-            margin-bottom: 0.5mm;
+          .header-main {
+            font-size: 14px !important;
+            font-weight: bold !important;
+            margin-bottom: 4px !important;
           }
           
-          .movie-title {
-            font-size: 10px;
-            font-weight: bold;
-            margin-bottom: 0.5mm;
-            word-wrap: break-word;
+          .header-sub {
+            font-size: 18px !important;
+            font-weight: bold !important;
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
           }
           
           .ticket-body {
-            padding: 2mm;
-            font-size: 9px;
+            padding: 12px !important;
+            font-size: 16px !important;
           }
           
-          .info-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 1mm;
-            line-height: 1.2;
+          .info-line {
+            display: flex !important;
+            justify-content: space-between !important;
+            margin-bottom: 8px !important;
           }
           
-          .label {
-            font-weight: bold;
+          .info-label {
+            font-weight: 600 !important;
           }
           
-          .value {
-            text-align: right;
-            max-width: 35mm;
-            word-wrap: break-word;
+          .info-value {
+            text-align: right !important;
+            word-wrap: break-word !important;
+          }
+          
+          .seat-line {
+            display: flex !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+            margin-bottom: 8px !important;
+          }
+          
+          .seat-label, .seat-value {
+            font-weight: bold !important;
+            font-size: 18px !important;
           }
           
           .divider {
-            border-top: 1px dashed #000;
-            margin: 1.5mm 0;
+            border-top: 1px dashed #9ca3af !important;
+            margin: 8px 0 !important;
+            -webkit-print-color-adjust: exact !important;
+            color-adjust: exact !important;
+            print-color-adjust: exact !important;
           }
           
-          .center {
-            text-align: center;
+          .footer {
+            text-align: center !important;
+            font-size: 14px !important;
+            color: #6b7280 !important;
           }
           
-          .large-text {
-            font-size: 11px;
-            font-weight: bold;
+          .footer-line {
+            margin-bottom: 4px !important;
+          }
+          
+          .footer-thank {
+            font-weight: 600 !important;
           }
           
           @media print {
-            body {
-              margin: 5mm !important;
-              padding: 0 !important;
-              orphans: 3; /* Minimum lines at bottom of page */
-              widows: 3; /* Minimum lines at top of page */
-            }
-            
             @page {
-              size: A4;
-              margin: 10mm;
+              size: 80mm 297mm !important;
+              margin: 0 !important;
             }
             
-            .thermal-ticket {
-              margin: 0 auto 6mm auto !important; /* Small gap between tickets in print */
-              border: 1px dashed #999 !important; /* Visible cut lines */
-              page-break-inside: avoid !important; /* Critical: Prevent splitting tickets */
-              break-inside: avoid !important; /* Modern CSS equivalent */
-              page-break-before: auto; /* Allow breaks before tickets if needed */
-              orphans: 1; /* Allow single lines if necessary */
-              widows: 1; /* Allow single lines if necessary */
+            html, body {
+              width: 80mm !important;
+              margin: 0 !important;
+              padding: 0 !important;
             }
             
-            .thermal-ticket:last-child {
-              margin-bottom: 0 !important;
+            .print-container {
+              width: 80mm !important;
+              padding: 5mm !important;
             }
             
-            /* Ensure ticket content doesn't split */
-            .ticket-header, .ticket-body {
-              page-break-inside: avoid !important;
-              break-inside: avoid !important;
+            .ticket-wrapper {
+              width: 70mm !important;
+              border: 1px dashed #999 !important;
+              box-shadow: none !important;
+            }
+            
+            .divider {
+              border-top: none !important;
+              margin: 4px 0 !important;
+            }
+            
+            /* Reliable dot divider for print */
+            .divider::before {
+              content: "• • • • • • • • • • • • • • • • • • • • • • • •" !important;
+              display: block !important;
+              text-align: center !important;
+              font-size: 10px !important;
+              line-height: 1 !important;
+              color: #000 !important;
+              letter-spacing: 2px !important;
+              margin: 4px 0 !important;
+              -webkit-print-color-adjust: exact !important;
+              color-adjust: exact !important;
+              print-color-adjust: exact !important;
             }
           }
         </style>
       </head>
       <body>
-        ${selectedSeats
-          .map((seat) => {
-            const formatTime = showTime ? moment(showTime, "HH:mm").format("h:mm A") : 'N/A';
-            return `
-              <div class="thermal-ticket">
-                <div class="ticket-header">
-                  <div class="cinema-name">SENTHIL CINEMAS A/C</div>
-                  <div class="movie-title">${movieName}</div>
+        <div class="print-container">
+          ${selectedSeats
+            .map((seat) => {
+              const formatTime = showTime ? moment(showTime, "HH:mm").format("h:mm A") : 'N/A';
+              return `
+                <div class="ticket-wrapper">
+                  <div class="ticket-header">
+                    <div style="font-size: 14px; font-weight: bold; margin-bottom: 4px;">SENTHIL CINEMAS A/C</div>
+                    <div style="font-size: 18px; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${movieName}</div>
+                  </div>
+                  
+                  <div style="padding: 12px; font-size: 16px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                      <span style="font-weight: 600;">Booking ID:</span>
+                      <span>ST-${bookingId}</span>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                      <span style="font-weight: 600;">Date:</span>
+                      <span>${new Date(showDate).toLocaleDateString('en-GB')}</span>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                      <span style="font-weight: 600;">Time:</span>
+                      <span>${formatTime}</span>
+                    </div>
+                    
+                    <div class="divider"></div>
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                      <span style="font-weight: bold; font-size: 18px;">SEAT:</span>
+                      <span style="font-weight: bold; font-size: 18px;">${seat}</span>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                      <span style="font-weight: 600;">Amount:</span>
+                      <span>₹${pricePerSeat.toFixed(0)}</span>
+                    </div>
+                    
+                    <div class="divider"></div>
+                    
+                    <div style="text-align: center; font-size: 14px; color: #6b7280;">
+                      <div style="margin-bottom: 4px;">GST: 33CMMPP7822B1Z2</div>
+                      <div style="margin-bottom: 4px;">Premium Cinema Experience</div>
+                      <div style="font-weight: 600;">Thank You!</div>
+                    </div>
+                  </div>
                 </div>
-                
-                <div class="ticket-body">
-                  <div class="info-row">
-                    <span class="label">Booking ID:</span>
-                    <span class="value">ST-${bookingId}</span>
-                  </div>
-                  
-                  <div class="info-row">
-                    <span class="label">Date:</span>
-                    <span class="value">${new Date(showDate).toLocaleDateString('en-GB')}</span>
-                  </div>
-                  
-                  <div class="info-row">
-                    <span class="label">Time:</span>
-                    <span class="value">${formatTime}</span>
-                  </div>
-                  
-                  <div class="divider"></div>
-                  
-                  <div class="info-row">
-                    <span class="label large-text">SEAT:</span>
-                    <span class="value large-text">${seat}</span>
-                  </div>
-                  
-                  <div class="info-row">
-                    <span class="label">Amount:</span>
-                    <span class="value">₹${pricePerSeat.toFixed(0)}</span>
-                  </div>
-                  
-                  <div class="divider"></div>
-                  
-                  <div class="center" style="font-size: 8px; margin-top: 1.5mm;">
-                    <div>GST: 33CMMPP7822B1Z2</div>
-                    <div style="margin-top: 0.5mm;">Premium Cinema Experience</div>
-                    <div style="margin-top: 1mm;">Thank You!</div>
-                  </div>
-                </div>
-              </div>
-            `;
-          })
-          .join("")}
+              `;
+            })
+            .join("")}
+        </div>
       </body>
       </html>
     `;
@@ -246,7 +280,7 @@ const GetTicketPreviewPopup = ({
           </button>
         </div>
 
-        {/* Visible content - 3-inch thermal paper preview */}
+        {/* Visible content - 80mm thermal paper preview */}
         <div className="p-6">
           <div className="flex flex-col items-center gap-6">
             {selectedSeats.map((seat) => {
@@ -256,12 +290,12 @@ const GetTicketPreviewPopup = ({
                 <div
                   key={seat}
                   className="bg-white rounded-lg shadow-lg overflow-hidden border-2 border-gray-300"
-                  style={{ width: '280px', maxWidth: '280px' }} // Simulates 3-inch width
+                  style={{ width: '262px', maxWidth: '262px' }} // Simulates 70mm width
                 >
                   {/* Ticket Header */}
                   <div className="bg-black text-white text-center py-2 px-3">
-                    <div className="text-sm font-bold mb-1">SENTHIL CINEMAS A/C</div>
-                    <div className="text-sm font-bold truncate">{movieName}</div>
+                    <div className="text-xs font-bold mb-1">SENTHIL CINEMAS A/C</div>
+                    <div className="text-base font-bold truncate">{movieName}</div>
                   </div>
 
                   {/* Ticket Body */}
