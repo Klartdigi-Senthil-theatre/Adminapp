@@ -362,7 +362,7 @@ const SeatsPage = () => {
 
       const response = await api.post("/movie-seat-bookings", {
         movieId: currentShow.movieId,
-        userId: null,
+        userId: 78,
         adminUserId: 1,
         showTimePlannerId: currentShow.showTimePlannerId,
         date: formattedDate,
