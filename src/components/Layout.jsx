@@ -2,8 +2,9 @@
 import React, { useState } from "react";
 import Sidebar from "./Sidebar";
 import { Menu } from "lucide-react";
+import { Outlet } from "react-router-dom";
 
-const Layout = ({ children }) => {
+const Layout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false); // Start closed on mobile
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
 
@@ -46,11 +47,12 @@ const Layout = ({ children }) => {
         </div>
 
         {/* Content Area */}
-        <div className="flex-1 overflow-auto">{children}</div>
+        <div className="flex-1 overflow-auto">
+          <Outlet />
+        </div>
       </div>
     </div>
   );
 };
-
 
 export default Layout;
