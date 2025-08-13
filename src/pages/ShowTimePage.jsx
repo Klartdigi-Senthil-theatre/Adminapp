@@ -328,88 +328,8 @@ useEffect(() => {
 
   // Get active showtimes for display
   const getActiveShowTimes = () => {
-    console.log('=== DEBUG: Raw apiShowTimes ===', apiShowTimes);
-    
-    const filtered = apiShowTimes.filter(showTime => showTime.active);
-    console.log('=== DEBUG: Filtered active showtimes ===', filtered);
-    
-    const mapped = filtered.map(showTime => ({
-      ...showTime,
-      displayTime: formatShowTime(showTime.showTime),
-      fullDateTime: showTime.showTime
-    }));
-    console.log('=== DEBUG: Mapped showtimes ===', mapped);
-    
-    // Remove duplicates based on ID to prevent duplicate entries
-    const uniqueShowTimes = mapped.reduce((acc, current) => {
-      const existing = acc.find(item => item.id === current.id);
-      if (!existing) {
-        acc.push(current);
-      } else {
-        console.warn('Duplicate showtime ID found in master showtimes:', {
-          id: current.id,
-          displayTime: current.displayTime,
-          existing: existing,
-          current: current
-        });
-      }
-      return acc;
-    }, []);
-    
-    const sorted = uniqueShowTimes.sort((a, b) => {
-      // Try multiple sorting approaches
-      const timeA = moment(a.fullDateTime);
-      const timeB = moment(b.fullDateTime);
-      
-      console.log('Sorting:', {
-        aDisplay: a.displayTime,
-        bDisplay: b.displayTime,
-        aRaw: a.fullDateTime,
-        bRaw: b.fullDateTime,
-        aValid: timeA.isValid(),
-        bValid: timeB.isValid(),
-        aParsed: timeA.isValid() ? timeA.format('HH:mm') : 'Invalid',
-        bParsed: timeB.isValid() ? timeB.format('HH:mm') : 'Invalid'
-      });
-      
-      // If both are valid dates, sort by time
-      if (timeA.isValid() && timeB.isValid()) {
-        const diff = timeA.diff(timeB);
-        console.log('Time diff result:', diff);
-        return diff;
-      }
-      
-      // If moment parsing fails, try sorting by display time string
-      if (!timeA.isValid() || !timeB.isValid()) {
-        console.log('Falling back to display time string sorting');
-        const displayTimeA = a.displayTime.toLowerCase().replace(/[^\d:apm]/g, '');
-        const displayTimeB = b.displayTime.toLowerCase().replace(/[^\d:apm]/g, '');
-        
-        // Convert to 24-hour format for comparison
-        const convertTo24Hour = (timeStr) => {
-          const [time, period] = timeStr.split(/([ap]m)/);
-          let [hours, minutes] = time.split(':').map(Number);
-          if (period === 'pm' && hours !== 12) hours += 12;
-          if (period === 'am' && hours === 12) hours = 0;
-          return hours * 60 + minutes; // Return minutes since midnight
-        };
-        
-        const timeValueA = convertTo24Hour(displayTimeA);
-        const timeValueB = convertTo24Hour(displayTimeB);
-        console.log('Display time comparison:', timeValueA, 'vs', timeValueB);
-        return timeValueA - timeValueB;
-      }
-      
-      // If one is invalid, put valid ones first
-      if (timeA.isValid() && !timeB.isValid()) return -1;
-      if (!timeA.isValid() && timeB.isValid()) return 1;
-      
-      // If both invalid, maintain original order
-      return 0;
-    });
-    
-    console.log('=== DEBUG: Final sorted showtimes (after deduplication) ===', sorted);
-    return sorted;
+    // Only filter for active showtimes, no formatting or mapping
+    return apiShowTimes.filter(showTime => showTime.active);
   };
 
   // Date nav
@@ -847,7 +767,7 @@ const handleSubmit = async () => {
                   >
                     {/* Show timing label */}
                     <div className="text-sm font-semibold">
-                      {showTimeItem.displayTime}
+                      {showTimeItem.showTime}
                     </div>
 
                     {/* Price Input */}
