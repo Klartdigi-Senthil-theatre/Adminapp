@@ -8,7 +8,7 @@ import TicketPreviewPopup from "../dialog/TicketPreviewPopup";
 
 // Seat Layout Component (recreated without framer-motion)
 const SeatLayout = ({ selectedSeats, onSeatSelect, bookedSeats = [], disabled }) => {
-   // Define rows with their specific configurations
+  // Define rows with their specific configurations
   const rows = [
     { letter: "A", leftSeats: 10, rightSeats: 10, hasGap: true },
     { letter: "B", leftSeats: 10, rightSeats: 10, hasGap: true },
@@ -260,7 +260,7 @@ const SeatsPage = () => {
     showTimePlannerId: null,
   });
   const [showBookingPopup, setShowBookingPopup] = useState(false);
-   const [bookingId, setBookingId] = useState(null);
+  const [bookingId, setBookingId] = useState(null);
   const [showTicketPreview, setShowTicketPreview] = useState(false);
   const [paymentType, setPaymentType] = useState("cash");
 
@@ -428,29 +428,29 @@ const SeatsPage = () => {
       if (currentShow.showTimePlannerId) {
         holdPayload.showTimePlannerId = currentShow.showTimePlannerId;
       }
-      await api.post("/movie-seat-holds", holdPayload);
-      // if (response && response.error === "Selected seats are already booked!") {
-
-      //   notify.error("Selected ticket got booked");
-      //   setLoading(false);
-      //   return;
-      // }
-
+      const response = await api.post("/movie-seat-holds", holdPayload);
+      if (response && response.error === "Selected seats are already booked!") {
+        notify.error("Oops! The seats you selected have just been booked by someone else. Please select different seats.");
+        setLoading(false);
+        await fetchBookedSeats();
+        return;
+      }
       setLoading(false);
-
-      // Optionally, you can refresh booked seats here if needed
-      // await fetchBookedSeats();
     } catch (error) {
       console.error("Error holding seats:", error);
-      // if (
-      //   error &&
-      //   error.response.data.error === "Selected seats are already booked!"
-      // ) {
-      //   notify.error(error.response.data.error);
-      // } else {
-      //   notify.error("Failed to hold seats. Please try again.");
-      // }
+      if (
+        error &&
+        error.response &&
+        error.response.data &&
+        error.response.data.error === "Selected seats are already booked!"
+      ) {
+        notify.error("Oops! The seats you selected have just been booked by someone else. Please select different seats.");
+      } else {
+        notify.error("Failed to hold seats. Please try again.");
+      }
       setLoading(false);
+      await fetchBookedSeats();
+      return;
     }
     setLoading(false);
     setShowBookingPopup(true);
