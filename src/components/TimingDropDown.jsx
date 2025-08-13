@@ -10,40 +10,7 @@ const TimingDropdown = ({ currentShow, onTimeSelect }) => {
   const [showTimeData, setShowTimeData] = useState([]); // Store full showtime data with movies
   const [loading, setLoading] = useState(true);
 
-  // Helper function to format API datetime to display time
-  const formatShowTime = (dateTimeString) => {
-    if (!dateTimeString) {
-      //console.warn('formatShowTime: No datetime string provided');
-      return 'Time not set';
-    }
 
-    let momentDate = moment(dateTimeString);
-
-    if (!momentDate.isValid()) {
-      const formats = [
-        'YYYY-MM-DD HH:mm:ss',
-        'YYYY-MM-DDTHH:mm:ss',
-        'YYYY-MM-DDTHH:mm:ss.SSSZ',
-        'YYYY-MM-DDTHH:mm:ssZ',
-        'HH:mm:ss',
-        'HH:mm'
-      ];
-
-      for (const format of formats) {
-        momentDate = moment(dateTimeString, format);
-        if (momentDate.isValid()) {
-          break;
-        }
-      }
-    }
-
-    if (!momentDate.isValid()) {
-      //console.warn('formatShowTime: Invalid datetime string:', dateTimeString);
-      return 'Invalid time';
-    }
-
-    return momentDate.format('h:mm A');
-  };
 
   // Fetch available showtimes with assigned movies for the selected date
   useEffect(() => {
@@ -82,34 +49,16 @@ const TimingDropdown = ({ currentShow, onTimeSelect }) => {
           // Add showtime to the movie's timings and prices
           const movie = moviesMap.get(movieId);
 
-          // Handle both formats: "14:00" or "2023-10-05 10:00:00"
+          // Use raw showTime format to match ShowTimePage approach
           const rawShowTime = entry.showTime.showTime;
-          let showTimeStr;
-
-          if (rawShowTime.includes(" ")) {
-            // Format: "2023-10-05 10:00:00" - split and take time part
-            showTimeStr = rawShowTime.split(" ")[1];
+          
+          if (rawShowTime) {
+            movie.timings.push(rawShowTime);
+            movie.prices.set(entry.showTimeId, entry.price);
           } else {
-            // Format: "14:00" - use as is
-            showTimeStr = rawShowTime;
-          }
-
-          if (showTimeStr) {
-            const [hours, minutes] = showTimeStr.split(":").map(Number);
-            const showTime = new Date();
-            showTime.setHours(hours, minutes);
-            if (!isNaN(showTime.getTime())) {
-              const timeString = showTime.toLocaleTimeString("en-US", {
-                hour: "numeric",
-                minute: "2-digit",
-              });
-              movie.timings.push(timeString);
-              movie.prices.set(entry.showTimeId, entry.price);
-            } else {
-              console.warn(
-                `Invalid showTime for showTimeId ${entry.showTimeId}: ${rawShowTime}`
-              );
-            }
+            console.warn(
+              `Invalid showTime for showTimeId ${entry.showTimeId}: ${rawShowTime}`
+            );
           }
         });
         setMoviesMap(moviesMap);
@@ -124,7 +73,7 @@ const TimingDropdown = ({ currentShow, onTimeSelect }) => {
             return hasData;
           })
           .map(item => ({
-            time: formatShowTime(item.showTime.showTime),
+            time: item.showTime.showTime, // Use raw time format like ShowTimePage
             movie: {
               id: item.movie.id,
               title: item.movie.movieName
@@ -140,16 +89,50 @@ const TimingDropdown = ({ currentShow, onTimeSelect }) => {
             price: item.price
           }))
           .sort((a, b) => {
-            // Sort chronologically
-            const convertTo24Hour = (timeStr) => {
-              const cleanTime = timeStr.toLowerCase().replace(/[^\d:apm]/g, '');
-              const [time, period] = cleanTime.split(/([ap]m)/);
-              let [hours, minutes] = time.split(':').map(Number);
-              if (period === 'pm' && hours !== 12) hours += 12;
-              if (period === 'am' && hours === 12) hours = 0;
-              return hours * 60 + minutes;
+            // Sort chronologically from AM to PM (earliest to latest)
+            const parseTime = (timeStr) => {
+              if (!timeStr) return null;
+              
+              // Handle different formats: "14:30", "14:30:00", "2023-10-05 14:30:00"
+              let timeOnly = timeStr;
+              
+              // If it contains a space, extract just the time part
+              if (timeStr.includes(' ')) {
+                timeOnly = timeStr.split(' ')[1] || timeStr.split(' ')[0];
+              }
+              
+              // Try parsing with moment using various time formats
+              const formats = ['HH:mm', 'HH:mm:ss', 'H:mm', 'H:mm:ss'];
+              
+              for (const format of formats) {
+                const parsed = moment(timeOnly, format);
+                if (parsed.isValid()) {
+                  return parsed;
+                }
+              }
+              
+              // Fallback: try default moment parsing
+              const defaultParsed = moment(timeStr);
+              if (defaultParsed.isValid()) {
+                return defaultParsed;
+              }
+              
+              return null;
             };
-            return convertTo24Hour(a.time) - convertTo24Hour(b.time);
+            
+            const timeA = parseTime(a.time);
+            const timeB = parseTime(b.time);
+            
+            if (timeA && timeB) {
+              return timeA.diff(timeB);
+            }
+            
+            // If parsing fails, fallback to string comparison
+            if (!timeA && !timeB) return 0;
+            if (!timeA) return 1;
+            if (!timeB) return -1;
+            
+            return a.time.localeCompare(b.time);
           });
 
         // Store the full data and extract unique timings
@@ -157,6 +140,9 @@ const TimingDropdown = ({ currentShow, onTimeSelect }) => {
         const timings = processedData
           .map(item => item.time)
           .filter((time, index, array) => array.indexOf(time) === index); // Remove duplicates
+
+        // Debug log to verify chronological sorting (AM to PM)
+        console.log('TimingDropDown: Times sorted chronologically (AM to PM):', timings);
 
         setAvailableTimings(timings);
 

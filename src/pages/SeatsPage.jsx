@@ -362,8 +362,8 @@ const SeatsPage = () => {
 
       const response = await api.post("/movie-seat-bookings", {
         movieId: currentShow.movieId,
-        userId: 1,
-        adminUserId: null,
+        userId: null,
+        adminUserId: 1,
         showTimePlannerId: currentShow.showTimePlannerId,
         date: formattedDate,
         bookingSeats: selectedSeats,
