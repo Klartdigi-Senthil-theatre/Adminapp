@@ -132,9 +132,9 @@ const TicketPreviewPopup = ({
           }
           
           .large-text {
-            font-size: 1rem;
+            font-size: 2.25rem;
             font-weight: bold;
-            line-height: calc(1.75/0.875);
+            line-height: calc(2.5/2.25);
           }
           
           @media print {
@@ -216,6 +216,7 @@ const TicketPreviewPopup = ({
                     <div>GST: 33CMMPP7822B1Z2</div>
                     <div style="margin-top: 0.5mm;">Premium Cinema Experience</div>
                     <div style="margin-top: 1mm;">Thank You!</div>
+                    <div style="margin-top: 0.5mm; font-size: 0.75rem;">மது அனுமதி இல்லை. 3 வயது மற்றும் அதற்கு மேல் உள்ளவர்களுக்கு டிக்கெட் கட்டாயம்.</div>
                   </div>
                 </div>
               </div>
@@ -285,8 +286,8 @@ const TicketPreviewPopup = ({
                     <div className="border-t border-dashed border-gray-400 my-2"></div>
 
                     <div className="flex justify-between items-center">
-                      <span className="font-bold text-base">SEAT:</span>
-                      <span className="font-bold text-base">{seat}</span>
+                      <span className="font-bold text-lg">SEAT:</span>
+                      <span className="font-bold text-3xl">{seat}</span>
                     </div>
 
                     <div className="flex justify-between">
@@ -300,6 +301,7 @@ const TicketPreviewPopup = ({
                       <div>GST: 33CMMPP7822B1Z2</div>
                       <div>Premium Cinema Experience</div>
                       <div className="font-semibold">Thank You!</div>
+                      <div className="text-xs text-gray-500">மது அனுமதி இல்லை. 3 வயது மற்றும் அதற்கு மேல் உள்ளவர்களுக்கு டிக்கெட் கட்டாயம்.</div>
                     </div>
                   </div>
                 </div>

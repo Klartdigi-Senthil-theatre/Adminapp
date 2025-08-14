@@ -9,6 +9,7 @@ import GetTicketsPage from "../pages/GetTicketsPage";
 import Inventory from "../pages/InventoryPage";
 import { Login } from "../pages/Login";
 import Movie from "../pages/MoviePage";
+import ReportPage from "../pages/ReportPage";
 import Seats from "../pages/SeatsPage";
 import ShowTimePage from "../pages/ShowTimePage";
 import Snacks from "../pages/SnacksPage";
@@ -39,6 +40,7 @@ function AppRouter() {
             <Route path="/users" element={<Users />} />
             <Route path="/show-time" element={<ShowTimePage />} />
             <Route path="/get-tickets" element={<GetTicketsPage />} />
+            <Route path="/report" element={<ReportPage />} />
             <Route path="/" element={<Dashboard />} />
           </Route>
         </Routes>
