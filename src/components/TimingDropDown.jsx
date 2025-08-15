@@ -1,7 +1,7 @@
-import { ChevronDown } from "lucide-react";
-import { useState, useEffect } from "react";
-import api from "../config/api";
-import moment from "moment";
+import { ChevronDown } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import api from '../config/api';
+import moment from 'moment';
 
 const TimingDropdown = ({ currentShow, onTimeSelect }) => {
   const [moviesMap, setMoviesMap] = useState(new Map());
@@ -10,128 +10,17 @@ const TimingDropdown = ({ currentShow, onTimeSelect }) => {
   const [showTimeData, setShowTimeData] = useState([]); // Store full showtime data with movies
   const [loading, setLoading] = useState(true);
 
-  const isTimeInPast = (time) => {
-    if (!currentShow?.date || !time) return false;
 
-    // Helper: normalize currentShow.date to YYYY-MM-DD (if possible)
-    const normalizeDateToISO = (dateStr) => {
-      if (!dateStr) return null;
-      const s = String(dateStr).trim();
-      // Already ISO-ish: 2025-08-14
-      if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
-      // DD-MM-YYYY -> convert
-      if (/^\d{2}-\d{2}-\d{4}$/.test(s)) {
-        const [dd, mm, yyyy] = s.split("-");
-        return `${yyyy}-${mm}-${dd}`;
-      }
-      // Try moment sensible parsing as last resort
-      const parsed = moment(
-        s,
-        ["YYYY-MM-DD", "DD-MM-YYYY", "MM-DD-YYYY", moment.ISO_8601],
-        true
-      );
-      if (parsed.isValid()) return parsed.format("YYYY-MM-DD");
-      // if cannot parse, return null so we don't incorrectly block selection
-      return null;
-    };
-
-    const isoDate = normalizeDateToISO(currentShow.date);
-    if (!isoDate) {
-      // can't parse date — safer to allow selection
-      return false;
-    }
-
-    const todayStart = moment().startOf("day");
-    const selectedDayStart = moment(isoDate, "YYYY-MM-DD").startOf("day");
-
-    // If selected date is strictly before today, everything on that date is in the past
-    if (selectedDayStart.isBefore(todayStart)) {
-      return true;
-    }
-
-    // If selected date is after today, nothing is in the past (for that date)
-    if (selectedDayStart.isAfter(todayStart)) {
-      return false;
-    }
-
-    // === At this point selected date is today: we must compare exact times ===
-
-    // Normalize the time string:
-    let timeOnly = String(time).trim();
-
-    // If time contains date+time (e.g. "2025-08-14 18:00:00"), attempt to extract the time part
-    if (/\d{4}-\d{2}-\d{2}/.test(timeOnly)) {
-      // If it has date part, try to parse full datetime first (robust)
-      const tryFull = moment(
-        timeOnly,
-        [
-          "YYYY-MM-DD HH:mm:ss",
-          "YYYY-MM-DD H:mm:ss",
-          "YYYY-MM-DD HH:mm",
-          "YYYY-MM-DD H:mm",
-          "YYYY-MM-DD h:mm A",
-          moment.ISO_8601,
-        ],
-        true
-      );
-      if (tryFull.isValid()) {
-        return tryFull.isBefore(moment());
-      }
-      // if can't parse strict, keep going to other attempts
-      // extract last token as fallback time
-      const parts = timeOnly.split(/\s+/);
-      timeOnly = parts[parts.length - 1];
-    }
-
-    // ensure "6:00PM" => "6:00 PM" (space before AM/PM) and uppercase AM/PM
-    timeOnly = timeOnly.replace(/([ap])\.?\s*?m$/i, (m) => {
-      // e.g. "6:00pm" or "6:00pm" -> "  PM"
-      return " " + m.toUpperCase().replace(/\./g, "");
-    });
-    // also insert space when stuck like "6:00PM"
-    timeOnly = timeOnly.replace(/([0-9])([AP]M)$/i, "$1 $2");
-
-    // Build candidate datetime strings
-    const datetimeStr = `${isoDate} ${timeOnly}`;
-
-    // Try strict parsing with a list of likely formats:
-    const strictFormats = [
-      "YYYY-MM-DD HH:mm:ss",
-      "YYYY-MM-DD H:mm:ss",
-      "YYYY-MM-DD HH:mm",
-      "YYYY-MM-DD H:mm",
-      "YYYY-MM-DD h:mm A",
-      "YYYY-MM-DD hh:mm A",
-      "YYYY-MM-DD h:mma",
-      "YYYY-MM-DD h:mmA",
-    ];
-
-    const parsedStrict = moment(datetimeStr, strictFormats, true);
-    if (parsedStrict.isValid()) {
-      return parsedStrict.isBefore(moment());
-    }
-
-    // Fallback - loose parse
-    const parsedLoose = moment(datetimeStr);
-    if (parsedLoose.isValid()) {
-      return parsedLoose.isBefore(moment());
-    }
-
-    // If we still cannot parse, be permissive (allow selection)
-    return false;
-  };
 
   // Fetch available showtimes with assigned movies for the selected date
   useEffect(() => {
     const fetchAvailableTimings = async () => {
       try {
         setLoading(true);
-        const formattedDate = currentShow.date || moment().format("YYYY-MM-DD");
+        const formattedDate = currentShow.date || moment().format('YYYY-MM-DD');
 
         // Fetch assigned showtimes for the date
-        const plannedShowtimes = await api.get(
-          `/show-time-planner/date/${formattedDate}`
-        );
+        const plannedShowtimes = await api.get(`/show-time-planner/date/${formattedDate}`);
 
         const moviesMap = new Map();
         plannedShowtimes.forEach((entry) => {
@@ -162,7 +51,7 @@ const TimingDropdown = ({ currentShow, onTimeSelect }) => {
 
           // Use raw showTime format to match ShowTimePage approach
           const rawShowTime = entry.showTime.showTime;
-
+          
           if (rawShowTime) {
             movie.timings.push(rawShowTime);
             movie.prices.set(entry.showTimeId, entry.price);
@@ -176,18 +65,18 @@ const TimingDropdown = ({ currentShow, onTimeSelect }) => {
 
         // Process showtime data with movie information
         const processedData = plannedShowtimes
-          .filter((item) => {
+          .filter(item => {
             const hasData = item.movie && item.showTime;
             if (!hasData) {
               //console.log('TimingDropdown: Skipping item without movie or showTime:', item);
             }
             return hasData;
           })
-          .map((item) => ({
+          .map(item => ({
             time: item.showTime.showTime, // Use raw time format like ShowTimePage
             movie: {
               id: item.movie.id,
-              title: item.movie.movieName,
+              title: item.movie.movieName
             },
             genre: item.movie.genre,
             language: item.movie.language,
@@ -197,66 +86,63 @@ const TimingDropdown = ({ currentShow, onTimeSelect }) => {
             showTimeId: item.showTimeId,
             originalTime: item.showTime.showTime,
             showTimePlannerId: item.id,
-            price: item.price,
+            price: item.price
           }))
           .sort((a, b) => {
             // Sort chronologically from AM to PM (earliest to latest)
             const parseTime = (timeStr) => {
               if (!timeStr) return null;
-
+              
               // Handle different formats: "14:30", "14:30:00", "2023-10-05 14:30:00"
               let timeOnly = timeStr;
-
+              
               // If it contains a space, extract just the time part
-              if (timeStr.includes(" ")) {
-                timeOnly = timeStr.split(" ")[1] || timeStr.split(" ")[0];
+              if (timeStr.includes(' ')) {
+                timeOnly = timeStr.split(' ')[1] || timeStr.split(' ')[0];
               }
-
+              
               // Try parsing with moment using various time formats
-              const formats = ["HH:mm", "HH:mm:ss", "H:mm", "H:mm:ss"];
-
+              const formats = ['HH:mm', 'HH:mm:ss', 'H:mm', 'H:mm:ss'];
+              
               for (const format of formats) {
                 const parsed = moment(timeOnly, format);
                 if (parsed.isValid()) {
                   return parsed;
                 }
               }
-
+              
               // Fallback: try default moment parsing
               const defaultParsed = moment(timeStr);
               if (defaultParsed.isValid()) {
                 return defaultParsed;
               }
-
+              
               return null;
             };
-
+            
             const timeA = parseTime(a.time);
             const timeB = parseTime(b.time);
-
+            
             if (timeA && timeB) {
               return timeA.diff(timeB);
             }
-
+            
             // If parsing fails, fallback to string comparison
             if (!timeA && !timeB) return 0;
             if (!timeA) return 1;
             if (!timeB) return -1;
-
+            
             return a.time.localeCompare(b.time);
           });
 
         // Store the full data and extract unique timings
         setShowTimeData(processedData);
         const timings = processedData
-          .map((item) => item.time)
+          .map(item => item.time)
           .filter((time, index, array) => array.indexOf(time) === index); // Remove duplicates
 
         // Debug log to verify chronological sorting (AM to PM)
-        // console.log(
-        //   "TimingDropDown: Times sorted chronologically (AM to PM):",
-        //   timings
-        // );
+        console.log('TimingDropDown: Times sorted chronologically (AM to PM):', timings);
 
         setAvailableTimings(timings);
 
@@ -264,11 +150,9 @@ const TimingDropdown = ({ currentShow, onTimeSelect }) => {
         if (currentShow.time && !timings.includes(currentShow.time)) {
           onTimeSelect("", null); // Clear the time selection and movie data
         }
+
       } catch (error) {
-        console.error(
-          "TimingDropdown: Error fetching available timings:",
-          error
-        );
+        console.error('TimingDropdown: Error fetching available timings:', error);
         setAvailableTimings([]); // Empty array if no assignments
         setShowTimeData([]); // Clear showtime data on error
         // Clear the time selection on error
@@ -286,14 +170,7 @@ const TimingDropdown = ({ currentShow, onTimeSelect }) => {
   }, [currentShow.date, onTimeSelect, currentShow.time]);
 
   const handleTimeSelect = (time) => {
-    console.log(time);
-
-    // double-guard: prevent selecting past times even if UI somehow allows it
-    if (isTimeInPast(time)) {
-      alert("hh");
-      return;
-    }
-    const selectedShowTime = showTimeData.find((item) => item.time === time);
+    const selectedShowTime = showTimeData.find(item => item.time === time);
     onTimeSelect(time, selectedShowTime || null);
     setIsOpen(false);
   };
@@ -311,8 +188,9 @@ const TimingDropdown = ({ currentShow, onTimeSelect }) => {
           {loading
             ? "Loading times..."
             : availableTimings.length === 0
-            ? "No shows"
-            : currentShow.time || "Select Time"}
+              ? "No shows"
+              : currentShow.time || "Select Time"
+          }
         </span>
         <ChevronDown className="text-orange-600" size={18} />
 
@@ -330,33 +208,18 @@ const TimingDropdown = ({ currentShow, onTimeSelect }) => {
                   No showtimes
                 </div>
               ) : (
-                availableTimings.map((time) => {
-                  const disabled = isTimeInPast(time);
-
-                  return (
-                    <button
-                      key={time}
-                      // only call handler when not disabled
-                      onClick={() => !disabled && handleTimeSelect(time)}
-                      disabled={disabled}
-                      aria-disabled={disabled}
-                      className={`block w-full text-left px-4 py-2 text-sm
-                      ${
-                        currentShow.time === time
-                          ? "bg-orange-100 text-orange-700"
-                          : ""
-                      }
-                      ${
-                        disabled
-                          ? "cursor-not-allowed text-gray-400 opacity-70"
-                          : "text-gray-700 hover:bg-gray-100"
-                      }
-                    `}
-                    >
-                      <span className="inline-block w-24 truncate">{time}</span>
-                    </button>
-                  );
-                })
+                availableTimings.map((time) => (
+                  <button
+                    key={time}
+                    onClick={() => handleTimeSelect(time)}
+                    className={`block w-full text-left px-4 py-2 text-sm ${currentShow.time === time
+                      ? "bg-orange-100 text-orange-700"
+                      : "text-gray-700 hover:bg-gray-100"
+                      }`}
+                  >
+                    {time}
+                  </button>
+                ))
               )}
             </div>
           </div>
