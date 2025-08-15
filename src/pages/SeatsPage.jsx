@@ -26,7 +26,7 @@ const SeatLayout = ({
     { letter: "I", leftSeats: 10, rightSeats: 10, hasGap: true },
     { letter: "J", leftSeats: 10, rightSeats: 10, hasGap: true },
     { letter: "K", leftSeats: 10, rightSeats: 10, hasGap: true },
-    { letter: "L", leftSeats: 9, rightSeats: 9, hasGap: true, hasEntry: true }, // L1-L9 (left) | L10-L20 (right)
+    { letter: "L", leftSeats: 9, rightSeats: 9, hasGap: true }, // L1-L9 (left) | L10-L20 (right)
     { letter: "M", leftSeats: 10, rightSeats: 10, hasGap: true },
     { letter: "N", leftSeats: 10, rightSeats: 10, hasGap: true },
     { letter: "O", leftSeats: 10, rightSeats: 10, hasGap: true },
@@ -43,7 +43,7 @@ const SeatLayout = ({
 
   return (
     <div className="w-full overflow-x-auto py-1 animate-fadeIn">
-      <div className="min-w-max flex flex-col gap-1 items-center px-3">
+      <div className="min-w-max flex flex-col gap-0.5 items-center px-3">
         {rows.map((row, rowIndex) => {
           // Generate left section seats (1 to leftSeats)
           const leftSeats = Array.from({ length: row.leftSeats }, (_, i) => ({
@@ -70,11 +70,11 @@ const SeatLayout = ({
           }
 
           return (
-            <div
-              key={row.letter}
-              className="flex gap-4 items-center animate-slideInLeft"
-              style={{ animationDelay: `${rowIndex * 50}ms` }}
-            >
+            <React.Fragment key={row.letter}>
+              <div
+                className="flex gap-4 items-center animate-slideInLeft"
+                style={{ animationDelay: `${rowIndex * 50}ms` }}
+              >
               {/* Row label - Left */}
               <div className="w-6 text-center">
                 <span className="text-slate-600 font-bold text-sm">
@@ -84,14 +84,6 @@ const SeatLayout = ({
 
               {/* Left section with padding for center alignment */}
               <div className={`flex ${row.centerAlign ? "pl-9" : ""}`}>
-                {/* Entry indicator for L row */}
-                {row.hasEntry && (
-                  <div className="px-0.5 py-1">
-                    <div className="w-6 h-6 flex items-center justify-center rounded text-[8px] rotate-90 text-gray-600 tracking-wide font-bold">
-                      ENTRY
-                    </div>
-                  </div>
-                )}
 
                 {leftSeats.map((seat, seatIndex) => {
                   const isSelected = selectedSeats.includes(seat.id);
@@ -181,14 +173,7 @@ const SeatLayout = ({
                   );
                 })}
 
-                {/* Exit indicator for L row */}
-                {row.hasEntry && (
-                  <div className="px-0.5 py-1">
-                    <div className="w-6 h-6 flex items-center justify-center rounded text-[8px] rotate-270 tracking-widest font-bold">
-                      EXIT
-                    </div>
-                  </div>
-                )}
+
               </div>
 
               {/* Row label - Right */}
@@ -197,7 +182,52 @@ const SeatLayout = ({
                   {row.letter}
                 </span>
               </div>
-            </div>
+              </div>
+              
+                             {/* Add extra gap after E row with Entry/Exit indicators */}
+               {row.letter === "E" && (
+                 <div className="h-3 w-full flex items-center justify-center px-3 relative">
+                   {/* Entry indicator - Left of center */}
+                   <div className="absolute left-20 animate-slideInLeft" style={{ animationDelay: `${4 * 50 + 10}ms` }}>
+                     <span className="text-[10px] text-gray-600 tracking-wide font-bold opacity-60">
+                       ENTRY
+                     </span>
+                   </div>
+                   
+                   {/* Center line */}
+                   <div className="h-px w-6 bg-slate-300 animate-fadeIn" style={{ animationDelay: `${4 * 50 + 20}ms` }}></div>
+                   
+                   {/* Exit indicator - Right of center */}
+                   <div className="absolute right-20 animate-slideInLeft" style={{ animationDelay: `${4 * 50 + 30}ms` }}>
+                     <span className="text-[10px] text-gray-600 tracking-wide font-bold opacity-60">
+                       EXIT
+                     </span>
+                   </div>
+                 </div>
+               )}
+              
+              {/* Add extra gap after L row with Entry/Exit indicators */}
+              {row.letter === "L" && (
+                <div className="h-3 w-full flex items-center justify-center px-3 relative">
+                  {/* Entry indicator - Left of center */}
+                  <div className="absolute left-20 animate-slideInLeft" style={{ animationDelay: `${11 * 50 + 10}ms` }}>
+                    <span className="text-[10px] text-gray-600 tracking-wide font-bold opacity-60">
+                      ENTRY
+                    </span>
+                  </div>
+                  
+                  {/* Center line */}
+                  <div className="h-px w-6 bg-slate-300 animate-fadeIn" style={{ animationDelay: `${11 * 50 + 20}ms` }}></div>
+                  
+                  {/* Exit indicator - Right of center */}
+                  <div className="absolute right-20 animate-slideInLeft" style={{ animationDelay: `${11 * 50 + 30}ms` }}>
+                    <span className="text-[10px] text-gray-600 tracking-wide font-bold opacity-60">
+                      EXIT
+                    </span>
+                  </div>
+                </div>
+              )}
+            </React.Fragment>
           );
         })}
       </div>
