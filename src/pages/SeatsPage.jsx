@@ -7,7 +7,12 @@ import api from "../config/api";
 import TicketPreviewPopup from "../dialog/TicketPreviewPopup";
 
 // Seat Layout Component (recreated without framer-motion)
-const SeatLayout = ({ selectedSeats, onSeatSelect, bookedSeats = [], disabled }) => {
+const SeatLayout = ({
+  selectedSeats,
+  onSeatSelect,
+  bookedSeats = [],
+  disabled,
+}) => {
   // Define rows with their specific configurations
   const rows = [
     { letter: "A", leftSeats: 10, rightSeats: 10, hasGap: true },
@@ -95,12 +100,13 @@ const SeatLayout = ({ selectedSeats, onSeatSelect, bookedSeats = [], disabled })
                   return (
                     <div key={seat.id} className="px-0.5 py-1">
                       <button
-                        className={`relative w-6 h-6 flex justify-center items-center rounded-t-lg rounded-b-sm font-bold text-xs border-2 transition-all duration-200 shadow-sm animate-seatPop ${isBooked
-                          ? "bg-gradient-to-b from-gray-300 to-gray-500 text-white border-gray-700 cursor-not-allowed"
-                          : isSelected
+                        className={`relative w-6 h-6 flex justify-center items-center rounded-t-lg rounded-b-sm font-bold text-xs border-2 transition-all duration-200 shadow-sm animate-seatPop ${
+                          isBooked
+                            ? "bg-gradient-to-b from-gray-300 to-gray-500 text-white border-gray-700 cursor-not-allowed"
+                            : isSelected
                             ? "bg-gradient-to-b from-orange-400 to-orange-600 text-white border-orange-700 shadow-lg scale-105"
                             : "bg-gradient-to-b from-orange-100 to-orange-200 text-orange-800 border-orange-300 hover:border-orange-500 hover:from-orange-200 hover:to-orange-300 hover:shadow-md hover:scale-110"
-                          }`}
+                        }`}
                         onClick={() => !isBooked && onSeatSelect(seat.id)}
                         disabled={isBooked || disabled}
                         style={{
@@ -112,12 +118,13 @@ const SeatLayout = ({ selectedSeats, onSeatSelect, bookedSeats = [], disabled })
                         </span>
                         {/* Seat cushion effect */}
                         <div
-                          className={`absolute bottom-0 left-0.5 right-0.5 h-1.5 rounded-sm ${isBooked
-                            ? "bg-gray-600"
-                            : isSelected
+                          className={`absolute bottom-0 left-0.5 right-0.5 h-1.5 rounded-sm ${
+                            isBooked
+                              ? "bg-gray-600"
+                              : isSelected
                               ? "bg-orange-700"
                               : "bg-orange-300"
-                            }`}
+                          }`}
                         />
                       </button>
                     </div>
@@ -141,17 +148,19 @@ const SeatLayout = ({ selectedSeats, onSeatSelect, bookedSeats = [], disabled })
                   return (
                     <div key={seat.id} className="px-0.5 py-1">
                       <button
-                        className={`relative w-6 h-6 flex justify-center items-center rounded-t-lg rounded-b-sm font-bold text-xs border-2 transition-all duration-200 shadow-sm animate-seatPop ${isBooked
-                          ? "bg-gradient-to-b from-gray-300 to-gray-500 text-white border-gray-700 cursor-not-allowed"
-                          : isSelected
+                        className={`relative w-6 h-6 flex justify-center items-center rounded-t-lg rounded-b-sm font-bold text-xs border-2 transition-all duration-200 shadow-sm animate-seatPop ${
+                          isBooked
+                            ? "bg-gradient-to-b from-gray-300 to-gray-500 text-white border-gray-700 cursor-not-allowed"
+                            : isSelected
                             ? "bg-gradient-to-b from-orange-400 to-orange-600 text-white border-orange-700 shadow-lg scale-105"
                             : "bg-gradient-to-b from-orange-100 to-orange-200 text-orange-800 border-orange-300 hover:border-orange-500 hover:from-orange-200 hover:to-orange-300 hover:shadow-md hover:scale-110"
-                          }`}
+                        }`}
                         onClick={() => !isBooked && onSeatSelect(seat.id)}
                         disabled={isBooked}
                         style={{
-                          animationDelay: `${rowIndex * 50 + (leftSeats.length + seatIndex) * 10
-                            }ms`,
+                          animationDelay: `${
+                            rowIndex * 50 + (leftSeats.length + seatIndex) * 10
+                          }ms`,
                         }}
                       >
                         <span className="relative z-10 text-[10px]">
@@ -159,12 +168,13 @@ const SeatLayout = ({ selectedSeats, onSeatSelect, bookedSeats = [], disabled })
                         </span>
                         {/* Seat cushion effect */}
                         <div
-                          className={`absolute bottom-0 left-0.5 right-0.5 h-1.5 rounded-sm ${isBooked
-                            ? "bg-gray-600"
-                            : isSelected
+                          className={`absolute bottom-0 left-0.5 right-0.5 h-1.5 rounded-sm ${
+                            isBooked
+                              ? "bg-gray-600"
+                              : isSelected
                               ? "bg-orange-700"
                               : "bg-orange-300"
-                            }`}
+                          }`}
                         />
                       </button>
                     </div>
@@ -251,9 +261,14 @@ const SeatsPage = () => {
   const [totalBookedSeats, setTotalBookedSeats] = useState(0);
   const [amountReceived, setAmountReceived] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const today = new Date();
+  today.setMinutes(today.getMinutes() - today.getTimezoneOffset());
+  const todayStr = today.toISOString().split("T")[0];
+
   const [currentShow, setCurrentShow] = useState({
     movie: "Select showtime",
-    date: new Date().toISOString().split("T")[0],
+    date: todayStr,
     time: "",
     price: null,
     movieId: null,
@@ -430,7 +445,9 @@ const SeatsPage = () => {
       }
       const response = await api.post("/movie-seat-holds", holdPayload);
       if (response && response.error === "Selected seats are already booked!") {
-        notify.error("Oops! The seats you selected have just been booked by someone else. Please select different seats.");
+        notify.error(
+          "Oops! The seats you selected have just been booked by someone else. Please select different seats."
+        );
         setLoading(false);
         await fetchBookedSeats();
         return;
@@ -444,7 +461,9 @@ const SeatsPage = () => {
         error.response.data &&
         error.response.data.error === "Selected seats are already booked!"
       ) {
-        notify.error("Oops! The seats you selected have just been booked by someone else. Please select different seats.");
+        notify.error(
+          "Oops! The seats you selected have just been booked by someone else. Please select different seats."
+        );
       } else {
         notify.error("Failed to hold seats. Please try again.");
       }
@@ -509,12 +528,15 @@ const SeatsPage = () => {
                       type="date"
                       value={currentShow.date}
                       onChange={(e) => {
-                        setCurrentShow({ ...currentShow, date: e.target.value });
+                        setCurrentShow({
+                          ...currentShow,
+                          date: e.target.value,
+                        });
                         // Clear selected seats when date changes
                         setSelectedSeats([]);
                       }}
                       className="w-35 text-black font-medium border rounded text-sm md:text-base"
-                      min={new Date().toISOString().split("T")[0]}
+                      min={todayStr}
                     />
                   </span>
                 </div>
@@ -533,19 +555,19 @@ const SeatsPage = () => {
                           price: selectedShowTime?.price || null,
                           movie:
                             selectedShowTime &&
-                              selectedShowTime.movie &&
-                              selectedShowTime.movie.title
+                            selectedShowTime.movie &&
+                            selectedShowTime.movie.title
                               ? selectedShowTime.movie.title
                               : "Select showtime",
                           movieId:
                             selectedShowTime &&
-                              selectedShowTime.movie &&
-                              selectedShowTime.movie.id
+                            selectedShowTime.movie &&
+                            selectedShowTime.movie.id
                               ? selectedShowTime.movie.id
                               : null,
                           showTimePlannerId:
                             selectedShowTime &&
-                              selectedShowTime.showTimePlannerId
+                            selectedShowTime.showTimePlannerId
                               ? selectedShowTime.showTimePlannerId
                               : null,
                         }));
