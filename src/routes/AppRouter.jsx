@@ -5,6 +5,7 @@ import Notification from "../components/Notification";
 import { AuthProvider } from "../context/AuthContext";
 import Advertisement from "../pages/AdvertisementPage";
 import Dashboard from "../pages/DashboardPage";
+import DailyReportPage from "../pages/DailyReportPage";
 import GetTicketsPage from "../pages/GetTicketsPage";
 import Inventory from "../pages/InventoryPage";
 import { Login } from "../pages/Login";
@@ -41,6 +42,7 @@ function AppRouter() {
             <Route path="/show-time" element={<ShowTimePage />} />
             <Route path="/get-tickets" element={<GetTicketsPage />} />
             <Route path="/report" element={<ReportPage />} />
+            <Route path="/daily-report" element={<DailyReportPage />} />
             <Route path="/" element={<Dashboard />} />
           </Route>
         </Routes>

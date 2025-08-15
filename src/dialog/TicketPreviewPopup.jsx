@@ -216,7 +216,7 @@ const TicketPreviewPopup = ({
                     <div>GST: 33CMMPP7822B1Z2</div>
                     <div style="margin-top: 0.5mm;">Premium Cinema Experience</div>
                     <div style="margin-top: 1mm;">Thank You!</div>
-                    <div style="margin-top: 0.5mm; font-size: 0.75rem;">மது அனுமதி இல்லை. 3 வயது மற்றும் அதற்கு மேல் உள்ளவர்களுக்கு டிக்கெட் கட்டாயம்.</div>
+                    <div style="margin-top: 0.5mm; font-size: 0.75rem;">மது அருந்தியவர்களுக்கு அனுமதி இல்லை. 3 வயது மற்றும் அதற்கு மேற்பட்டவர்களுக்கு டிக்கெட் கட்டாயம்.</div>
                   </div>
                 </div>
               </div>
@@ -301,7 +301,7 @@ const TicketPreviewPopup = ({
                       <div>GST: 33CMMPP7822B1Z2</div>
                       <div>Premium Cinema Experience</div>
                       <div className="font-semibold">Thank You!</div>
-                      <div className="text-xs text-gray-500">மது அனுமதி இல்லை. 3 வயது மற்றும் அதற்கு மேல் உள்ளவர்களுக்கு டிக்கெட் கட்டாயம்.</div>
+                      <div className="text-xs text-gray-500">மது அருந்தியவர்களுக்கு அனுமதி இல்லை. 3 வயது மற்றும் அதற்கு மேற்பட்டவர்களுக்கு டிக்கெட் கட்டாயம்.</div>
                     </div>
                   </div>
                 </div>

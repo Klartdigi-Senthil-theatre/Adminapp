@@ -231,8 +231,7 @@ const ReportPage = () => {
         updated.totalCounterCollection = (
           denominationTotal -
           userReturn -
-          balanceCounter -
-          passesAmount
+          balanceCounter
         ).toString();
       }
 
@@ -302,6 +301,56 @@ const ReportPage = () => {
           .no-print {
             display: none !important;
           }
+
+          /* FORCE DESKTOP LAYOUT FOR ALL PRINT OUTPUTS */
+          /* Hide all mobile layouts during print */
+          .print-area .md\\:hidden {
+            display: none !important;
+            visibility: hidden !important;
+          }
+          
+          /* Show all desktop layouts during print */
+          .print-area .hidden.md\\:block,
+          .print-area .hidden {
+            display: block !important;
+            visibility: visible !important;
+          }
+
+          /* Force desktop flex layout for final amount */
+          .print-area .hidden.md\\:flex {
+            display: flex !important;
+            visibility: visible !important;
+          }
+
+          /* Override any mobile-specific responsive utilities */
+          .print-area .flex-col {
+            flex-direction: row !important;
+          }
+          
+          .print-area .sm\\:flex-row {
+            flex-direction: row !important;
+          }
+          
+          .print-area .w-full.sm\\:w-auto {
+            width: auto !important;
+          }
+
+          /* Force table layouts to always display */
+          .print-area table {
+            display: table !important;
+            width: 100% !important;
+            table-layout: fixed !important;
+          }
+          
+          .print-area tr {
+            display: table-row !important;
+          }
+          
+          .print-area td,
+          .print-area th {
+            display: table-cell !important;
+          }
+
           @page {
             size: A4;
             margin: 5mm;
@@ -497,6 +546,12 @@ const ReportPage = () => {
             min-height: 30px !important;
             padding: 2px 3px !important;
           }
+
+          /* Force left alignment for Counter + Online text in Final Amount section */
+          .print-area .text-center.md\\:text-left,
+          .print-area .text-center {
+            text-align: left !important;
+          }
         }
       </style>
     `;
@@ -592,202 +647,205 @@ const ReportPage = () => {
               <form className="space-y-6 overflow-visible">
                 {/* Show Collection Report Section */}
                 <div className="border border-gray-300 rounded-lg overflow-visible">
-                  <table className="w-full">
-                    <tbody>
-                      <tr>
-                        <td className="border-r border-gray-300 p-3 bg-gray-50 font-medium w-1/4">
-                          Date
-                        </td>
-                        <td className="border-r border-gray-300 p-3 w-1/4">
-                          <input
-                            type="date"
-                            value={reportData.date}
-                            onChange={(e) =>
-                              handleInputChange("date", e.target.value)
-                            }
-                            className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500"
-                          />
-                        </td>
-                        <td className="border-r border-gray-300 p-3 bg-gray-50 font-medium w-1/4">
-                          Show Time
-                        </td>
-                        <td className="p-3 w-1/4 relative">
-                          <div className="relative showtime-dropdown">
-                            <div
-                              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white cursor-pointer flex items-center justify-between"
-                              onClick={() =>
-                                setIsShowTimeDropdownOpen(
-                                  !isShowTimeDropdownOpen
-                                )
+                  {/* Desktop View */}
+                  <div className="hidden md:block">
+                    <table className="w-full">
+                      <tbody>
+                        <tr>
+                          <td className="border-r border-gray-300 p-3 bg-gray-50 font-medium w-1/4">
+                            Date
+                          </td>
+                          <td className="border-r border-gray-300 p-3 w-1/4">
+                            <input
+                              type="date"
+                              value={reportData.date}
+                              onChange={(e) =>
+                                handleInputChange("date", e.target.value)
                               }
-                            >
-                              <span
-                                className={
-                                  reportData.showTime
-                                    ? "text-gray-900"
-                                    : "text-gray-500"
+                              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                            />
+                          </td>
+                          <td className="border-r border-gray-300 p-3 bg-gray-50 font-medium w-1/4">
+                            Show Time
+                          </td>
+                          <td className="p-3 w-1/4 relative">
+                            <div className="relative showtime-dropdown">
+                              <div
+                                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white cursor-pointer flex items-center justify-between"
+                                onClick={() =>
+                                  setIsShowTimeDropdownOpen(
+                                    !isShowTimeDropdownOpen
+                                  )
                                 }
                               >
-                                {reportData.showTime || "Select Show Time"}
-                              </span>
-                              <ChevronDown
-                                size={18}
-                                className={`text-gray-500 transition-transform duration-200 ${
-                                  isShowTimeDropdownOpen
-                                    ? "transform rotate-180"
-                                    : ""
-                                }`}
-                              />
-                            </div>
-                            {isShowTimeDropdownOpen && (
-                              <div className="absolute z-[9999] w-full mt-1 bg-white border border-gray-300 rounded-md shadow-xl">
-                                <div className="py-1">
-                                  <div
-                                    className="px-3 py-2 text-gray-500 hover:bg-gray-100 cursor-pointer text-sm"
-                                    onClick={() => {
-                                      handleInputChange("showTime", "");
-                                      setShowTimePlannerId(null);
-                                      setIsShowTimeDropdownOpen(false);
-                                    }}
-                                  >
-                                    Select Show Time
-                                  </div>
-                                  {showTimeOptions.map((option) => (
-                                    <div
-                                      key={option.id}
-                                      className={`px-3 py-2 cursor-pointer text-sm ${
-                                        reportData.showTime === option.time
-                                          ? "bg-teal-100 text-teal-700"
-                                          : "text-gray-700 hover:bg-gray-100"
-                                      }`}
-                                      onClick={() =>
-                                        handleShowTimeSelect(
-                                          option.time,
-                                          option.id
-                                        )
-                                      }
-                                    >
-                                      {option.time}
-                                    </div>
-                                  ))}
-                                </div>
+                                <span
+                                  className={
+                                    reportData.showTime
+                                      ? "text-gray-900"
+                                      : "text-gray-500"
+                                  }
+                                >
+                                  {reportData.showTime || "Select Show Time"}
+                                </span>
+                                <ChevronDown
+                                  size={18}
+                                  className={`text-gray-500 transition-transform duration-200 ${
+                                    isShowTimeDropdownOpen
+                                      ? "transform rotate-180"
+                                      : ""
+                                  }`}
+                                />
                               </div>
-                            )}
+                              {isShowTimeDropdownOpen && (
+                                <div className="absolute z-[9999] w-full mt-1 bg-white border border-gray-300 rounded-md shadow-xl">
+                                  <div className="py-1">
+                                    <div
+                                      className="px-3 py-2 text-gray-500 hover:bg-gray-100 cursor-pointer text-sm"
+                                      onClick={() => {
+                                        handleInputChange("showTime", "");
+                                        setShowTimePlannerId(null);
+                                        setIsShowTimeDropdownOpen(false);
+                                      }}
+                                    >
+                                      Select Show Time
+                                    </div>
+                                    {showTimeOptions.map((option) => (
+                                      <div
+                                        key={option.id}
+                                        className={`px-3 py-2 cursor-pointer text-sm ${
+                                          reportData.showTime === option.time
+                                            ? "bg-teal-100 text-teal-700"
+                                            : "text-gray-700 hover:bg-gray-100"
+                                        }`}
+                                        onClick={() =>
+                                          handleShowTimeSelect(
+                                            option.time,
+                                            option.id
+                                          )
+                                        }
+                                      >
+                                        {option.time}
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Mobile View */}
+                  <div className="md:hidden">
+                    <div className="p-4 space-y-4">
+                      <div>
+                        <label className="block font-medium text-gray-700 mb-2">Date</label>
+                        <input
+                          type="date"
+                          value={reportData.date}
+                          onChange={(e) =>
+                            handleInputChange("date", e.target.value)
+                          }
+                          className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block font-medium text-gray-700 mb-2">Show Time</label>
+                        <div className="relative showtime-dropdown">
+                          <div
+                            className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white cursor-pointer flex items-center justify-between"
+                            onClick={() =>
+                              setIsShowTimeDropdownOpen(
+                                !isShowTimeDropdownOpen
+                              )
+                            }
+                          >
+                            <span
+                              className={
+                                reportData.showTime
+                                  ? "text-gray-900"
+                                  : "text-gray-500"
+                              }
+                            >
+                              {reportData.showTime || "Select Show Time"}
+                            </span>
+                            <ChevronDown
+                              size={18}
+                              className={`text-gray-500 transition-transform duration-200 ${
+                                isShowTimeDropdownOpen
+                                  ? "transform rotate-180"
+                                  : ""
+                              }`}
+                            />
                           </div>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
+                          {isShowTimeDropdownOpen && (
+                            <div className="absolute z-[9999] w-full mt-1 bg-white border border-gray-300 rounded-md shadow-xl">
+                              <div className="py-1">
+                                <div
+                                  className="px-3 py-2 text-gray-500 hover:bg-gray-100 cursor-pointer text-sm"
+                                  onClick={() => {
+                                    handleInputChange("showTime", "");
+                                    setShowTimePlannerId(null);
+                                    setIsShowTimeDropdownOpen(false);
+                                  }}
+                                >
+                                  Select Show Time
+                                </div>
+                                {showTimeOptions.map((option) => (
+                                  <div
+                                    key={option.id}
+                                    className={`px-3 py-2 cursor-pointer text-sm ${
+                                      reportData.showTime === option.time
+                                        ? "bg-teal-100 text-teal-700"
+                                        : "text-gray-700 hover:bg-gray-100"
+                                    }`}
+                                    onClick={() =>
+                                      handleShowTimeSelect(
+                                        option.time,
+                                        option.id
+                                      )
+                                    }
+                                  >
+                                    {option.time}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Total Tickets Sold and Pass Section */}
                 <div className="border border-gray-300 rounded-lg overflow-hidden">
-                  <table className="w-full">
-                    <tbody>
-                      <tr>
-                        <td className="border-r border-gray-300 p-3 bg-gray-50 font-medium w-1/4">
-                          Total Tickets Sold
-                        </td>
-                        <td className="border-r border-gray-300 p-3 w-1/4">
-                          <input
-                            type="number"
-                            value={reportData.totalTicketsSold}
-                            readOnly
-                            className="w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-100 text-gray-700 font-semibold"
-                            placeholder="Auto-calculated"
-                          />
-                        </td>
-                        <td className="border-r border-gray-300 p-3 bg-gray-50 font-medium w-1/4">
-                          Pass
-                        </td>
-                        <td className="p-3 w-1/4">
-                          <input
-                            type="number"
-                            value={reportData.pass}
-                            readOnly
-                            className="w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-100 text-gray-700 font-semibold"
-                            placeholder="Auto-calculated"
-                          />
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-
-                {/* Net Tickets Section */}
-                <div className="border border-gray-300 rounded-lg overflow-hidden">
-                  <table className="w-full">
-                    <tbody>
-                      <tr>
-                        <td className="border-r border-gray-300 p-3 bg-gray-50 font-medium w-1/2">
-                          Net Tickets (Sold - Passes)
-                        </td>
-                        <td className="p-3">
-                          <input
-                            type="number"
-                            value={reportData.netTickets}
-                            readOnly
-                            className="w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-100 text-gray-700 font-semibold"
-                            placeholder="Auto-calculated"
-                          />
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-
-                {/* Counter Collection Section */}
-                <div className="mt-8">
-                  <h3 className="text-xl font-bold text-teal-600 mb-4 flex items-center gap-2">
-                    <Calculator size={24} />
-                    Counter Collection
-                  </h3>
-                  <div className="border border-gray-300 rounded-lg overflow-hidden">
+                  {/* Desktop View */}
+                  <div className="hidden md:block">
                     <table className="w-full">
                       <tbody>
-                        <tr className="border-b border-gray-300">
-                          <td className="border-r border-gray-300 p-3 bg-gray-50 font-medium w-1/2">
-                            Tickets Sold
+                        <tr>
+                          <td className="border-r border-gray-300 p-3 bg-gray-50 font-medium w-1/4">
+                            Total Tickets Sold
                           </td>
-                          <td className="p-3">
+                          <td className="border-r border-gray-300 p-3 w-1/4">
                             <input
                               type="number"
-                              value={reportData.counterTotalTickets}
-                              onChange={(e) =>
-                                handleInputChange(
-                                  "counterTotalTickets",
-                                  e.target.value
-                                )
-                              }
-                              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500"
-                              placeholder="Enter tickets sold at counter"
+                              value={reportData.totalTicketsSold}
+                              readOnly
+                              className="w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-100 text-gray-700 font-semibold"
+                              placeholder="Auto-calculated"
                             />
                           </td>
-                        </tr>
-                        <tr className="border-b border-gray-300">
-                          <td className="border-r border-gray-300 p-3 bg-gray-50 font-medium">
+                          <td className="border-r border-gray-300 p-3 bg-gray-50 font-medium w-1/4">
                             Pass
                           </td>
-                          <td className="p-3">
+                          <td className="p-3 w-1/4">
                             <input
                               type="number"
-                              value={reportData.counterPass}
-                              onChange={(e) =>
-                                handleInputChange("counterPass", e.target.value)
-                              }
-                              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500"
-                              placeholder="Enter number of passes"
-                            />
-                          </td>
-                        </tr>
-                        <tr>
-                          <td className="border-r border-gray-300 p-3 bg-gray-50 font-medium">
-                            Net Tickets (Sold - Passes)
-                          </td>
-                          <td className="p-3">
-                            <input
-                              type="number"
-                              value={reportData.counterNetTickets}
+                              value={reportData.pass}
                               readOnly
                               className="w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-100 text-gray-700 font-semibold"
                               placeholder="Auto-calculated"
@@ -798,193 +856,427 @@ const ReportPage = () => {
                     </table>
                   </div>
 
-                  <div className="counter-collection-container">
-                    <div className="denomination-table-container">
-                      <div className="border border-gray-300 rounded-lg overflow-hidden mt-4">
-                        <table className="w-full">
-                          <thead>
-                            <tr className="bg-orange-50 border-b border-gray-300">
-                              <th className="border-r border-gray-300 p-3 text-left font-bold text-orange-700 w-1/3">
-                                Denomination
-                              </th>
-                              <th className="border-r border-gray-300 p-3 text-left font-bold text-orange-700 w-1/3">
-                                Count
-                              </th>
-                              <th className="p-3 text-left font-bold text-orange-700 w-1/3">
-                                Total
-                              </th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {[500, 200, 100, 50, 20, 10].map((denom) => (
-                              <tr
-                                key={denom}
-                                className="border-b border-gray-300"
-                              >
-                                <td className="border-r border-gray-300 p-3 bg-gray-50 font-medium w-1/3">
-                                  {denom}
-                                </td>
-                                <td className="border-r border-gray-300 p-3 w-1/3">
-                                  <input
-                                    type="number"
-                                    value={reportData[`denomination${denom}`]}
-                                    onChange={(e) =>
-                                      handleInputChange(
-                                        `denomination${denom}`,
-                                        e.target.value
-                                      )
-                                    }
-                                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500"
-                                    placeholder="0"
-                                  />
-                                </td>
-                                <td className="p-3 font-medium text-orange-600 w-1/3">
-                                  ₹
-                                  {(
-                                    (parseInt(
-                                      reportData[`denomination${denom}`]
-                                    ) || 0) * denom
-                                  ).toLocaleString()}
-                                </td>
+                  {/* Mobile View */}
+                  <div className="md:hidden">
+                    <div className="p-4 space-y-4">
+                      <div>
+                        <label className="block font-medium text-gray-700 mb-2">Total Tickets Sold</label>
+                        <input
+                          type="number"
+                          value={reportData.totalTicketsSold}
+                          readOnly
+                          className="w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-100 text-gray-700 font-semibold"
+                          placeholder="Auto-calculated"
+                        />
+                      </div>
+                      <div>
+                        <label className="block font-medium text-gray-700 mb-2">Pass</label>
+                        <input
+                          type="number"
+                          value={reportData.pass}
+                          readOnly
+                          className="w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-100 text-gray-700 font-semibold"
+                          placeholder="Auto-calculated"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Net Tickets Section */}
+                <div className="border border-gray-300 rounded-lg overflow-hidden">
+                  {/* Desktop View */}
+                  <div className="hidden md:block">
+                    <table className="w-full">
+                      <tbody>
+                        <tr>
+                          <td className="border-r border-gray-300 p-3 bg-gray-50 font-medium w-1/2">
+                            Net Tickets (Sold - Passes)
+                          </td>
+                          <td className="p-3">
+                            <input
+                              type="number"
+                              value={reportData.netTickets}
+                              readOnly
+                              className="w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-100 text-gray-700 font-semibold"
+                              placeholder="Auto-calculated"
+                            />
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Mobile View */}
+                  <div className="md:hidden">
+                    <div className="p-4">
+                      <div>
+                        <label className="block font-medium text-gray-700 mb-2">Net Tickets (Sold - Passes)</label>
+                        <input
+                          type="number"
+                          value={reportData.netTickets}
+                          readOnly
+                          className="w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-100 text-gray-700 font-semibold"
+                          placeholder="Auto-calculated"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Counter Collection Section */}
+                <div className="mt-8">
+                  <h3 className="text-xl font-bold text-teal-600 mb-4 flex items-center gap-2">
+                    <Calculator size={24} />
+                    Counter Collection
+                  </h3>
+                  <div className="border border-gray-300 rounded-lg overflow-hidden">
+                    {/* Desktop View */}
+                    <div className="hidden md:block">
+                      <table className="w-full">
+                        <tbody>
+                          <tr className="border-b border-gray-300">
+                            <td className="border-r border-gray-300 p-3 bg-gray-50 font-medium w-1/2">
+                              Tickets Sold
+                            </td>
+                            <td className="p-3">
+                              <input
+                                type="number"
+                                value={reportData.counterTotalTickets}
+                                onChange={(e) =>
+                                  handleInputChange(
+                                    "counterTotalTickets",
+                                    e.target.value
+                                  )
+                                }
+                                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                                placeholder="Enter tickets sold at counter"
+                              />
+                            </td>
+                          </tr>
+                          <tr className="border-b border-gray-300">
+                            <td className="border-r border-gray-300 p-3 bg-gray-50 font-medium">
+                              Pass
+                            </td>
+                            <td className="p-3">
+                              <input
+                                type="number"
+                                value={reportData.counterPass}
+                                onChange={(e) =>
+                                  handleInputChange("counterPass", e.target.value)
+                                }
+                                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                                placeholder="Enter number of passes"
+                              />
+                            </td>
+                          </tr>
+                          <tr>
+                            <td className="border-r border-gray-300 p-3 bg-gray-50 font-medium">
+                              Net Tickets (Sold - Passes)
+                            </td>
+                            <td className="p-3">
+                              <input
+                                type="number"
+                                value={reportData.counterNetTickets}
+                                readOnly
+                                className="w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-100 text-gray-700 font-semibold"
+                                placeholder="Auto-calculated"
+                              />
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* Mobile View */}
+                    <div className="md:hidden">
+                      <div className="p-4 space-y-4">
+                        <div>
+                          <label className="block font-medium text-gray-700 mb-2">Tickets Sold</label>
+                          <input
+                            type="number"
+                            value={reportData.counterTotalTickets}
+                            onChange={(e) =>
+                              handleInputChange(
+                                "counterTotalTickets",
+                                e.target.value
+                              )
+                            }
+                            className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                            placeholder="Enter tickets sold at counter"
+                          />
+                        </div>
+                        <div>
+                          <label className="block font-medium text-gray-700 mb-2">Pass</label>
+                          <input
+                            type="number"
+                            value={reportData.counterPass}
+                            onChange={(e) =>
+                              handleInputChange("counterPass", e.target.value)
+                            }
+                            className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                            placeholder="Enter number of passes"
+                          />
+                        </div>
+                        <div>
+                          <label className="block font-medium text-gray-700 mb-2">Net Tickets (Sold - Passes)</label>
+                          <input
+                            type="number"
+                            value={reportData.counterNetTickets}
+                            readOnly
+                            className="w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-100 text-gray-700 font-semibold"
+                            placeholder="Auto-calculated"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Desktop View - Side by side layout */}
+                  <div className="hidden md:block">
+                    <div className="counter-collection-container">
+                      <div className="denomination-table-container">
+                        <div className="border border-gray-300 rounded-lg overflow-hidden mt-4">
+                          <table className="w-full">
+                            <thead>
+                              <tr className="bg-orange-50 border-b border-gray-300">
+                                <th className="border-r border-gray-300 p-3 text-left font-bold text-orange-700 w-1/3">
+                                  Denomination
+                                </th>
+                                <th className="border-r border-gray-300 p-3 text-left font-bold text-orange-700 w-1/3">
+                                  Count
+                                </th>
+                                <th className="p-3 text-left font-bold text-orange-700 w-1/3">
+                                  Total
+                                </th>
                               </tr>
-                            ))}
-                            <tr className="bg-orange-50">
-                              <td className="border-r border-gray-300 p-3 font-bold w-1/3">
-                                Total
-                              </td>
-                              <td className="border-r border-gray-300 p-3 font-bold w-1/3">
-                                {[500, 200, 100, 50, 20, 10].reduce(
-                                  (sum, denom) =>
-                                    sum +
-                                    (parseInt(
-                                      reportData[`denomination${denom}`]
-                                    ) || 0),
-                                  0
-                                )}
-                              </td>
-                              <td className="p-3 font-bold text-black w-1/3">
-                                ₹
-                                {[500, 200, 100, 50, 20, 10]
-                                  .reduce(
+                            </thead>
+                            <tbody>
+                              {[500, 200, 100, 50, 20, 10].map((denom) => (
+                                <tr
+                                  key={denom}
+                                  className="border-b border-gray-300"
+                                >
+                                  <td className="border-r border-gray-300 p-3 bg-gray-50 font-medium w-1/3">
+                                    {denom}
+                                  </td>
+                                  <td className="border-r border-gray-300 p-3 w-1/3">
+                                    <input
+                                      type="number"
+                                      value={reportData[`denomination${denom}`]}
+                                      onChange={(e) =>
+                                        handleInputChange(
+                                          `denomination${denom}`,
+                                          e.target.value
+                                        )
+                                      }
+                                      className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                      placeholder="0"
+                                    />
+                                  </td>
+                                  <td className="p-3 font-medium text-orange-600 w-1/3">
+                                    ₹
+                                    {(
+                                      (parseInt(
+                                        reportData[`denomination${denom}`]
+                                      ) || 0) * denom
+                                    ).toLocaleString()}
+                                  </td>
+                                </tr>
+                              ))}
+                              <tr className="bg-orange-50">
+                                <td className="border-r border-gray-300 p-3 font-bold w-1/3">
+                                  Total
+                                </td>
+                                <td className="border-r border-gray-300 p-3 font-bold w-1/3">
+                                  {[500, 200, 100, 50, 20, 10].reduce(
                                     (sum, denom) =>
                                       sum +
                                       (parseInt(
                                         reportData[`denomination${denom}`]
-                                      ) || 0) *
-                                        denom,
+                                      ) || 0),
                                     0
+                                  )}
+                                </td>
+                                <td className="p-3 font-bold text-black w-1/3">
+                                  ₹
+                                  {[500, 200, 100, 50, 20, 10]
+                                    .reduce(
+                                      (sum, denom) =>
+                                        sum +
+                                        (parseInt(
+                                          reportData[`denomination${denom}`]
+                                        ) || 0) *
+                                          denom,
+                                      0
+                                    )
+                                    .toLocaleString()}
+                                </td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+
+                      <div className="counter-summary-table-container">
+                        <div className="border border-gray-300 rounded-lg overflow-hidden mt-4">
+                          <table className="w-full">
+                            <tbody>
+                              <tr className="border-b border-gray-300">
+                                <td className="border-r border-gray-300 p-3 bg-gray-50 font-medium w-1/2">
+                                  User Return (-)
+                                </td>
+                                <td className="p-3">
+                                  <div className="flex items-center gap-2">
+                                    <span>₹</span>
+                                    <input
+                                      type="number"
+                                      value={reportData.userReturn}
+                                      onChange={(e) =>
+                                        handleInputChange(
+                                          "userReturn",
+                                          e.target.value
+                                        )
+                                      }
+                                      className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                                      placeholder="0"
+                                    />
+                                  </div>
+                                </td>
+                              </tr>
+                              <tr className="border-b border-gray-300">
+                                <td className="border-r border-gray-300 p-3 bg-gray-50 font-medium">
+                                  Balance Counter Amount (-)
+                                </td>
+                                <td className="p-3">
+                                  <div className="flex items-center gap-2">
+                                    <span>₹</span>
+                                    <input
+                                      type="number"
+                                      value={reportData.balanceCounterAmount}
+                                      onChange={(e) =>
+                                        handleInputChange(
+                                          "balanceCounterAmount",
+                                          e.target.value
+                                        )
+                                      }
+                                      className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                                      placeholder="0"
+                                    />
+                                  </div>
+                                </td>
+                              </tr>
+                              <tr className="bg-emerald-50">
+                                <td className="border-r border-gray-300 p-3 font-bold text-emerald-700">
+                                  Total Counter Collection
+                                </td>
+                                <td className="p-3 font-bold text-emerald-600">
+                                  ₹
+                                  {(
+                                    parseInt(reportData.totalCounterCollection) ||
+                                    0
+                                  ).toLocaleString()}
+                                </td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Mobile View - Stacked layout */}
+                  <div className="md:hidden mt-4 space-y-4">
+                    {/* Denomination Section */}
+                    <div className="border border-gray-300 rounded-lg overflow-hidden">
+                      <div className="bg-orange-50 p-3 border-b border-gray-300">
+                        <h4 className="font-bold text-orange-700">Cash Denominations</h4>
+                      </div>
+                      <div className="p-4 space-y-3">
+                        {[500, 200, 100, 50, 20, 10].map((denom) => (
+                          <div key={denom} className="flex items-center justify-between gap-3">
+                            <div className="flex-1">
+                              <label className="block font-medium text-gray-700 text-sm">₹{denom}</label>
+                            </div>
+                            <div className="flex-1">
+                              <input
+                                type="number"
+                                value={reportData[`denomination${denom}`]}
+                                onChange={(e) =>
+                                  handleInputChange(
+                                    `denomination${denom}`,
+                                    e.target.value
                                   )
-                                  .toLocaleString()}
-                              </td>
-                            </tr>
-                          </tbody>
-                        </table>
+                                }
+                                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500 text-center"
+                                placeholder="0"
+                              />
+                            </div>
+                            <div className="flex-1 text-right">
+                              <span className="font-medium text-orange-600">
+                                ₹{((parseInt(reportData[`denomination${denom}`]) || 0) * denom).toLocaleString()}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                        <div className="border-t border-gray-300 pt-3 mt-3 bg-orange-50 -mx-4 px-4 py-3">
+                          <div className="flex justify-between items-center font-bold">
+                            <span>Total Count: {[500, 200, 100, 50, 20, 10].reduce((sum, denom) => sum + (parseInt(reportData[`denomination${denom}`]) || 0), 0)}</span>
+                            <span className="text-black">
+                              ₹{[500, 200, 100, 50, 20, 10].reduce((sum, denom) => sum + (parseInt(reportData[`denomination${denom}`]) || 0) * denom, 0).toLocaleString()}
+                            </span>
+                          </div>
+                        </div>
                       </div>
                     </div>
 
-                    <div className="counter-summary-table-container">
-                      <div className="border border-gray-300 rounded-lg overflow-hidden mt-4">
-                        <table className="w-full">
-                          <tbody>
-                            <tr className="border-b border-gray-300">
-                              <td className="border-r border-gray-300 p-3 bg-gray-50 font-medium w-1/2">
-                                User Return (-)
-                              </td>
-                              <td className="p-3">
-                                <div className="flex items-center gap-2">
-                                  <span>₹</span>
-                                  <input
-                                    type="number"
-                                    value={reportData.userReturn}
-                                    onChange={(e) =>
-                                      handleInputChange(
-                                        "userReturn",
-                                        e.target.value
-                                      )
-                                    }
-                                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500"
-                                    placeholder="0"
-                                  />
-                                </div>
-                              </td>
-                            </tr>
-                            <tr className="border-b border-gray-300">
-                              <td className="border-r border-gray-300 p-3 bg-gray-50 font-medium">
-                                Balance Counter Amount (-)
-                              </td>
-                              <td className="p-3">
-                                <div className="flex items-center gap-2">
-                                  <span>₹</span>
-                                  <input
-                                    type="number"
-                                    value={reportData.balanceCounterAmount}
-                                    onChange={(e) =>
-                                      handleInputChange(
-                                        "balanceCounterAmount",
-                                        e.target.value
-                                      )
-                                    }
-                                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500"
-                                    placeholder="0"
-                                  />
-                                </div>
-                              </td>
-                            </tr>
-                            <tr className="border-b border-gray-300">
-                              <td className="border-r border-gray-300 p-3 font-bold">
-                                Actual Amount
-                              </td>
-                              <td className="p-3 font-bold">
-                                ₹
-                                {(
-                                  parseInt(reportData.actualAmount) || 0
-                                ).toLocaleString()}
-                              </td>
-                            </tr>
-                            <tr className="border-b border-gray-300">
-                              <td className="border-r border-gray-300 p-3 bg-gray-50 font-medium">
-                                <div className="flex items-center gap-2">
-                                  <span>₹</span>
-                                  <input
-                                    type="number"
-                                    value={reportData.perTicketPrice}
-                                    onChange={(e) =>
-                                      handleInputChange(
-                                        "perTicketPrice",
-                                        e.target.value
-                                      )
-                                    }
-                                    className="w-20 border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-teal-500"
-                                    placeholder="0"
-                                  />
-                                  <span>
-                                    x {reportData.counterPass || 0} passes (-)
-                                  </span>
-                                </div>
-                              </td>
-                              <td className="p-3">
-                                <div className="font-bold text-red-600">
-                                  ₹
-                                  {(
-                                    parseInt(reportData.passesAmount) || 0
-                                  ).toLocaleString()}
-                                </div>
-                              </td>
-                            </tr>
-                            <tr className="bg-emerald-50">
-                              <td className="border-r border-gray-300 p-3 font-bold text-emerald-700">
-                                Total Counter Collection
-                              </td>
-                              <td className="p-3 font-bold text-emerald-600">
-                                ₹
-                                {(
-                                  parseInt(reportData.totalCounterCollection) ||
-                                  0
-                                ).toLocaleString()}
-                              </td>
-                            </tr>
-                          </tbody>
-                        </table>
+                    {/* Counter Summary Section */}
+                    <div className="border border-gray-300 rounded-lg overflow-hidden">
+                      <div className="p-4 space-y-4">
+                        <div>
+                          <label className="block font-medium text-gray-700 mb-2">User Return (-)</label>
+                          <div className="flex items-center gap-2">
+                            <span>₹</span>
+                            <input
+                              type="number"
+                              value={reportData.userReturn}
+                              onChange={(e) =>
+                                handleInputChange(
+                                  "userReturn",
+                                  e.target.value
+                                )
+                              }
+                              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                              placeholder="0"
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <label className="block font-medium text-gray-700 mb-2">Balance Counter Amount (-)</label>
+                          <div className="flex items-center gap-2">
+                            <span>₹</span>
+                            <input
+                              type="number"
+                              value={reportData.balanceCounterAmount}
+                              onChange={(e) =>
+                                handleInputChange(
+                                  "balanceCounterAmount",
+                                  e.target.value
+                                )
+                              }
+                              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                              placeholder="0"
+                            />
+                          </div>
+                        </div>
+                        <div className="bg-emerald-50 p-3 -mx-4 -mb-4 mt-4 rounded-b-lg">
+                          <div className="flex justify-between items-center">
+                            <span className="font-bold text-emerald-700">Total Counter Collection</span>
+                            <span className="font-bold text-emerald-600">
+                              ₹{(parseInt(reportData.totalCounterCollection) || 0).toLocaleString()}
+                            </span>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -996,32 +1288,76 @@ const ReportPage = () => {
                     Online Collection
                   </h3>
                   <div className="border border-gray-300 rounded-lg overflow-hidden">
-                    <table className="w-full">
-                      <tbody>
-                        <tr className="border-b border-gray-300">
-                          <td className="border-r border-gray-300 p-3 bg-gray-50 font-medium w-1/2">
-                            Tickets Sold
-                          </td>
-                          <td className="p-3">
-                            <input
-                              type="number"
-                              value={reportData.onlineTotalTickets}
-                              onChange={(e) =>
-                                handleInputChange(
-                                  "onlineTotalTickets",
-                                  e.target.value
-                                )
-                              }
-                              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500"
-                              placeholder="Enter online tickets count"
-                            />
-                          </td>
-                        </tr>
-                        <tr className="bg-emerald-50">
-                          <td className="border-r border-gray-300 p-3 font-bold text-emerald-700">
-                            Total Online Collection
-                          </td>
-                          <td className="p-3">
+                    {/* Desktop View */}
+                    <div className="hidden md:block">
+                      <table className="w-full">
+                        <tbody>
+                          <tr className="border-b border-gray-300">
+                            <td className="border-r border-gray-300 p-3 bg-gray-50 font-medium w-1/2">
+                              Tickets Sold
+                            </td>
+                            <td className="p-3">
+                              <input
+                                type="number"
+                                value={reportData.onlineTotalTickets}
+                                onChange={(e) =>
+                                  handleInputChange(
+                                    "onlineTotalTickets",
+                                    e.target.value
+                                  )
+                                }
+                                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                                placeholder="Enter online tickets count"
+                              />
+                            </td>
+                          </tr>
+                          <tr className="bg-emerald-50">
+                            <td className="border-r border-gray-300 p-3 font-bold text-emerald-700">
+                              Total Online Collection
+                            </td>
+                            <td className="p-3">
+                              <div className="flex items-center gap-2">
+                                <span>₹</span>
+                                <input
+                                  type="number"
+                                  value={reportData.onlineAmount}
+                                  onChange={(e) =>
+                                    handleInputChange(
+                                      "onlineAmount",
+                                      e.target.value
+                                    )
+                                  }
+                                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500 text-emerald-600 font-bold"
+                                  placeholder="Enter online collection amount"
+                                />
+                              </div>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* Mobile View */}
+                    <div className="md:hidden">
+                      <div className="p-4 space-y-4">
+                        <div>
+                          <label className="block font-medium text-gray-700 mb-2">Tickets Sold</label>
+                          <input
+                            type="number"
+                            value={reportData.onlineTotalTickets}
+                            onChange={(e) =>
+                              handleInputChange(
+                                "onlineTotalTickets",
+                                e.target.value
+                              )
+                            }
+                            className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                            placeholder="Enter online tickets count"
+                          />
+                        </div>
+                        <div className="bg-emerald-50 p-3 -mx-4 -mb-4 mt-4 rounded-b-lg">
+                          <div>
+                            <label className="block font-bold text-emerald-700 mb-2">Total Online Collection</label>
                             <div className="flex items-center gap-2">
                               <span>₹</span>
                               <input
@@ -1037,17 +1373,18 @@ const ReportPage = () => {
                                 placeholder="Enter online collection amount"
                               />
                             </div>
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
                 <div className="mt-8">
                   <div className="border border-emerald-500 rounded-lg overflow-hidden bg-emerald-50">
                     <div className="p-4">
-                      <div className="flex items-center gap-3 mb-2">
+                      {/* Desktop View */}
+                      <div className="hidden md:flex items-center gap-3 mb-2">
                         <h3 className="text-2xl font-bold text-emerald-700">
                           Final Amount:
                         </h3>
@@ -1058,7 +1395,21 @@ const ReportPage = () => {
                           ).toLocaleString()}
                         </div>
                       </div>
-                      <div className="text-sm text-gray-600 font-semibold">
+
+                      {/* Mobile View */}
+                      <div className="md:hidden text-center mb-2">
+                        <h3 className="text-xl font-bold text-emerald-700 mb-2">
+                          Final Amount
+                        </h3>
+                        <div className="text-2xl font-bold text-emerald-600">
+                          ₹
+                          {(
+                            parseInt(reportData.finalAmount) || 0
+                          ).toLocaleString()}
+                        </div>
+                      </div>
+
+                      <div className="text-sm text-gray-600 font-semibold text-center md:text-left">
                         Counter (₹
                         {(
                           parseInt(reportData.totalCounterCollection) || 0
@@ -1073,18 +1424,18 @@ const ReportPage = () => {
                   </div>
                 </div>
 
-                <div className="flex gap-4 justify-end mt-8 no-print">
+                <div className="flex flex-col sm:flex-row gap-4 justify-end mt-8 no-print">
                   <button
                     type="button"
                     onClick={handleReset}
-                    className="px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white font-medium rounded-md transition duration-200"
+                    className="w-full sm:w-auto px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white font-medium rounded-md transition duration-200"
                   >
                     Reset
                   </button>
                   <button
                     type="button"
                     onClick={handlePrint}
-                    className="px-6 py-2 bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-md transition duration-200 flex items-center gap-2"
+                    className="w-full sm:w-auto px-6 py-2 bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-md transition duration-200 flex items-center justify-center gap-2"
                   >
                     <Printer size={18} />
                     Print Report

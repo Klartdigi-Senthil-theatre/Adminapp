@@ -527,116 +527,178 @@ const SeatsPage = () => {
       {/* Header */}
       <div className="mb-2 flex-shrink-0">
         {/* Show Information */}
-        <div className="bg-white rounded-lg shadow-md p-4">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-2">
-            {/* Left Side - Date, Time, Movie */}
-            <div className="flex flex-col gap-2">
-              {/* First row: Date and Time */}
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-1">
-                  <Calendar className="text-green-600" size={18} />
-                  <span className="text-sm text-gray-600 font-medium">
-                    Date -{" "}
-                    <input
-                      type="date"
-                      value={currentShow.date}
-                      onChange={(e) => {
-                        setCurrentShow({
-                          ...currentShow,
-                          date: e.target.value,
-                        });
-                        // Clear selected seats when date changes
-                        setSelectedSeats([]);
-                      }}
-                      className="w-35 text-black font-medium border rounded text-sm md:text-base"
-                      min={todayStr}
-                    />
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-1">
-                  <Clock className="text-orange-600" size={18} />
-                  <span className="text-sm font-medium">
-                    <TimingDropDown
-                      currentShow={currentShow}
-                      onTimeSelect={(time, selectedShowTime) => {
-                        // Use functional update to avoid stale closure
-                        setCurrentShow((prev) => ({
-                          ...prev,
-                          time,
-                          movieDetails: selectedShowTime || null,
-                          price: selectedShowTime?.price || null,
-                          movie:
-                            selectedShowTime &&
-                            selectedShowTime.movie &&
-                            selectedShowTime.movie.title
-                              ? selectedShowTime.movie.title
-                              : "Select showtime",
-                          movieId:
-                            selectedShowTime &&
-                            selectedShowTime.movie &&
-                            selectedShowTime.movie.id
-                              ? selectedShowTime.movie.id
-                              : null,
-                          showTimePlannerId:
-                            selectedShowTime &&
-                            selectedShowTime.showTimePlannerId
-                              ? selectedShowTime.showTimePlannerId
-                              : null,
-                        }));
-                        // Clear selected seats when show time changes
-                        setSelectedSeats([]);
-                      }}
-                    />
-                  </span>
-                </div>
-
-                {/* Movie on same line for desktop, new line for mobile */}
-                <div className="hidden lg:flex items-center gap-1">
-                  <Film className="text-blue-600" size={18} />
-                  <span className="text-sm font-medium">
-                    <span className="text-gray-600 text-sm">Movie -</span>{" "}
-                    {currentShow.movie}
-                  </span>
+        <div className="bg-white rounded-lg shadow-md p-3 sm:p-4">
+          {/* Mobile Layout - Horizontal rows for compact height */}
+          <div className="lg:hidden space-y-3">
+            {/* First Row - Date & Time */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Calendar className="text-green-600" size={14} />
+                <input
+                  type="date"
+                  value={currentShow.date}
+                  onChange={(e) => {
+                    setCurrentShow({
+                      ...currentShow,
+                      date: e.target.value,
+                    });
+                    setSelectedSeats([]);
+                  }}
+                  className="text-black font-medium border rounded px-2 py-1 text-xs"
+                  min={todayStr}
+                />
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <Clock className="text-orange-600" size={14} />
+                <div className="text-xs">
+                  <TimingDropDown
+                    currentShow={currentShow}
+                    onTimeSelect={(time, selectedShowTime) => {
+                      setCurrentShow((prev) => ({
+                        ...prev,
+                        time,
+                        movieDetails: selectedShowTime || null,
+                        price: selectedShowTime?.price || null,
+                        movie:
+                          selectedShowTime &&
+                          selectedShowTime.movie &&
+                          selectedShowTime.movie.title
+                            ? selectedShowTime.movie.title
+                            : "Select showtime",
+                        movieId:
+                          selectedShowTime &&
+                          selectedShowTime.movie &&
+                          selectedShowTime.movie.id
+                            ? selectedShowTime.movie.id
+                            : null,
+                        showTimePlannerId:
+                          selectedShowTime &&
+                          selectedShowTime.showTimePlannerId
+                            ? selectedShowTime.showTimePlannerId
+                            : null,
+                      }));
+                      setSelectedSeats([]);
+                    }}
+                  />
                 </div>
               </div>
+            </div>
 
-              {/* Second row: Movie (mobile only) */}
-              <div className="flex lg:hidden items-center gap-1">
-                <Film className="text-blue-600" size={18} />
+            {/* Second Row - Statistics */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1">
+                <Users className="text-blue-600" size={14} />
+                <span className="text-xs font-medium">Total: 353</span>
+              </div>
+              
+              <div className="flex items-center gap-1">
+                <div className="w-2 h-2 bg-gradient-to-b from-orange-100 to-orange-200 border border-orange-300 rounded"></div>
+                <span className="text-xs font-medium">
+                  Available: {availableSeats}
+                </span>
+              </div>
+              
+              <div className="flex items-center gap-1">
+                <div className="w-2 h-2 bg-gradient-to-b from-gray-400 to-gray-500 border border-gray-600 rounded"></div>
+                <span className="text-xs font-medium">
+                  Booked: {totalBookedSeats}
+                </span>
+              </div>
+            </div>
+            
+            {/* Third Row - Movie */}
+            <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
+              <Film className="text-blue-600" size={14} />
+              <span className="text-xs font-medium">
+                Movie - {currentShow.movie}
+              </span>
+            </div>
+          </div>
+
+          {/* Desktop Layout - Original horizontal layout */}
+          <div className="hidden lg:flex lg:items-center lg:justify-between gap-4">
+            {/* Left Side - Date, Time, Movie */}
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <Calendar className="text-green-600" size={16} />
+                <span className="text-sm text-gray-600 font-medium">
+                  Date -{" "}
+                  <input
+                    type="date"
+                    value={currentShow.date}
+                    onChange={(e) => {
+                      setCurrentShow({
+                        ...currentShow,
+                        date: e.target.value,
+                      });
+                      setSelectedSeats([]);
+                    }}
+                    className="ml-1 w-35 text-black font-medium border rounded px-2 py-1 text-sm"
+                    min={todayStr}
+                  />
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Clock className="text-orange-600" size={16} />
                 <span className="text-sm font-medium">
-                  Movie - {currentShow.movie}
+                  <TimingDropDown
+                    currentShow={currentShow}
+                    onTimeSelect={(time, selectedShowTime) => {
+                      setCurrentShow((prev) => ({
+                        ...prev,
+                        time,
+                        movieDetails: selectedShowTime || null,
+                        price: selectedShowTime?.price || null,
+                        movie:
+                          selectedShowTime &&
+                          selectedShowTime.movie &&
+                          selectedShowTime.movie.title
+                            ? selectedShowTime.movie.title
+                            : "Select showtime",
+                        movieId:
+                          selectedShowTime &&
+                          selectedShowTime.movie &&
+                          selectedShowTime.movie.id
+                            ? selectedShowTime.movie.id
+                            : null,
+                        showTimePlannerId:
+                          selectedShowTime &&
+                          selectedShowTime.showTimePlannerId
+                            ? selectedShowTime.showTimePlannerId
+                            : null,
+                      }));
+                      setSelectedSeats([]);
+                    }}
+                  />
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Film className="text-blue-600" size={16} />
+                <span className="text-sm font-medium">
+                  <span className="text-gray-600 text-sm">Movie -</span>{" "}
+                  {currentShow.movie}
                 </span>
               </div>
             </div>
 
             {/* Right Side - Statistics */}
-            <div className="flex flex-col gap-2">
-              {/* First row: Total Seats and Available */}
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-1">
-                  <Users className="text-blue-600" size={18} />
-                  <span className="text-sm font-medium">Total Seats - 353</span>
-                </div>
-
-                <div className="flex items-center gap-1">
-                  <div className="w-3 h-3 bg-gradient-to-b from-orange-100 to-orange-200 border border-orange-300 rounded"></div>
-                  <span className="text-sm font-medium">
-                    Available - {availableSeats}
-                  </span>
-                </div>
-
-                {/* Booked on same line for desktop, new line for mobile */}
-                <div className="hidden lg:flex items-center gap-1">
-                  <div className="w-3 h-3 bg-gradient-to-b from-gray-400 to-gray-500 border border-gray-600 rounded"></div>
-                  <span className="text-sm font-medium">
-                    Booked - {totalBookedSeats}
-                  </span>
-                </div>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <Users className="text-blue-600" size={16} />
+                <span className="text-sm font-medium">Total Seats - 353</span>
               </div>
 
-              {/* Second row: Booked (mobile only) */}
-              <div className="flex lg:hidden items-center gap-1">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 bg-gradient-to-b from-orange-100 to-orange-200 border border-orange-300 rounded"></div>
+                <span className="text-sm font-medium">
+                  Available - {availableSeats}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2">
                 <div className="w-3 h-3 bg-gradient-to-b from-gray-400 to-gray-500 border border-gray-600 rounded"></div>
                 <span className="text-sm font-medium">
                   Booked - {totalBookedSeats}
@@ -845,3 +907,4 @@ const SeatsPage = () => {
 };
 
 export default SeatsPage;
+

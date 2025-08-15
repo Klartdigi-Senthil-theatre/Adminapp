@@ -217,7 +217,7 @@ const GetTicketPreviewPopup = ({
                     <div>GST: 33CMMPP7822B1Z2</div>
                     <div style="margin-top: 0.5mm;">Premium Cinema Experience</div>
                     <div style="margin-top: 1mm;">Thank You!</div>
-                    <div style="margin-top: 0.5mm; font-size: 0.75rem;">மது அனுமதி இல்லை. 3 வயது மற்றும் அதற்கு மேல் உள்ளவர்களுக்கு டிக்கெட் கட்டாயம்.</div>
+                    <div style="margin-top: 0.5mm; font-size: 0.75rem;">மது அருந்தியவர்களுக்கு அனுமதி இல்லை. 3 வயது மற்றும் அதற்கு மேற்பட்டவர்களுக்கு டிக்கெட் கட்டாயம்.</div>
                   </div>
                 </div>
               </div>
@@ -239,29 +239,29 @@ const GetTicketPreviewPopup = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="flex justify-between items-center p-2 z-10">
-          <h3 className="text-xl font-bold">Ticket Preview</h3>
+    <div className="fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
+      <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-y-auto">
+        <div className="flex justify-between items-center p-3 sm:p-4 border-b border-gray-200 sticky top-0 bg-white z-10">
+          <h3 className="text-lg sm:text-xl font-bold">Ticket Preview</h3>
           <button
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-700"
+            className="text-gray-500 hover:text-gray-700 p-1 rounded-full hover:bg-gray-100 touch-manipulation"
           >
-            <X size={24} />
+            <X size={20} className="sm:w-6 sm:h-6" />
           </button>
         </div>
 
         {/* Visible content - 3-inch thermal paper preview */}
-        <div className="p-6">
-          <div className="flex flex-col items-center gap-6">
+        <div className="p-3 sm:p-6">
+          <div className="flex flex-col items-center gap-4 sm:gap-6">
             {selectedSeats.map((seat) => {
               const formatTime = showTime ? moment(showTime, "HH:mm").format("h:mm A") : 'N/A';
 
               return (
                 <div
                   key={seat}
-                  className="bg-white rounded-lg shadow-lg overflow-hidden border-2 border-gray-300"
-                  style={{ width: '280px', maxWidth: '280px' }} // Simulates 3-inch width
+                  className="bg-white rounded-lg shadow-lg overflow-hidden border-2 border-gray-300 w-full max-w-xs sm:max-w-sm"
+                  style={{ maxWidth: '280px' }} // Simulates 3-inch width
                 >
                   {/* Ticket Header */}
                   <div className="bg-black text-white text-center py-2 px-3">
@@ -304,7 +304,7 @@ const GetTicketPreviewPopup = ({
                       <div>GST: 33CMMPP7822B1Z2</div>
                       <div>Premium Cinema Experience</div>
                       <div className="font-semibold">Thank You!</div>
-                      <div className="text-xs text-gray-500">மது அனுமதி இல்லை. 3 வயது மற்றும் அதற்கு மேல் உள்ளவர்களுக்கு டிக்கெட் கட்டாயம்.</div>
+                      <div className="text-xs text-gray-500">மது அருந்தியவர்களுக்கு அனுமதி இல்லை. 3 வயது மற்றும் அதற்கு மேற்பட்டவர்களுக்கு டிக்கெட் கட்டாயம்.</div>
                     </div>
                   </div>
                 </div>
@@ -315,17 +315,17 @@ const GetTicketPreviewPopup = ({
         </div>
 
         {/* Action Buttons */}
-        <div className="p-4 border-t sticky bottom-0 bg-white flex justify-end gap-3">
+        <div className="p-3 sm:p-4 border-t sticky bottom-0 bg-white flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-3">
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+            className="px-4 py-3 sm:py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors text-base sm:text-sm touch-manipulation"
           >
             Close
           </button>
           <button
             onClick={handlePrint}
             disabled={isPrinting}
-            className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors flex items-center gap-2 disabled:opacity-50"
+            className="px-4 py-3 sm:py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 text-base sm:text-sm touch-manipulation"
           >
             <Printer size={18} />
             {isPrinting ? "Printing..." : "Print"}
