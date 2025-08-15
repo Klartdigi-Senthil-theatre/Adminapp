@@ -8,6 +8,8 @@ import moment from "moment";
 
 const GetTicketsPage = () => {
   const [searchBookingId, setSearchBookingId] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [isBookingIdMode, setIsBookingIdMode] = useState(false); // false = booking ID, true = phone number
   const [bookingResult, setBookingResult] = useState(null);
   const [searchLoading, setSearchLoading] = useState(false);
   const [isTicketPopupOpen, setIsTicketPopupOpen] = useState(false);  
@@ -29,8 +31,12 @@ const GetTicketsPage = () => {
   }, []);
 
 const handleGetTickets = async () => {
-    if (!searchBookingId) {
+    if (!isBookingIdMode && !searchBookingId) {
       notify.error("Please enter a Booking ID.");
+      return;
+    }
+    if (isBookingIdMode && !phoneNumber) {
+      notify.error("Please enter a Phone Number.");
       return;
     }
     setSearchLoading(true);
@@ -187,7 +193,7 @@ const handleGetTickets = async () => {
       setBookingResult(null);
       setShowBookingSummary(false);
       setIsTicketPopupOpen(false);
-      notify.error("No booking found for this Booking ID.");
+      notify.error(isBookingIdMode ? "No booking found for this Phone Number." : "No booking found for this Booking ID.");
     } finally {
       setSearchLoading(false);
     }
@@ -200,6 +206,7 @@ const handleViewTickets = () => {
 
 const handleNewSearch = () => {
   setSearchBookingId("");
+  setPhoneNumber("");
   setBookingResult(null);
   setShowBookingSummary(false);
   setIsTicketPopupOpen(false);
@@ -231,25 +238,70 @@ const handleNewSearch = () => {
     {/* Left Side - Card UI - Centered */}
     <div className="w-full max-w-xl">
       <div className="bg-white rounded-lg shadow-lg p-6">
-        <h2 className="text-xl font-bold mb-4 text-orange-600 flex items-center gap-2">
-          <Tickets size={24} />
-          Find Booking
-        </h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-bold text-orange-600 flex items-center gap-2">
+            <Tickets size={24} />
+            Find Booking
+          </h2>
+          
+          {/* Toggle Switch */}
+          <div className="flex items-center gap-2">
+            <span className={`text-sm font-medium ${isBookingIdMode ? 'text-gray-500' : 'text-orange-600'}`}>
+              Booking ID
+            </span>
+            <button
+              onClick={() => setIsBookingIdMode(!isBookingIdMode)}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 ${
+                isBookingIdMode ? 'bg-orange-600' : 'bg-gray-300'
+              }`}
+              disabled={showBookingSummary}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  isBookingIdMode ? 'translate-x-6' : 'translate-x-1'
+                }`}
+              />
+            </button>
+            <span className={`text-sm font-medium ${isBookingIdMode ? 'text-orange-600' : 'text-gray-500'}`}>
+              Phone Number
+            </span>
+          </div>
+        </div>
         
         <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Booking ID</label>
-            <input
-              type="text"
-              inputMode="numeric"
-              pattern="[0-9]*"
-              value={searchBookingId}
-              onChange={e => setSearchBookingId(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
-              placeholder="Enter Booking ID"
-              disabled={showBookingSummary}
-            />
-          </div>
+          {/* Show Booking ID field when in Booking ID mode (toggle disabled) */}
+          {!isBookingIdMode && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Booking ID</label>
+              <input
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                value={searchBookingId}
+                onChange={e => setSearchBookingId(e.target.value)}
+                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                placeholder="Enter Booking ID"
+                disabled={showBookingSummary}
+              />
+            </div>
+          )}
+          
+          {/* Show Phone Number field when in Phone Number mode (toggle enabled) */}
+          {isBookingIdMode && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+              <input
+                type="tel"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                value={phoneNumber}
+                onChange={e => setPhoneNumber(e.target.value)}
+                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                placeholder="Enter Phone Number"
+                disabled={showBookingSummary}
+              />
+            </div>
+          )}
         </div>
 
         {/* Action Button */}
@@ -287,7 +339,7 @@ const handleNewSearch = () => {
               onClick={handleNewSearch}
               className="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-md transition duration-200"
             >
-              New Search
+              Close
             </button>
           </div>
         )}

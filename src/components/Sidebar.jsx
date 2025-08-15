@@ -4,6 +4,7 @@ import {
   Clock,
   Coffee,
   Film,
+  FileText,
   Megaphone,
   Menu,
   Package,
@@ -26,6 +27,7 @@ const navItems = [
   { path: "/users", icon: Users, name: "Users" },
   { path: "/show-time", icon: Clock, name: "Showtime Planner" },
   { path: "/get-tickets", icon: Tickets, name: "Get Tickets" },
+  { path: "/report", icon: FileText, name: "Report" },
 ];
 
 // Fixed Sidebar Component
