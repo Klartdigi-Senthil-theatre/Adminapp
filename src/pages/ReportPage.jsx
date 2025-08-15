@@ -275,295 +275,9 @@ const ReportPage = () => {
 
     const originalTitle = document.title;
     document.title = generateFilename();
-
-    const printStyles = `
-      <style>
-        @media print {
-          * {
-            -webkit-print-color-adjust: exact !important;
-            color-adjust: exact !important;
-          }
-          body * {
-            visibility: hidden;
-          }
-          .print-area, .print-area * {
-            visibility: visible;
-          }
-          .print-area {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-            transform: scale(1.0);
-            transform-origin: 0 0;
-            page-break-inside: avoid;
-          }
-          .no-print {
-            display: none !important;
-          }
-
-          /* FORCE DESKTOP LAYOUT FOR ALL PRINT OUTPUTS */
-          /* Hide all mobile layouts during print */
-          .print-area .md\\:hidden {
-            display: none !important;
-            visibility: hidden !important;
-          }
-          
-          /* Show all desktop layouts during print */
-          .print-area .hidden.md\\:block,
-          .print-area .hidden {
-            display: block !important;
-            visibility: visible !important;
-          }
-
-          /* Force desktop flex layout for final amount */
-          .print-area .hidden.md\\:flex {
-            display: flex !important;
-            visibility: visible !important;
-          }
-
-          /* Override any mobile-specific responsive utilities */
-          .print-area .flex-col {
-            flex-direction: row !important;
-          }
-          
-          .print-area .sm\\:flex-row {
-            flex-direction: row !important;
-          }
-          
-          .print-area .w-full.sm\\:w-auto {
-            width: auto !important;
-          }
-
-          /* Force table layouts to always display */
-          .print-area table {
-            display: table !important;
-            width: 100% !important;
-            table-layout: fixed !important;
-          }
-          
-          .print-area tr {
-            display: table-row !important;
-          }
-          
-          .print-area td,
-          .print-area th {
-            display: table-cell !important;
-          }
-
-          @page {
-            size: A4;
-            margin: 5mm;
-          }
-          body {
-            font-size: 15px;
-            line-height: 1.2;
-            margin: 0;
-            padding: 0;
-          }
-          table {
-            font-size: 14px;
-            border-collapse: collapse;
-            page-break-inside: avoid;
-          }
-          .text-3xl {
-            font-size: 26px !important;
-          }
-          .text-2xl {
-            font-size: 22px !important;
-          }
-          .text-xl {
-            font-size: 20px !important;
-          }
-          .p-6 {
-            padding: 4px !important;
-          }
-          .p-4 {
-            padding: 3px !important;
-          }
-          .p-3 {
-            padding: 3px !important;
-          }
-          .mt-8 {
-            margin-top: 6px !important;
-          }
-          .mt-4 {
-            margin-top: 3px !important;
-          }
-          .mb-6 {
-            margin-bottom: 3px !important;
-          }
-          .mb-4 {
-            margin-bottom: 3px !important;
-          }
-          .mb-2 {
-            margin-bottom: 2px !important;
-          }
-          .space-y-6 > * + * {
-            margin-top: 3px !important;
-          }
-          .gap-2 {
-            gap: 2px !important;
-          }
-          .rounded-lg {
-            border-radius: 3px !important;
-          }
-          .shadow-lg {
-            box-shadow: none !important;
-          }
-          .border {
-            border-width: 0.75px !important;
-          }
-          th, td {
-            padding: 3px 4px !important;
-            font-size: 14px !important;
-          }
-          h2, h3 {
-            margin: 3px 0 !important;
-            page-break-after: avoid;
-            font-size: 16px !important;
-          }
-          .flex.items-center.gap-2 svg {
-            width: 16px !important;
-            height: 16px !important;
-          }
-          div[class*="border border-gray-300 rounded-lg"] {
-            page-break-inside: avoid;
-            margin-bottom: 2px !important;
-          }
-          .bg-emerald-50 {
-            page-break-inside: avoid;
-          }
-          .bg-emerald-50 td {
-            padding: 4px 3px !important;
-            height: auto !important;
-          }
-          .bg-orange-50 td {
-            padding: 4px 3px !important;
-            height: auto !important;
-          }
-          tbody tr:nth-last-child(2) td {
-            padding: 4px 3px !important;
-            height: auto !important;
-          }
-          h3.text-xl.font-bold.text-teal-600 {
-            margin-top: 10px !important;
-            margin-bottom: 3px !important;
-          }
-          table thead tr.bg-orange-50 th {
-            font-size: 11px !important;
-          }
-          table tbody tr.bg-orange-50 td {
-            font-size: 11px !important;
-          }
-          table thead tr.bg-orange-50 ~ tbody tr td {
-            font-size: 11px !important;
-          }
-          thead tr.bg-orange-50 + tbody tr td,
-          thead tr.bg-orange-50 th {
-            font-size: 11px !important;
-          }
-          table thead tr.bg-orange-50 ~ tbody td,
-          table thead tr.bg-orange-50 ~ tbody th {
-            font-size: 11px !important;
-          }
-          .border.border-emerald-500.rounded-lg.overflow-hidden.bg-emerald-50 h3.text-2xl {
-            font-size: 24px !important;
-          }
-          .border.border-emerald-500.rounded-lg.overflow-hidden.bg-emerald-50 .text-3xl {
-            font-size: 24px !important;
-          }
-          .border.border-emerald-500.rounded-lg.overflow-hidden.bg-emerald-50 .text-sm {
-            font-size: 12px !important;
-          }
-          h2.text-2xl.font-bold.text-teal-700 {
-            margin-top: 30px !important;
-            font-size: 28px !important;
-            justify-content: center !important;
-            text-align: center !important;
-            text-decoration: underline !important;
-            display: flex !important;
-            align-items: center !important;
-          }
-          h2.text-2xl.font-bold.text-teal-700 svg {
-            width: 32px !important;
-            height: 32px !important;
-          }
-          .print-area {
-            padding-left: 15px !important;
-            padding-right: 15px !important;
-          }
-          h3.text-xl.font-bold.text-teal-600 {
-            margin-top: 15px !important;
-          }
-          .mt-8 h3.text-xl.font-bold.text-teal-600 {
-            margin-top: 25px !important;
-          }
-          .counter-collection-container {
-            display: flex !important;
-            gap: 8px !important;
-            align-items: flex-start !important;
-          }
-          .denomination-table-container {
-            flex: 0 0 40% !important;
-            width: 40% !important;
-          }
-          .counter-summary-table-container {
-            flex: 0 0 58% !important;
-            width: 58% !important;
-          }
-          .denomination-table-container table {
-            font-size: 11px !important;
-          }
-          .denomination-table-container th,
-          .denomination-table-container td {
-            padding: 2px 3px !important;
-            font-size: 11px !important;
-            height: 28px !important;
-            vertical-align: middle !important;
-          }
-          .counter-summary-table-container table {
-            font-size: 13px !important;
-          }
-          .counter-summary-table-container th,
-          .counter-summary-table-container td {
-            padding: 3px 4px !important;
-            font-size: 13px !important;
-            height: 45px !important;
-            vertical-align: middle !important;
-          }
-          .counter-collection-container table th,
-          .counter-collection-container table td {
-            box-sizing: border-box !important;
-          }
-          .denomination-table-container input {
-            height: 20px !important;
-            min-height: 20px !important;
-            padding: 1px 2px !important;
-          }
-          .counter-summary-table-container input {
-            height: 30px !important;
-            min-height: 30px !important;
-            padding: 2px 3px !important;
-          }
-
-          /* Force left alignment for Counter + Online text in Final Amount section */
-          .print-area .text-center.md\\:text-left,
-          .print-area .text-center {
-            text-align: left !important;
-          }
-        }
-      </style>
-    `;
-
-    const styleElement = document.createElement("div");
-    styleElement.innerHTML = printStyles;
-    document.head.appendChild(styleElement);
-
     window.print();
-
+    
     setTimeout(() => {
-      document.head.removeChild(styleElement);
       document.title = originalTitle;
     }, 1000);
 
@@ -1446,6 +1160,472 @@ const ReportPage = () => {
           </div>
         </div>
       </div>
+
+      {/* Print Styles */}
+      <style>
+        {`
+          @media print {
+            * {
+              -webkit-print-color-adjust: exact !important;
+              color-adjust: exact !important;
+              print-color-adjust: exact !important;
+            }
+            body * {
+              visibility: hidden;
+            }
+            .print-area, .print-area * {
+              visibility: visible;
+            }
+            .print-area {
+              position: absolute;
+              left: 0;
+              top: 0;
+              width: 100%;
+              transform: scale(1.0);
+              transform-origin: 0 0;
+              page-break-inside: avoid;
+              background: white !important;
+              box-shadow: none !important;
+              border-radius: 0 !important;
+              padding-left: 15px !important;
+              padding-right: 15px !important;
+              margin: 0 !important;
+              max-width: none !important;
+            }
+            .no-print,
+            .no-print *,
+            .print-area .no-print,
+            .print-area .no-print *,
+            .flex.flex-col.sm\\:flex-row.gap-4.justify-end.mt-8,
+            .flex.flex-col.sm\\:flex-row.gap-4.justify-end.mt-8 * {
+              display: none !important;
+              visibility: hidden !important;
+              opacity: 0 !important;
+              height: 0 !important;
+              width: 0 !important;
+              margin: 0 !important;
+              padding: 0 !important;
+              border: none !important;
+              overflow: hidden !important;
+              position: absolute !important;
+              left: -9999px !important;
+              top: -9999px !important;
+            }
+
+            /* Additional mobile-specific button hiding */
+            @media print and (max-width: 768px) {
+              .no-print,
+              .no-print *,
+              .print-area .no-print,
+              .print-area .no-print *,
+              .flex.flex-col.sm\\:flex-row.gap-4.justify-end.mt-8,
+              .flex.flex-col.sm\\:flex-row.gap-4.justify-end.mt-8 * {
+                display: none !important;
+                visibility: hidden !important;
+                opacity: 0 !important;
+                height: 0 !important;
+                width: 0 !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                position: absolute !important;
+                left: -9999px !important;
+                top: -9999px !important;
+              }
+            }
+
+            /* Webkit browser specific button hiding */
+            @media print and (-webkit-min-device-pixel-ratio: 1) {
+              .no-print,
+              .no-print *,
+              .print-area .no-print,
+              .print-area .no-print *,
+              .flex.flex-col.sm\\:flex-row.gap-4.justify-end.mt-8,
+              .flex.flex-col.sm\\:flex-row.gap-4.justify-end.mt-8 * {
+                -webkit-appearance: none !important;
+                appearance: none !important;
+                display: none !important;
+                visibility: hidden !important;
+              }
+            }
+
+            @page {
+              size: A4;
+              margin: 5mm;
+            }
+
+            /* Mobile-specific print overrides */
+            @media print and (max-width: 768px) {
+              .print-area {
+                transform: none !important;
+                scale: 1 !important;
+                zoom: 1 !important;
+                min-width: 100% !important;
+                max-width: none !important;
+                width: 100% !important;
+              }
+
+              /* Force all elements to respect desktop sizing */
+              .print-area * {
+                min-width: auto !important;
+                max-width: none !important;
+                flex-wrap: nowrap !important;
+              }
+
+              /* Override mobile browser print optimizations */
+              .print-area table,
+              .print-area .overflow-x-auto,
+              .print-area .border {
+                -webkit-transform: none !important;
+                transform: none !important;
+                scale: 1 !important;
+                zoom: 1 !important;
+              }
+
+              /* Force table cells to maintain desktop layout */
+              .print-area td,
+              .print-area th {
+                white-space: nowrap !important;
+                overflow: visible !important;
+                text-overflow: clip !important;
+                word-break: normal !important;
+                word-wrap: normal !important;
+              }
+
+              /* Prevent mobile print from stacking elements */
+              .print-area .flex {
+                display: flex !important;
+                flex-direction: row !important;
+                flex-wrap: nowrap !important;
+              }
+
+              /* Force horizontal layout for headers */
+              .print-area .items-center {
+                align-items: center !important;
+              }
+            }
+
+            body {
+              font-size: 15px;
+              line-height: 1.2;
+              margin: 0;
+              padding: 0;
+            }
+            table {
+              font-size: 14px;
+              border-collapse: collapse;
+              page-break-inside: avoid;
+            }
+            .text-3xl {
+              font-size: 26px !important;
+            }
+            .text-2xl {
+              font-size: 22px !important;
+            }
+            .text-xl {
+              font-size: 20px !important;
+            }
+            .p-6 {
+              padding: 4px !important;
+            }
+            .p-4 {
+              padding: 3px !important;
+            }
+            .p-3 {
+              padding: 3px !important;
+            }
+            .mt-8 {
+              margin-top: 6px !important;
+            }
+            .mt-4 {
+              margin-top: 3px !important;
+            }
+            .mb-6 {
+              margin-bottom: 3px !important;
+            }
+            .mb-4 {
+              margin-bottom: 3px !important;
+            }
+            .mb-2 {
+              margin-bottom: 2px !important;
+            }
+            .space-y-6 > * + * {
+              margin-top: 3px !important;
+            }
+            .gap-2 {
+              gap: 2px !important;
+            }
+            .rounded-lg {
+              border-radius: 3px !important;
+            }
+            .shadow-lg {
+              box-shadow: none !important;
+            }
+            .border {
+              border-width: 0.75px !important;
+            }
+            th, td {
+              padding: 3px 4px !important;
+              font-size: 14px !important;
+            }
+            h2, h3 {
+              margin: 3px 0 !important;
+              page-break-after: avoid;
+              font-size: 16px !important;
+            }
+            .flex.items-center.gap-2 svg {
+              width: 16px !important;
+              height: 16px !important;
+            }
+            div[class*="border border-gray-300 rounded-lg"] {
+              page-break-inside: avoid;
+              margin-bottom: 2px !important;
+            }
+            .bg-emerald-50 {
+              page-break-inside: avoid;
+            }
+            .bg-emerald-50 td {
+              padding: 4px 3px !important;
+              height: auto !important;
+            }
+            .bg-orange-50 td {
+              padding: 4px 3px !important;
+              height: auto !important;
+            }
+            tbody tr:nth-last-child(2) td {
+              padding: 4px 3px !important;
+              height: auto !important;
+            }
+            h3.text-xl.font-bold.text-teal-600 {
+              margin-top: 10px !important;
+              margin-bottom: 3px !important;
+            }
+            table thead tr.bg-orange-50 th {
+              font-size: 11px !important;
+            }
+            table tbody tr.bg-orange-50 td {
+              font-size: 11px !important;
+            }
+            table thead tr.bg-orange-50 ~ tbody tr td {
+              font-size: 11px !important;
+            }
+            thead tr.bg-orange-50 + tbody tr td,
+            thead tr.bg-orange-50 th {
+              font-size: 11px !important;
+            }
+            table thead tr.bg-orange-50 ~ tbody td,
+            table thead tr.bg-orange-50 ~ tbody th {
+              font-size: 11px !important;
+            }
+            .border.border-emerald-500.rounded-lg.overflow-hidden.bg-emerald-50 h3.text-2xl {
+              font-size: 24px !important;
+            }
+            .border.border-emerald-500.rounded-lg.overflow-hidden.bg-emerald-50 .text-3xl {
+              font-size: 24px !important;
+            }
+            .border.border-emerald-500.rounded-lg.overflow-hidden.bg-emerald-50 .text-sm {
+              font-size: 12px !important;
+            }
+            h2.text-2xl.font-bold.text-teal-700 {
+              margin-top: 30px !important;
+              font-size: 28px !important;
+              justify-content: center !important;
+              text-align: center !important;
+              text-decoration: underline !important;
+              display: flex !important;
+              align-items: center !important;
+            }
+            h2.text-2xl.font-bold.text-teal-700 svg {
+              width: 32px !important;
+              height: 32px !important;
+            }
+            .print-area {
+              padding-left: 15px !important;
+              padding-right: 15px !important;
+            }
+            h3.text-xl.font-bold.text-teal-600 {
+              margin-top: 15px !important;
+            }
+            .mt-8 h3.text-xl.font-bold.text-teal-600 {
+              margin-top: 25px !important;
+            }
+
+            /* MOBILE-FRIENDLY COUNTER COLLECTION LAYOUT */
+            .print-area .counter-collection-container {
+              display: flex !important;
+              flex-direction: row !important;
+              gap: 8px !important;
+              align-items: flex-start !important;
+            }
+            .print-area .denomination-table-container {
+              flex: 0 0 40% !important;
+              width: 40% !important;
+              display: block !important;
+            }
+            .print-area .counter-summary-table-container {
+              flex: 0 0 58% !important;
+              width: 58% !important;
+              display: block !important;
+            }
+            
+            /* Force mobile sections to be hidden in print */
+            .print-area .md\\:hidden {
+              display: none !important;
+              visibility: hidden !important;
+            }
+            
+            /* Ensure desktop sections are visible */
+            .print-area .hidden.md\\:block {
+              display: block !important;
+              visibility: visible !important;
+            }
+            
+            .print-area .hidden.md\\:flex {
+              display: flex !important;
+              visibility: visible !important;
+            }
+
+            .denomination-table-container table {
+              font-size: 11px !important;
+            }
+            .denomination-table-container th,
+            .denomination-table-container td {
+              padding: 2px 3px !important;
+              font-size: 11px !important;
+              height: 28px !important;
+              vertical-align: middle !important;
+            }
+            .counter-summary-table-container table {
+              font-size: 13px !important;
+            }
+            .counter-summary-table-container th,
+            .counter-summary-table-container td {
+              padding: 3px 4px !important;
+              font-size: 13px !important;
+              height: 45px !important;
+              vertical-align: middle !important;
+            }
+            .counter-collection-container table th,
+            .counter-collection-container table td {
+              box-sizing: border-box !important;
+            }
+            .denomination-table-container input {
+              height: 20px !important;
+              min-height: 20px !important;
+              padding: 1px 2px !important;
+            }
+            .counter-summary-table-container input {
+              height: 30px !important;
+              min-height: 30px !important;
+              padding: 2px 3px !important;
+            }
+
+            /* Force left alignment for Counter + Online text in Final Amount section */
+            .print-area .text-center.md\\:text-left,
+            .print-area .text-center {
+              text-align: left !important;
+            }
+
+            /* Webkit mobile browser overrides */
+            @media print and (-webkit-min-device-pixel-ratio: 1) {
+              .print-area {
+                -webkit-text-size-adjust: 100% !important;
+                -webkit-print-color-adjust: exact !important;
+                color-adjust: exact !important;
+                print-color-adjust: exact !important;
+              }
+
+              /* Prevent iOS Safari from applying responsive print layout */
+              .print-area table,
+              .print-area .overflow-x-auto {
+                -webkit-overflow-scrolling: auto !important;
+                overflow-scrolling: auto !important;
+              }
+
+              /* Force layout stability on mobile webkit */
+              .print-area * {
+                -webkit-box-sizing: border-box !important;
+                box-sizing: border-box !important;
+              }
+            }
+
+            /* Override any mobile-specific print styles */
+            @media print and (max-width: 768px) {
+              .print-area .hidden.md\\:block,
+              .print-area .hidden,
+              .print-area .md\\:block {
+                display: block !important;
+                visibility: visible !important;
+              }
+
+              .print-area .md\\:hidden,
+              .print-area .sm\\:hidden,
+              .print-area .lg\\:hidden {
+                display: none !important;
+                visibility: hidden !important;
+              }
+            }
+
+            /* Force desktop table layout on all devices */
+            @media print {
+              .print-area .responsive-table,
+              .print-area .overflow-x-auto,
+              .print-area table {
+                display: table !important;
+                width: 100% !important;
+                table-layout: fixed !important;
+              }
+
+              .print-area tr {
+                display: table-row !important;
+              }
+
+              .print-area td,
+              .print-area th {
+                display: table-cell !important;
+              }
+
+              /* Override viewport scaling for print */
+              html {
+                -webkit-text-size-adjust: none !important;
+                -moz-text-size-adjust: none !important;
+                -ms-text-size-adjust: none !important;
+                text-size-adjust: none !important;
+              }
+
+              /* Force print area to ignore any responsive constraints */
+              .print-area {
+                min-width: 210mm !important;
+                width: 210mm !important;
+                max-width: 210mm !important;
+                overflow: visible !important;
+              }
+
+              /* Ensure all tables maintain their desktop structure */
+              .print-area table {
+                border-collapse: collapse !important;
+                table-layout: fixed !important;
+                width: 100% !important;
+              }
+
+              /* Prevent any responsive table behavior */
+              .print-area .overflow-x-auto {
+                overflow: visible !important;
+                overflow-x: visible !important;
+                -webkit-overflow-scrolling: auto !important;
+              }
+
+              /* Force exact column widths */
+              .print-area .w-1\\/2 {
+                width: 50% !important;
+              }
+
+              .print-area .w-1\\/4 {
+                width: 25% !important;
+              }
+            }
+          }
+        `}
+      </style>
     </div>
   );
 };

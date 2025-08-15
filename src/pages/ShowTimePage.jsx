@@ -661,7 +661,7 @@ const handleSubmit = async () => {
         </div>
       )}
       
-      <PageHeader title="Showtime Planner" />
+      <PageHeader title="Showtime Planner" className="mb-4" />
       <div className="flex flex-col lg:flex-row gap-6">
         {/* Calendar: Same as your code */}
         <div className="bg-white rounded-lg shadow-md p-4 lg:w-1/3">

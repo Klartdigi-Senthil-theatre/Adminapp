@@ -25,7 +25,7 @@ const Layout = () => {
   }, []);
 
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex h-screen bg-gray-100 overflow-hidden">
       {/* Sidebar */}
       <Sidebar
         isOpen={sidebarOpen}
@@ -34,13 +34,13 @@ const Layout = () => {
       />
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Mobile Header */}
-        <div className="lg:hidden bg-orange-50 shadow-sm border-b p-4 flex items-center justify-between">
+        <div className="lg:hidden bg-orange-50 shadow-sm border-b p-4 flex items-center justify-between flex-shrink-0">
           <h1 className="text-xl font-bold text-orange-800">Theatre Admin</h1>
           <button
             onClick={() => setSidebarOpen(true)}
-            className="p-2 rounded-lg hover:bg-gray-100 text-orange-800"
+            className="p-2 rounded-lg hover:bg-gray-100 text-orange-800 touch-manipulation"
           >
             <Menu size={24} />
           </button>
