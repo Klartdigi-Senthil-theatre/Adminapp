@@ -289,6 +289,21 @@ const SeatsPage = () => {
   const fetchBookedSeats = async (excludeSeats = null) => {
     try {
       setLoading(true);
+      // 1️⃣ NEW: Get total booked count
+      if (currentShow.showTimePlannerId) {
+        try {
+          const bookedCountRes = await api.get(
+            `/movie-seat-bookings/booked-count/${currentShow.showTimePlannerId}`
+          );
+          if (bookedCountRes) {
+            setTotalBookedSeats(bookedCountRes.bookedSeatsCount);
+            setAvailableSeats(353 - bookedCountRes.bookedSeatsCount);
+          }
+        } catch (err) {
+          console.error("Error fetching booked seat count:", err);
+        }
+      }
+
       // Use showTimePlannerId in the bookings API endpoint
       const bookingsUrl = `/movie-seat-bookings/show-time-planner/${currentShow.showTimePlannerId}`;
       const holdsUrl = `/movie-seat-holds/show-time-planner/${currentShow.showTimePlannerId}`;
@@ -332,8 +347,6 @@ const SeatsPage = () => {
       const uniqueBookedSeats = Array.from(new Set(bookedSeatNumbers));
 
       setBookedSeats(uniqueBookedSeats);
-      setTotalBookedSeats(uniqueBookedSeats.length);
-      setAvailableSeats(353 - uniqueBookedSeats.length);
 
       // setSelectedSeats(prev => prev.filter(seat => !uniqueBookedSeats.includes(seat)));
     } catch (error) {
