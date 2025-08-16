@@ -234,25 +234,6 @@ const GetTicketsPage = () => {
         price: ticketPrice,
       };
 
-      console.log("GetTicketsPage - Price retrieval debug:", {
-        bookingId: isBookingIdMode ? bookingResult.id : searchBookingId,
-        originalBookingPrice: bookingResult.price,
-        showTimePlannerPrice: showTimePlannerData?.price,
-        finalTicketPrice: ticketPrice,
-        showTimePlannerId: bookingResult.showTimePlannerId,
-        movieId: bookingResult.movieId,
-        date: bookingResult.date,
-      });
-
-      console.log("GetTicketsPage - ShowTime debug:", {
-        showTimePlannerData: showTimePlannerData,
-        showTimeFromPlanner: showTimePlannerData?.showTime,
-        showTimeValue: showTimePlannerData?.showTime?.showTime,
-        bookingResult: bookingResult,
-      });
-
-      console.log("GetTicketsPage - Combined result:", combinedResult);
-
       setBookingResult(combinedResult);
       setShowBookingSummary(true);
       notify.success("Booking details fetched successfully!");
@@ -271,9 +252,34 @@ const GetTicketsPage = () => {
     }
   };
 
-  const handleViewTickets = () => {
-    setIsTicketPopupOpen(true);
-    notify.success("Opening ticket preview...");
+  const handleViewTickets = async () => {
+    try {
+      const res = await api.axiosInstance.post("/printed-tickets", {
+        bookingId: Number(bookingResult.bookingId || searchBookingId),
+        adminUserId: 1,
+      });
+
+      setIsTicketPopupOpen(true);
+      notify.success(res, { autoClose: 8000 });
+    } catch (err) {
+      const errorMessage =
+        err?.response?.data?.error ||
+        err?.response?.data?.message ||
+        "An error occurred.";
+
+      console.error(
+        "Error creating printed ticket:",
+        err?.response?.data || err
+      );
+
+      if (errorMessage === "Ticket has already been printed.") {
+        // Still open the popup for already printed tickets
+        setIsTicketPopupOpen(true);
+        notify.error(errorMessage);
+      } else {
+        notify.error(errorMessage, { autoClose: 20000 });
+      }
+    }
   };
 
   const handleNewSearch = () => {
@@ -312,42 +318,45 @@ const GetTicketsPage = () => {
       <div className="flex justify-center items-start mt-4">
         {/* Left Side - Card UI - Centered */}
         <div className="w-full max-w-xl">
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-orange-600 flex items-center gap-2">
-                <Tickets size={24} />
+          <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6">
+            {/* Header with responsive layout */}
+            <div className="mb-4">
+              <h2 className="text-lg sm:text-xl font-bold text-orange-600 flex items-center gap-2 mb-4 sm:mb-0">
+                <Tickets size={20} className="sm:w-6 sm:h-6" />
                 Find Booking
               </h2>
 
-              {/* Toggle Switch */}
-              <div className="flex items-center gap-2">
-                <span
-                  className={`text-sm font-medium ${
-                    isBookingIdMode ? "text-gray-500" : "text-orange-600"
-                  }`}
-                >
-                  Booking ID
-                </span>
-                <button
-                  onClick={() => setIsBookingIdMode(!isBookingIdMode)}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 ${
-                    isBookingIdMode ? "bg-orange-600" : "bg-gray-300"
-                  }`}
-                  disabled={showBookingSummary}
-                >
+              {/* Toggle Switch - Responsive Layout */}
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-3 sm:gap-2">
+                <div className="flex items-center justify-center gap-2 sm:gap-2">
                   <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                      isBookingIdMode ? "translate-x-6" : "translate-x-1"
+                    className={`text-xs sm:text-sm font-medium ${
+                      isBookingIdMode ? "text-gray-500" : "text-orange-600"
                     }`}
-                  />
-                </button>
-                <span
-                  className={`text-sm font-medium ${
-                    isBookingIdMode ? "text-orange-600" : "text-gray-500"
-                  }`}
-                >
-                  Phone Number
-                </span>
+                  >
+                    Booking ID
+                  </span>
+                  <button
+                    onClick={() => setIsBookingIdMode(!isBookingIdMode)}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 ${
+                      isBookingIdMode ? "bg-orange-600" : "bg-gray-300"
+                    }`}
+                    disabled={showBookingSummary}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                        isBookingIdMode ? "translate-x-6" : "translate-x-1"
+                      }`}
+                    />
+                  </button>
+                  <span
+                    className={`text-xs sm:text-sm font-medium ${
+                      isBookingIdMode ? "text-orange-600" : "text-gray-500"
+                    }`}
+                  >
+                    Phone Number
+                  </span>
+                </div>
               </div>
             </div>
 
@@ -355,7 +364,7 @@ const GetTicketsPage = () => {
               {/* Show Booking ID field when in Booking ID mode (toggle disabled) */}
               {!isBookingIdMode && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
                     Booking ID
                   </label>
                   <input
@@ -364,7 +373,7 @@ const GetTicketsPage = () => {
                     pattern="[0-9]*"
                     value={searchBookingId}
                     onChange={(e) => setSearchBookingId(e.target.value)}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    className="w-full border border-gray-300 rounded-md px-3 py-3 sm:py-2 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 touch-manipulation"
                     placeholder="Enter Booking ID"
                     disabled={showBookingSummary}
                   />
@@ -374,7 +383,7 @@ const GetTicketsPage = () => {
               {/* Show Phone Number field when in Phone Number mode (toggle enabled) */}
               {isBookingIdMode && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
                     Phone Number
                   </label>
                   <input
@@ -383,7 +392,7 @@ const GetTicketsPage = () => {
                     pattern="[0-9]*"
                     value={phoneNumber}
                     onChange={(e) => setPhoneNumber(e.target.value)}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    className="w-full border border-gray-300 rounded-md px-3 py-3 sm:py-2 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 touch-manipulation"
                     placeholder="Enter Phone Number"
                     disabled={showBookingSummary}
                   />
@@ -395,7 +404,7 @@ const GetTicketsPage = () => {
             {!showBookingSummary ? (
               <button
                 onClick={handleGetTickets}
-                className="mt-4 w-full bg-orange-600 hover:bg-orange-700 text-white font-medium py-2 px-4 rounded-md transition duration-200 flex items-center justify-center"
+                className="mt-4 w-full bg-orange-600 hover:bg-orange-700 text-white font-medium py-3 sm:py-2 px-4 rounded-md transition duration-200 flex items-center justify-center text-base sm:text-sm touch-manipulation"
                 disabled={searchLoading}
               >
                 {searchLoading ? (
@@ -430,17 +439,17 @@ const GetTicketsPage = () => {
                 )}
               </button>
             ) : (
-              <div className="mt-3 flex gap-2">
+              <div className="mt-3 flex flex-col sm:flex-row gap-2">
                 <button
                   onClick={handleViewTickets}
-                  className="flex-1 bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-md transition duration-200 flex items-center justify-center"
+                  className="flex-1 bg-green-600 hover:bg-green-700 text-white font-medium py-3 sm:py-2 px-4 rounded-md transition duration-200 flex items-center justify-center text-base sm:text-sm touch-manipulation"
                 >
                   <Eye className="mr-2" size={18} />
                   View Tickets
                 </button>
                 <button
                   onClick={handleNewSearch}
-                  className="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-md transition duration-200"
+                  className="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-medium py-3 sm:py-2 px-4 rounded-md transition duration-200 text-base sm:text-sm touch-manipulation"
                 >
                   Close
                 </button>
@@ -449,36 +458,53 @@ const GetTicketsPage = () => {
 
             {/* Booking Info Card (shown when there's a result) */}
             {showBookingSummary && bookingResult && (
-              <div className="mt-3 border-t pt-4">
-                <h3 className="font-semibold mb-2 text-green-700 flex items-center gap-2">
-                  <Tickets size={20} />
+              <div className="mt-3 border-t pt-3">
+                <h3 className="font-semibold mb-2 text-green-700 flex items-center gap-2 text-sm sm:text-lg">
+                  <Tickets size={16} className="sm:w-5 sm:h-5" />
                   Booking Summary
                 </h3>
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <div className="space-y-3 text-sm">
+                <div className="bg-gray-50 rounded-lg p-3 sm:p-4">
+                  <div className="space-y-2 sm:space-y-3 text-xs sm:text-sm">
+                    {/* Booking ID */}
                     <div className="flex justify-between items-center">
                       <span className="text-gray-600 font-medium">
                         Booking ID:
                       </span>
-                      <span className="font-semibold text-orange-600">
+                      <span className="font-semibold text-orange-600 text-sm sm:text-sm">
                         ST - {bookingResult.bookingId || searchBookingId}
                       </span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Movie:</span>
-                      <span className="font-medium">
+
+                    <div className="flex justify-between items-start">
+                      <span className="text-gray-600 flex-shrink-0">
+                        User ID:
+                      </span>
+                      <span className="font-medium text-right max-w-[60%] break-words text-xs sm:text-sm">
+                        {bookingResult.userId || "N/A"}
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between items-start">
+                      <span className="text-gray-600 flex-shrink-0">
+                        Movie:
+                      </span>
+                      <span className="font-medium text-right max-w-[60%] break-words text-xs sm:text-sm">
                         {bookingResult.movieDetails?.movieName || "N/A"}
                       </span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Date:</span>
-                      <span>
+
+                    {/* Date */}
+                    <div className="flex justify-between items-start">
+                      <span className="text-gray-600 flex-shrink-0">Date:</span>
+                      <span className="font-medium text-right max-w-[60%] break-words text-xs sm:text-sm">
                         {moment(bookingResult.date).format("MMM D, YYYY")}
                       </span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Show Time:</span>
-                      <span>
+
+                    {/* Show Time */}
+                    <div className="flex justify-between items-start">
+                      <span className="text-gray-600 flex-shrink-0">Time:</span>
+                      <span className="font-medium text-right max-w-[60%] break-words text-xs sm:text-sm">
                         {(() => {
                           // Try multiple possible sources for show time
                           const timeValue =
@@ -502,17 +528,25 @@ const GetTicketsPage = () => {
                         })()}
                       </span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Seats:</span>
-                      <span className="font-medium text-blue-600">
+
+                    {/* Seats */}
+                    <div className="flex justify-between items-start">
+                      <span className="text-gray-600 flex-shrink-0">
+                        Seats:
+                      </span>
+                      <span className="font-medium text-blue-600 text-right max-w-[60%] break-all text-xs sm:text-sm">
                         {bookingResult.seatNumber
                           ?.map((seat) => seat.seatNo)
                           .join(", ") || "N/A"}
                       </span>
                     </div>
-                    <div className="flex justify-between items-center font-medium mt-3 pt-3 border-t border-gray-200">
-                      <span className="text-lg">Total Amount:</span>
-                      <span className="text-lg text-green-600">
+
+                    {/* Total Amount */}
+                    <div className="flex justify-between items-center font-medium mt-2 pt-2 border-t border-gray-200">
+                      <span className="text-sm sm:text-lg text-gray-800">
+                        Total:
+                      </span>
+                      <span className="text-base sm:text-lg text-green-600 font-bold">
                         ₹{totalAmount || "N/A"}
                       </span>
                     </div>
@@ -542,6 +576,7 @@ const GetTicketsPage = () => {
               price:
                 bookingResult.price || bookingResult.showTimePlanner?.price,
               movieDetails: bookingResult.movieDetails,
+              userId: bookingResult.userId,
               showTimePlanner: bookingResult.showTimePlanner,
               theatre: bookingResult.showTimePlanner?.theatre,
             }}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Users, Calendar, Clock, Film } from "lucide-react";
+import { Users, Calendar, Clock, Film, X } from "lucide-react";
 import TimingDropDown from "../components/TimingDropDown";
 import BookingPopup from "../dialog/BookingPopup";
 import { notify } from "../components/Notification";
@@ -26,7 +26,7 @@ const SeatLayout = ({
     { letter: "I", leftSeats: 10, rightSeats: 10, hasGap: true },
     { letter: "J", leftSeats: 10, rightSeats: 10, hasGap: true },
     { letter: "K", leftSeats: 10, rightSeats: 10, hasGap: true },
-    { letter: "L", leftSeats: 9, rightSeats: 9, hasGap: true, hasEntry: true }, // L1-L9 (left) | L10-L20 (right)
+    { letter: "L", leftSeats: 9, rightSeats: 9, hasGap: true }, // L1-L9 (left) | L10-L20 (right)
     { letter: "M", leftSeats: 10, rightSeats: 10, hasGap: true },
     { letter: "N", leftSeats: 10, rightSeats: 10, hasGap: true },
     { letter: "O", leftSeats: 10, rightSeats: 10, hasGap: true },
@@ -43,7 +43,7 @@ const SeatLayout = ({
 
   return (
     <div className="w-full overflow-x-auto py-1 animate-fadeIn">
-      <div className="min-w-max flex flex-col gap-1 items-center px-3">
+      <div className="min-w-max flex flex-col gap-0.5 items-center px-3">
         {rows.map((row, rowIndex) => {
           // Generate left section seats (1 to leftSeats)
           const leftSeats = Array.from({ length: row.leftSeats }, (_, i) => ({
@@ -70,134 +70,191 @@ const SeatLayout = ({
           }
 
           return (
-            <div
-              key={row.letter}
-              className="flex gap-4 items-center animate-slideInLeft"
-              style={{ animationDelay: `${rowIndex * 50}ms` }}
-            >
-              {/* Row label - Left */}
-              <div className="w-6 text-center">
-                <span className="text-slate-600 font-bold text-sm">
-                  {row.letter}
-                </span>
-              </div>
+            <React.Fragment key={row.letter}>
+              <div
+                className="flex gap-4 items-center animate-slideInLeft"
+                style={{ animationDelay: `${rowIndex * 50}ms` }}
+              >
+                {/* Row label - Left */}
+                <div className="w-6 text-center">
+                  <span className="text-slate-600 font-bold text-sm">
+                    {row.letter}
+                  </span>
+                </div>
 
-              {/* Left section with padding for center alignment */}
-              <div className={`flex ${row.centerAlign ? "pl-9" : ""}`}>
-                {/* Entry indicator for L row */}
-                {row.hasEntry && (
-                  <div className="px-0.5 py-1">
-                    <div className="w-6 h-6 flex items-center justify-center rounded text-[8px] rotate-90 text-gray-600 tracking-wide font-bold">
-                      ENTRY
-                    </div>
+                {/* Left section with padding for center alignment */}
+                <div className={`flex ${row.centerAlign ? "pl-9" : ""}`}>
+                  {leftSeats.map((seat, seatIndex) => {
+                    const isSelected = selectedSeats.includes(seat.id);
+                    const isBooked = bookedSeats.includes(seat.id);
+
+                    return (
+                      <div key={seat.id} className="px-0.5 py-1">
+                        <button
+                          className={`relative w-6 h-6 flex justify-center items-center rounded-t-lg rounded-b-sm font-bold text-xs border-2 transition-all duration-200 shadow-sm animate-seatPop ${
+                            isBooked
+                              ? "bg-gradient-to-b from-gray-300 to-gray-500 text-white border-gray-700 cursor-not-allowed"
+                              : isSelected
+                              ? "bg-gradient-to-b from-orange-400 to-orange-600 text-white border-orange-700 shadow-lg scale-105"
+                              : "bg-gradient-to-b from-orange-100 to-orange-200 text-orange-800 border-orange-300 hover:border-orange-500 hover:from-orange-200 hover:to-orange-300 hover:shadow-md hover:scale-110"
+                          }`}
+                          onClick={() => !isBooked && onSeatSelect(seat.id)}
+                          disabled={isBooked || disabled}
+                          style={{
+                            animationDelay: `${
+                              rowIndex * 50 + seatIndex * 10
+                            }ms`,
+                          }}
+                        >
+                          <span className="relative z-10 text-[10px]">
+                            {seat.number}
+                          </span>
+                          {/* Seat cushion effect */}
+                          <div
+                            className={`absolute bottom-0 left-0.5 right-0.5 h-1.5 rounded-sm ${
+                              isBooked
+                                ? "bg-gray-600"
+                                : isSelected
+                                ? "bg-orange-700"
+                                : "bg-orange-300"
+                            }`}
+                          />
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Center aisle gap */}
+                {row.hasGap && (
+                  <div className="w-8 flex justify-center items-center">
+                    <div className="h-px w-6 bg-slate-300"></div>
                   </div>
                 )}
 
-                {leftSeats.map((seat, seatIndex) => {
-                  const isSelected = selectedSeats.includes(seat.id);
-                  const isBooked = bookedSeats.includes(seat.id);
+                {/* Right section */}
+                <div className={`flex ${row.centerAlign ? "pr-3" : ""}`}>
+                  {rightSeats.map((seat, seatIndex) => {
+                    const isSelected = selectedSeats.includes(seat.id);
+                    const isBooked = bookedSeats.includes(seat.id);
 
-                  return (
-                    <div key={seat.id} className="px-0.5 py-1">
-                      <button
-                        className={`relative w-6 h-6 flex justify-center items-center rounded-t-lg rounded-b-sm font-bold text-xs border-2 transition-all duration-200 shadow-sm animate-seatPop ${
-                          isBooked
-                            ? "bg-gradient-to-b from-gray-300 to-gray-500 text-white border-gray-700 cursor-not-allowed"
-                            : isSelected
-                            ? "bg-gradient-to-b from-orange-400 to-orange-600 text-white border-orange-700 shadow-lg scale-105"
-                            : "bg-gradient-to-b from-orange-100 to-orange-200 text-orange-800 border-orange-300 hover:border-orange-500 hover:from-orange-200 hover:to-orange-300 hover:shadow-md hover:scale-110"
-                        }`}
-                        onClick={() => !isBooked && onSeatSelect(seat.id)}
-                        disabled={isBooked || disabled}
-                        style={{
-                          animationDelay: `${rowIndex * 50 + seatIndex * 10}ms`,
-                        }}
-                      >
-                        <span className="relative z-10 text-[10px]">
-                          {seat.number}
-                        </span>
-                        {/* Seat cushion effect */}
-                        <div
-                          className={`absolute bottom-0 left-0.5 right-0.5 h-1.5 rounded-sm ${
+                    return (
+                      <div key={seat.id} className="px-0.5 py-1">
+                        <button
+                          className={`relative w-6 h-6 flex justify-center items-center rounded-t-lg rounded-b-sm font-bold text-xs border-2 transition-all duration-200 shadow-sm animate-seatPop ${
                             isBooked
-                              ? "bg-gray-600"
+                              ? "bg-gradient-to-b from-gray-300 to-gray-500 text-white border-gray-700 cursor-not-allowed"
                               : isSelected
-                              ? "bg-orange-700"
-                              : "bg-orange-300"
+                              ? "bg-gradient-to-b from-orange-400 to-orange-600 text-white border-orange-700 shadow-lg scale-105"
+                              : "bg-gradient-to-b from-orange-100 to-orange-200 text-orange-800 border-orange-300 hover:border-orange-500 hover:from-orange-200 hover:to-orange-300 hover:shadow-md hover:scale-110"
                           }`}
-                        />
-                      </button>
-                    </div>
-                  );
-                })}
+                          onClick={() => !isBooked && onSeatSelect(seat.id)}
+                          disabled={isBooked}
+                          style={{
+                            animationDelay: `${
+                              rowIndex * 50 +
+                              (leftSeats.length + seatIndex) * 10
+                            }ms`,
+                          }}
+                        >
+                          <span className="relative z-10 text-[10px]">
+                            {seat.number}
+                          </span>
+                          {(seat.id === "R13" ||
+                            seat.id === "R14" ||
+                            seat.id === "R15") && (
+                            <X
+                              size={20}
+                              className="absolute inset-0 text-red-600 z-30"
+                              strokeWidth={2}
+                            />
+                          )}
+                          {/* Seat cushion effect */}
+                          <div
+                            className={`absolute bottom-0 left-0.5 right-0.5 h-1.5 rounded-sm ${
+                              isBooked
+                                ? "bg-gray-600"
+                                : isSelected
+                                ? "bg-orange-700"
+                                : "bg-orange-300"
+                            }`}
+                          />
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Row label - Right */}
+                <div className="w-6 text-center">
+                  <span className="text-slate-600 font-bold text-sm">
+                    {row.letter}
+                  </span>
+                </div>
               </div>
 
-              {/* Center aisle gap */}
-              {row.hasGap && (
-                <div className="w-8 flex justify-center items-center">
-                  <div className="h-px w-6 bg-slate-300"></div>
+              {/* Add extra gap after E row with Entry/Exit indicators */}
+              {row.letter === "E" && (
+                <div className="h-3 w-full flex items-center justify-center px-3 relative">
+                  {/* Entry indicator - Left of center */}
+                  <div
+                    className="absolute left-20 animate-slideInLeft"
+                    style={{ animationDelay: `${4 * 50 + 10}ms` }}
+                  >
+                    <span className="text-[10px] text-gray-600 tracking-wide font-bold opacity-60">
+                      ENTRY
+                    </span>
+                  </div>
+
+                  {/* Center line */}
+                  <div
+                    className="h-px w-6 bg-slate-300 animate-fadeIn"
+                    style={{ animationDelay: `${4 * 50 + 20}ms` }}
+                  ></div>
+
+                  {/* Exit indicator - Right of center */}
+                  <div
+                    className="absolute right-20 animate-slideInLeft"
+                    style={{ animationDelay: `${4 * 50 + 30}ms` }}
+                  >
+                    <span className="text-[10px] text-gray-600 tracking-wide font-bold opacity-60">
+                      EXIT
+                    </span>
+                  </div>
                 </div>
               )}
 
-              {/* Right section */}
-              <div className={`flex ${row.centerAlign ? "pr-3" : ""}`}>
-                {rightSeats.map((seat, seatIndex) => {
-                  const isSelected = selectedSeats.includes(seat.id);
-                  const isBooked = bookedSeats.includes(seat.id);
-
-                  return (
-                    <div key={seat.id} className="px-0.5 py-1">
-                      <button
-                        className={`relative w-6 h-6 flex justify-center items-center rounded-t-lg rounded-b-sm font-bold text-xs border-2 transition-all duration-200 shadow-sm animate-seatPop ${
-                          isBooked
-                            ? "bg-gradient-to-b from-gray-300 to-gray-500 text-white border-gray-700 cursor-not-allowed"
-                            : isSelected
-                            ? "bg-gradient-to-b from-orange-400 to-orange-600 text-white border-orange-700 shadow-lg scale-105"
-                            : "bg-gradient-to-b from-orange-100 to-orange-200 text-orange-800 border-orange-300 hover:border-orange-500 hover:from-orange-200 hover:to-orange-300 hover:shadow-md hover:scale-110"
-                        }`}
-                        onClick={() => !isBooked && onSeatSelect(seat.id)}
-                        disabled={isBooked}
-                        style={{
-                          animationDelay: `${
-                            rowIndex * 50 + (leftSeats.length + seatIndex) * 10
-                          }ms`,
-                        }}
-                      >
-                        <span className="relative z-10 text-[10px]">
-                          {seat.number}
-                        </span>
-                        {/* Seat cushion effect */}
-                        <div
-                          className={`absolute bottom-0 left-0.5 right-0.5 h-1.5 rounded-sm ${
-                            isBooked
-                              ? "bg-gray-600"
-                              : isSelected
-                              ? "bg-orange-700"
-                              : "bg-orange-300"
-                          }`}
-                        />
-                      </button>
-                    </div>
-                  );
-                })}
-
-                {/* Exit indicator for L row */}
-                {row.hasEntry && (
-                  <div className="px-0.5 py-1">
-                    <div className="w-6 h-6 flex items-center justify-center rounded text-[8px] rotate-270 tracking-widest font-bold">
-                      EXIT
-                    </div>
+              {/* Add extra gap after L row with Entry/Exit indicators */}
+              {row.letter === "L" && (
+                <div className="h-3 w-full flex items-center justify-center px-3 relative">
+                  {/* Entry indicator - Left of center */}
+                  <div
+                    className="absolute left-20 animate-slideInLeft"
+                    style={{ animationDelay: `${11 * 50 + 10}ms` }}
+                  >
+                    <span className="text-[10px] text-gray-600 tracking-wide font-bold opacity-60">
+                      ENTRY
+                    </span>
                   </div>
-                )}
-              </div>
 
-              {/* Row label - Right */}
-              <div className="w-6 text-center">
-                <span className="text-slate-600 font-bold text-sm">
-                  {row.letter}
-                </span>
-              </div>
-            </div>
+                  {/* Center line */}
+                  <div
+                    className="h-px w-6 bg-slate-300 animate-fadeIn"
+                    style={{ animationDelay: `${11 * 50 + 20}ms` }}
+                  ></div>
+
+                  {/* Exit indicator - Right of center */}
+                  <div
+                    className="absolute right-20 animate-slideInLeft"
+                    style={{ animationDelay: `${11 * 50 + 30}ms` }}
+                  >
+                    <span className="text-[10px] text-gray-600 tracking-wide font-bold opacity-60">
+                      EXIT
+                    </span>
+                  </div>
+                </div>
+              )}
+            </React.Fragment>
           );
         })}
       </div>
@@ -527,116 +584,176 @@ const SeatsPage = () => {
       {/* Header */}
       <div className="mb-2 flex-shrink-0">
         {/* Show Information */}
-        <div className="bg-white rounded-lg shadow-md p-4">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-2">
-            {/* Left Side - Date, Time, Movie */}
-            <div className="flex flex-col gap-2">
-              {/* First row: Date and Time */}
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-1">
-                  <Calendar className="text-green-600" size={18} />
-                  <span className="text-sm text-gray-600 font-medium">
-                    Date -{" "}
-                    <input
-                      type="date"
-                      value={currentShow.date}
-                      onChange={(e) => {
-                        setCurrentShow({
-                          ...currentShow,
-                          date: e.target.value,
-                        });
-                        // Clear selected seats when date changes
-                        setSelectedSeats([]);
-                      }}
-                      className="w-35 text-black font-medium border rounded text-sm md:text-base"
-                      min={todayStr}
-                    />
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-1">
-                  <Clock className="text-orange-600" size={18} />
-                  <span className="text-sm font-medium">
-                    <TimingDropDown
-                      currentShow={currentShow}
-                      onTimeSelect={(time, selectedShowTime) => {
-                        // Use functional update to avoid stale closure
-                        setCurrentShow((prev) => ({
-                          ...prev,
-                          time,
-                          movieDetails: selectedShowTime || null,
-                          price: selectedShowTime?.price || null,
-                          movie:
-                            selectedShowTime &&
-                            selectedShowTime.movie &&
-                            selectedShowTime.movie.title
-                              ? selectedShowTime.movie.title
-                              : "Select showtime",
-                          movieId:
-                            selectedShowTime &&
-                            selectedShowTime.movie &&
-                            selectedShowTime.movie.id
-                              ? selectedShowTime.movie.id
-                              : null,
-                          showTimePlannerId:
-                            selectedShowTime &&
-                            selectedShowTime.showTimePlannerId
-                              ? selectedShowTime.showTimePlannerId
-                              : null,
-                        }));
-                        // Clear selected seats when show time changes
-                        setSelectedSeats([]);
-                      }}
-                    />
-                  </span>
-                </div>
-
-                {/* Movie on same line for desktop, new line for mobile */}
-                <div className="hidden lg:flex items-center gap-1">
-                  <Film className="text-blue-600" size={18} />
-                  <span className="text-sm font-medium">
-                    <span className="text-gray-600 text-sm">Movie -</span>{" "}
-                    {currentShow.movie}
-                  </span>
-                </div>
+        <div className="bg-white rounded-lg shadow-md p-3 sm:p-4">
+          {/* Mobile Layout - Horizontal rows for compact height */}
+          <div className="lg:hidden space-y-3">
+            {/* First Row - Date & Time */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Calendar className="text-green-600" size={14} />
+                <input
+                  type="date"
+                  value={currentShow.date}
+                  onChange={(e) => {
+                    setCurrentShow({
+                      ...currentShow,
+                      date: e.target.value,
+                    });
+                    setSelectedSeats([]);
+                  }}
+                  className="text-black font-medium border rounded px-2 py-1 text-xs"
+                  min={todayStr}
+                />
               </div>
 
-              {/* Second row: Movie (mobile only) */}
-              <div className="flex lg:hidden items-center gap-1">
-                <Film className="text-blue-600" size={18} />
+              <div className="flex items-center gap-2">
+                <Clock className="text-orange-600" size={14} />
+                <div className="text-xs">
+                  <TimingDropDown
+                    currentShow={currentShow}
+                    onTimeSelect={(time, selectedShowTime) => {
+                      setCurrentShow((prev) => ({
+                        ...prev,
+                        time,
+                        movieDetails: selectedShowTime || null,
+                        price: selectedShowTime?.price || null,
+                        movie:
+                          selectedShowTime &&
+                          selectedShowTime.movie &&
+                          selectedShowTime.movie.title
+                            ? selectedShowTime.movie.title
+                            : "Select showtime",
+                        movieId:
+                          selectedShowTime &&
+                          selectedShowTime.movie &&
+                          selectedShowTime.movie.id
+                            ? selectedShowTime.movie.id
+                            : null,
+                        showTimePlannerId:
+                          selectedShowTime && selectedShowTime.showTimePlannerId
+                            ? selectedShowTime.showTimePlannerId
+                            : null,
+                      }));
+                      setSelectedSeats([]);
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Second Row - Statistics */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1">
+                <Users className="text-blue-600" size={14} />
+                <span className="text-xs font-medium">Total: 353</span>
+              </div>
+
+              <div className="flex items-center gap-1">
+                <div className="w-2 h-2 bg-gradient-to-b from-orange-100 to-orange-200 border border-orange-300 rounded"></div>
+                <span className="text-xs font-medium">
+                  Available: {availableSeats}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-1">
+                <div className="w-2 h-2 bg-gradient-to-b from-gray-400 to-gray-500 border border-gray-600 rounded"></div>
+                <span className="text-xs font-medium">
+                  Booked: {totalBookedSeats}
+                </span>
+              </div>
+            </div>
+
+            {/* Third Row - Movie */}
+            <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
+              <Film className="text-blue-600" size={14} />
+              <span className="text-xs font-medium">
+                Movie - {currentShow.movie}
+              </span>
+            </div>
+          </div>
+
+          {/* Desktop Layout - Original horizontal layout */}
+          <div className="hidden lg:flex lg:items-center lg:justify-between gap-4">
+            {/* Left Side - Date, Time, Movie */}
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <Calendar className="text-green-600" size={16} />
+                <span className="text-sm text-gray-600 font-medium">
+                  Date -{" "}
+                  <input
+                    type="date"
+                    value={currentShow.date}
+                    onChange={(e) => {
+                      setCurrentShow({
+                        ...currentShow,
+                        date: e.target.value,
+                      });
+                      setSelectedSeats([]);
+                    }}
+                    className="ml-1 w-35 text-black font-medium border rounded px-2 py-1 text-sm"
+                    min={todayStr}
+                  />
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Clock className="text-orange-600" size={16} />
                 <span className="text-sm font-medium">
-                  Movie - {currentShow.movie}
+                  <TimingDropDown
+                    currentShow={currentShow}
+                    onTimeSelect={(time, selectedShowTime) => {
+                      setCurrentShow((prev) => ({
+                        ...prev,
+                        time,
+                        movieDetails: selectedShowTime || null,
+                        price: selectedShowTime?.price || null,
+                        movie:
+                          selectedShowTime &&
+                          selectedShowTime.movie &&
+                          selectedShowTime.movie.title
+                            ? selectedShowTime.movie.title
+                            : "Select showtime",
+                        movieId:
+                          selectedShowTime &&
+                          selectedShowTime.movie &&
+                          selectedShowTime.movie.id
+                            ? selectedShowTime.movie.id
+                            : null,
+                        showTimePlannerId:
+                          selectedShowTime && selectedShowTime.showTimePlannerId
+                            ? selectedShowTime.showTimePlannerId
+                            : null,
+                      }));
+                      setSelectedSeats([]);
+                    }}
+                  />
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Film className="text-blue-600" size={16} />
+                <span className="text-sm font-medium">
+                  <span className="text-gray-600 text-sm">Movie -</span>{" "}
+                  {currentShow.movie}
                 </span>
               </div>
             </div>
 
             {/* Right Side - Statistics */}
-            <div className="flex flex-col gap-2">
-              {/* First row: Total Seats and Available */}
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-1">
-                  <Users className="text-blue-600" size={18} />
-                  <span className="text-sm font-medium">Total Seats - 353</span>
-                </div>
-
-                <div className="flex items-center gap-1">
-                  <div className="w-3 h-3 bg-gradient-to-b from-orange-100 to-orange-200 border border-orange-300 rounded"></div>
-                  <span className="text-sm font-medium">
-                    Available - {availableSeats}
-                  </span>
-                </div>
-
-                {/* Booked on same line for desktop, new line for mobile */}
-                <div className="hidden lg:flex items-center gap-1">
-                  <div className="w-3 h-3 bg-gradient-to-b from-gray-400 to-gray-500 border border-gray-600 rounded"></div>
-                  <span className="text-sm font-medium">
-                    Booked - {totalBookedSeats}
-                  </span>
-                </div>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <Users className="text-blue-600" size={16} />
+                <span className="text-sm font-medium">Total Seats - 353</span>
               </div>
 
-              {/* Second row: Booked (mobile only) */}
-              <div className="flex lg:hidden items-center gap-1">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 bg-gradient-to-b from-orange-100 to-orange-200 border border-orange-300 rounded"></div>
+                <span className="text-sm font-medium">
+                  Available - {availableSeats}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2">
                 <div className="w-3 h-3 bg-gradient-to-b from-gray-400 to-gray-500 border border-gray-600 rounded"></div>
                 <span className="text-sm font-medium">
                   Booked - {totalBookedSeats}

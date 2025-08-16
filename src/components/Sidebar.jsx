@@ -27,7 +27,8 @@ const navItems = [
   { path: "/users", icon: Users, name: "Users" },
   { path: "/show-time", icon: Clock, name: "Showtime Planner" },
   { path: "/get-tickets", icon: Tickets, name: "Get Tickets" },
-  { path: "/report", icon: FileText, name: "Report" },
+  { path: "/report", icon: FileText, name: "Showtime Report" },
+  { path: "/daily-report", icon: FileText, name: "Daily Report" },
 ];
 
 // Fixed Sidebar Component
@@ -35,6 +36,7 @@ const Sidebar = ({ isOpen, setIsOpen, isMobile }) => {
   const { user, logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
+  const sidebarRef = useRef(null);
 
   // Detect click outside dropdown
   useEffect(() => {
@@ -55,6 +57,32 @@ const Sidebar = ({ isOpen, setIsOpen, isMobile }) => {
     };
   }, [menuOpen]);
 
+  // Mobile viewport height handling
+  useEffect(() => {
+    if (isMobile && sidebarRef.current) {
+      const setSidebarHeight = () => {
+        // Use window.innerHeight for better mobile support
+        const viewportHeight = window.innerHeight;
+        sidebarRef.current.style.height = `${viewportHeight}px`;
+      };
+
+      setSidebarHeight();
+      
+      // Handle orientation change and viewport changes
+      const handleResize = () => {
+        setTimeout(setSidebarHeight, 100); // Small delay for orientation change
+      };
+
+      window.addEventListener('resize', handleResize);
+      window.addEventListener('orientationchange', handleResize);
+      
+      return () => {
+        window.removeEventListener('resize', handleResize);
+        window.removeEventListener('orientationchange', handleResize);
+      };
+    }
+  }, [isMobile, isOpen]);
+
   return (
     <>
       {/* Mobile Overlay */}
@@ -67,6 +95,7 @@ const Sidebar = ({ isOpen, setIsOpen, isMobile }) => {
 
       {/* Sidebar */}
       <div
+        ref={sidebarRef}
         className={`
           ${isMobile ? "fixed" : "relative"} 
           ${
@@ -79,11 +108,21 @@ const Sidebar = ({ isOpen, setIsOpen, isMobile }) => {
               : "w-20"
           }
           ${isMobile ? "w-64" : ""}
-          bg-white text-orange-900 h-full transition-all duration-300 ease-in-out z-50
+          bg-white text-orange-900 transition-all duration-300 ease-in-out z-50
           ${isMobile ? "lg:relative lg:translate-x-0" : ""}
+          ${isMobile ? "h-screen" : "h-full"}
+          flex flex-col
         `}
+        style={{
+          // Prevent scroll issues on mobile
+          ...(isMobile && {
+            touchAction: 'pan-y',
+            overscrollBehavior: 'contain'
+          })
+        }}
       >
-        <div className="p-4 flex items-center justify-between border-b border-orange-700">
+        {/* Header */}
+        <div className="flex-shrink-0 p-4 flex items-center justify-between border-b border-orange-700">
           {(isOpen || isMobile) && (
             <h1 className="text-xl font-bold">Theatre Admin</h1>
           )}
@@ -95,14 +134,9 @@ const Sidebar = ({ isOpen, setIsOpen, isMobile }) => {
           </button>
         </div>
 
-        {/* Sidebar Navigation */}
-        <nav className="mt-3 flex-1 overflow-hidden">
-          <ul
-            className="sidebar-scroll overflow-y-auto pr-2"
-            style={{
-              maxHeight: "calc(100vh - 160px)", // Adjust for header + user profile
-            }}
-          >
+        {/* Sidebar Navigation - Scrollable */}
+        <nav className="flex-1 min-h-0 mt-3 overflow-hidden">
+          <ul className="sidebar-scroll h-full overflow-y-auto pr-2 pb-4">
             {navItems.map((item) => (
               <li key={item.path} className="mb-2">
                 <NavLink
@@ -126,8 +160,8 @@ const Sidebar = ({ isOpen, setIsOpen, isMobile }) => {
           </ul>
         </nav>
 
-        {/* User profile at bottom */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-orange-700 bg-white">
+        {/* User profile at bottom - Fixed */}
+        <div className="flex-shrink-0 p-4 border-t border-orange-700 bg-white">
           <div
             ref={menuRef}
             className={`flex items-center cursor-pointer relative group transition-all duration-200 

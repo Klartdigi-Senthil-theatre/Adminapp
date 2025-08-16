@@ -317,22 +317,22 @@ const TimingDropdown = ({ currentShow, onTimeSelect }) => {
   };
 
   return (
-    <div className="relative flex items-center gap-4">
-      {/* Time label on the left */}
-      <span className="text-sm text-gray-600">Time :</span>
+    <div className="relative flex items-center gap-1 sm:gap-3">
+      {/* Time label on the left - only show on desktop */}
+      <span className="hidden sm:inline text-xs sm:text-sm text-gray-600">Time :</span>
 
       <div
-        className="flex items-center gap-2 cursor-pointer relative"
+        className="flex items-center gap-1 sm:gap-2 cursor-pointer relative"
         onClick={() => setIsOpen(!isOpen)}
       >
-        <span className="font-semibold">
+        <span className="text-xs sm:text-sm font-semibold">
           {loading
-            ? "Loading times..."
+            ? "Loading..."
             : availableTimings.length === 0
             ? "No shows"
             : currentShow.time || "Select Time"}
         </span>
-        <ChevronDown className="text-orange-600" size={18} />
+        <ChevronDown className="text-orange-600" size={14} />
 
         {/* Dropdown */}
         {isOpen && !loading && (
@@ -340,11 +340,11 @@ const TimingDropdown = ({ currentShow, onTimeSelect }) => {
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="absolute z-10 top-full right-0 mt-1 w-48 bg-white rounded-md shadow-lg border border-gray-200"
+            className="absolute z-10 top-full right-0 mt-1 w-36 sm:w-48 bg-white rounded-md shadow-lg border border-gray-200"
           >
             <div className="py-1">
               {availableTimings.length === 0 ? (
-                <div className="px-4 py-2 text-sm text-gray-500 text-center">
+                <div className="px-2 sm:px-4 py-1 text-xs sm:text-sm text-gray-500 text-center">
                   No showtimes
                 </div>
               ) : (
@@ -358,7 +358,7 @@ const TimingDropdown = ({ currentShow, onTimeSelect }) => {
                       onClick={() => !disabled && handleTimeSelect(time)}
                       disabled={disabled}
                       aria-disabled={disabled}
-                      className={`block w-full text-left px-4 py-2 text-sm
+                      className={`block w-full text-left px-2 sm:px-4 py-1 sm:py-2 text-xs sm:text-sm
                       ${
                         currentShow.time === time
                           ? "bg-orange-100 text-orange-700"
@@ -371,7 +371,7 @@ const TimingDropdown = ({ currentShow, onTimeSelect }) => {
                       }
                     `}
                     >
-                      <span className="inline-block w-24 truncate">{time}</span>
+                      <span className="inline-block w-18 sm:w-24 truncate">{time}</span>
                     </button>
                   );
                 })
