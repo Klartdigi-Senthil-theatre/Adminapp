@@ -12,7 +12,7 @@ const TicketPreviewPopup = ({
   selectedSeats,
   currentShow,
   onClose,
-  bookingId
+  bookingId,
 }) => {
   const [isPrinting, setIsPrinting] = useState(false);
   console.log(currentShow);
@@ -174,8 +174,8 @@ const TicketPreviewPopup = ({
       </head>
       <body>
         ${selectedSeats
-        .map((seat) => {
-          return `
+          .map((seat) => {
+            return `
               <div class="thermal-ticket">
                 <div class="ticket-header">
                   <div class="cinema-name">SENTHIL CINEMAS A/C</div>
@@ -190,7 +190,9 @@ const TicketPreviewPopup = ({
                   
                   <div class="info-row">
                     <span class="label">Date:</span>
-                    <span class="value">${new Date(showDate).toLocaleDateString('en-GB')}</span>
+                    <span class="value">${new Date(showDate).toLocaleDateString(
+                      "en-GB"
+                    )}</span>
                   </div>
                   
                   <div class="info-row">
@@ -218,11 +220,18 @@ const TicketPreviewPopup = ({
                     <div style="margin-top: 1mm;">Thank You!</div>
                     <div style="margin-top: 0.5mm; font-size: 0.75rem;">மது அருந்தியவர்களுக்கு அனுமதி இல்லை. 3 வயது மற்றும் அதற்கு மேற்பட்டவர்களுக்கு டிக்கெட் கட்டாயம்.</div>
                   </div>
+                  <div style={{
+                      fontSize: "0.275rem",
+                      marginTop: "1.5mm",
+                      textAlign: "center",
+                      color: "gray",
+                    }}>User ID: ${currentShow.userId}</div>
+                  </div>
                 </div>
               </div>
             `;
-        })
-        .join("")}
+          })
+          .join("")}
       </body>
       </html>
     `;
@@ -258,12 +267,16 @@ const TicketPreviewPopup = ({
                 <div
                   key={seat}
                   className="bg-white rounded-lg shadow-lg overflow-hidden border-2 border-gray-300"
-                  style={{ width: '280px', maxWidth: '280px' }} // Simulates 3-inch width
+                  style={{ width: "280px", maxWidth: "280px" }} // Simulates 3-inch width
                 >
                   {/* Ticket Header */}
                   <div className="bg-black text-white text-center py-2 px-3">
-                    <div className="text-sm font-bold mb-1">SENTHIL CINEMAS A/C</div>
-                    <div className="text-sm font-bold truncate">{movieName}</div>
+                    <div className="text-sm font-bold mb-1">
+                      SENTHIL CINEMAS A/C
+                    </div>
+                    <div className="text-sm font-bold truncate">
+                      {movieName}
+                    </div>
                   </div>
 
                   {/* Ticket Body */}
@@ -275,7 +288,9 @@ const TicketPreviewPopup = ({
 
                     <div className="flex justify-between">
                       <span className="font-semibold">Date:</span>
-                      <span>{new Date(showDate).toLocaleDateString('en-GB')}</span>
+                      <span>
+                        {new Date(showDate).toLocaleDateString("en-GB")}
+                      </span>
                     </div>
 
                     <div className="flex justify-between">
@@ -301,14 +316,20 @@ const TicketPreviewPopup = ({
                       <div>GST: 33CMMPP7822B1Z2</div>
                       <div>Premium Cinema Experience</div>
                       <div className="font-semibold">Thank You!</div>
-                      <div className="text-xs text-gray-500">மது அருந்தியவர்களுக்கு அனுமதி இல்லை. 3 வயது மற்றும் அதற்கு மேற்பட்டவர்களுக்கு டிக்கெட் கட்டாயம்.</div>
+                      <div className="text-xs text-gray-500">
+                        மது அருந்தியவர்களுக்கு அனுமதி இல்லை. 3 வயது மற்றும்
+                        அதற்கு மேற்பட்டவர்களுக்கு டிக்கெட் கட்டாயம்.
+                      </div>
+                    </div>
+                    <div className="border-t border-dashed border-gray-400 my-2"></div>
+                    <div className="text-center text-[8px] text-gray-500">
+                      User ID: {currentShow.userId}
                     </div>
                   </div>
                 </div>
               );
             })}
           </div>
-
         </div>
 
         {/* Action Buttons */}

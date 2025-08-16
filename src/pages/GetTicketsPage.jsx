@@ -234,25 +234,6 @@ const GetTicketsPage = () => {
         price: ticketPrice,
       };
 
-      console.log("GetTicketsPage - Price retrieval debug:", {
-        bookingId: isBookingIdMode ? bookingResult.id : searchBookingId,
-        originalBookingPrice: bookingResult.price,
-        showTimePlannerPrice: showTimePlannerData?.price,
-        finalTicketPrice: ticketPrice,
-        showTimePlannerId: bookingResult.showTimePlannerId,
-        movieId: bookingResult.movieId,
-        date: bookingResult.date,
-      });
-
-      console.log("GetTicketsPage - ShowTime debug:", {
-        showTimePlannerData: showTimePlannerData,
-        showTimeFromPlanner: showTimePlannerData?.showTime,
-        showTimeValue: showTimePlannerData?.showTime?.showTime,
-        bookingResult: bookingResult,
-      });
-
-      console.log("GetTicketsPage - Combined result:", combinedResult);
-
       setBookingResult(combinedResult);
       setShowBookingSummary(true);
       notify.success("Booking details fetched successfully!");
@@ -271,9 +252,34 @@ const GetTicketsPage = () => {
     }
   };
 
-  const handleViewTickets = () => {
-    setIsTicketPopupOpen(true);
-    notify.success("Opening ticket preview...");
+  const handleViewTickets = async () => {
+    try {
+      const res = await api.axiosInstance.post("/printed-tickets", {
+        bookingId: Number(bookingResult.bookingId || searchBookingId),
+        adminUserId: 1,
+      });
+
+      setIsTicketPopupOpen(true);
+      notify.success(res, { autoClose: 8000 });
+    } catch (err) {
+      const errorMessage =
+        err?.response?.data?.error ||
+        err?.response?.data?.message ||
+        "An error occurred.";
+
+      console.error(
+        "Error creating printed ticket:",
+        err?.response?.data || err
+      );
+
+      if (errorMessage === "Ticket has already been printed.") {
+        // Still open the popup for already printed tickets
+        setIsTicketPopupOpen(true);
+        notify.error(errorMessage);
+      } else {
+        notify.error(errorMessage, { autoClose: 20000 });
+      }
+    }
   };
 
   const handleNewSearch = () => {
@@ -461,20 +467,32 @@ const GetTicketsPage = () => {
                   <div className="space-y-2 sm:space-y-3 text-xs sm:text-sm">
                     {/* Booking ID */}
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-600 font-medium">Booking ID:</span>
+                      <span className="text-gray-600 font-medium">
+                        Booking ID:
+                      </span>
                       <span className="font-semibold text-orange-600 text-sm sm:text-sm">
                         ST - {bookingResult.bookingId || searchBookingId}
                       </span>
                     </div>
-                    
-                    {/* Movie */}
+
                     <div className="flex justify-between items-start">
-                      <span className="text-gray-600 flex-shrink-0">Movie:</span>
+                      <span className="text-gray-600 flex-shrink-0">
+                        User ID:
+                      </span>
+                      <span className="font-medium text-right max-w-[60%] break-words text-xs sm:text-sm">
+                        {bookingResult.userId || "N/A"}
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between items-start">
+                      <span className="text-gray-600 flex-shrink-0">
+                        Movie:
+                      </span>
                       <span className="font-medium text-right max-w-[60%] break-words text-xs sm:text-sm">
                         {bookingResult.movieDetails?.movieName || "N/A"}
                       </span>
                     </div>
-                    
+
                     {/* Date */}
                     <div className="flex justify-between items-start">
                       <span className="text-gray-600 flex-shrink-0">Date:</span>
@@ -482,7 +500,7 @@ const GetTicketsPage = () => {
                         {moment(bookingResult.date).format("MMM D, YYYY")}
                       </span>
                     </div>
-                    
+
                     {/* Show Time */}
                     <div className="flex justify-between items-start">
                       <span className="text-gray-600 flex-shrink-0">Time:</span>
@@ -510,20 +528,24 @@ const GetTicketsPage = () => {
                         })()}
                       </span>
                     </div>
-                    
+
                     {/* Seats */}
                     <div className="flex justify-between items-start">
-                      <span className="text-gray-600 flex-shrink-0">Seats:</span>
+                      <span className="text-gray-600 flex-shrink-0">
+                        Seats:
+                      </span>
                       <span className="font-medium text-blue-600 text-right max-w-[60%] break-all text-xs sm:text-sm">
                         {bookingResult.seatNumber
                           ?.map((seat) => seat.seatNo)
                           .join(", ") || "N/A"}
                       </span>
                     </div>
-                    
+
                     {/* Total Amount */}
                     <div className="flex justify-between items-center font-medium mt-2 pt-2 border-t border-gray-200">
-                      <span className="text-sm sm:text-lg text-gray-800">Total:</span>
+                      <span className="text-sm sm:text-lg text-gray-800">
+                        Total:
+                      </span>
                       <span className="text-base sm:text-lg text-green-600 font-bold">
                         ₹{totalAmount || "N/A"}
                       </span>
@@ -554,6 +576,7 @@ const GetTicketsPage = () => {
               price:
                 bookingResult.price || bookingResult.showTimePlanner?.price,
               movieDetails: bookingResult.movieDetails,
+              userId: bookingResult.userId,
               showTimePlanner: bookingResult.showTimePlanner,
               theatre: bookingResult.showTimePlanner?.theatre,
             }}
