@@ -9,6 +9,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import api from "../config/api";
+import moment from "moment/moment";
 
 const ReportPage = () => {
   const [reportData, setReportData] = useState({
@@ -50,11 +51,68 @@ const ReportPage = () => {
           const response = await api.get(
             `/show-time-planner/date/${formattedDate}`
           );
-          const showTimes = response.map((item) => ({
-            time: item.showTime.showTime,
-            id: item.id,
-            price: item.price,
-          }));
+
+          // Normalize time format to "hh:mm A" for consistent sorting
+          const normalizeTime = (timeStr) => {
+            if (!timeStr) {
+              console.warn("normalizeTime: Empty or null time string received");
+              return null;
+            }
+            let timeOnly = String(timeStr).trim();
+
+            // Extract time if datetime string (e.g., "2025-08-14 14:30:00" -> "14:30:00")
+            if (/\d{4}-\d{2}-\d{2}/.test(timeOnly)) {
+              timeOnly = timeOnly.split(/\s+/).pop();
+            }
+
+            // Normalize spaces and AM/PM format
+            timeOnly = timeOnly
+              .replace(/\s+/g, " ") // Collapse multiple spaces
+              .replace(/(\d+):(\d{1,2})\s*([AP]M)$/i, "$1:$2 $3") // Ensure "HH:mm AM/PM"
+              .replace(/(\d+):(\d{1})\s*([AP]M)$/i, "$1:0$2 $3"); // Pad single-digit minutes
+
+            // Try parsing with flexible formats, including non-strict mode as fallback
+            let parsed = moment(timeOnly, ["hh:mm A", "h:mm A"], true);
+            if (!parsed.isValid()) {
+              parsed = moment(timeOnly, ["HH:mm:ss", "HH:mm"], true);
+              if (parsed.isValid()) {
+                timeOnly = parsed.format("hh:mm A");
+              } else {
+                parsed = moment(timeOnly);
+                if (parsed.isValid()) {
+                  timeOnly = parsed.format("hh:mm A");
+                } else {
+                  console.warn(
+                    `normalizeTime: Failed to parse time string: ${timeOnly}`
+                  );
+                  return timeOnly; // Fallback to original string
+                }
+              }
+            }
+            return parsed.format("hh:mm A"); // Always return "hh:mm A" format
+          };
+
+          const showTimes = response
+            .filter((item) => item.showTime && item.showTime.showTime)
+            .map((item) => ({
+              time: normalizeTime(item.showTime.showTime),
+              id: item.id,
+              price: item.price,
+            }))
+            .sort((a, b) => {
+              const timeA = moment(a.time, "hh:mm A", true);
+              const timeB = moment(b.time, "hh:mm A", true);
+
+              if (timeA.isValid() && timeB.isValid()) {
+                return timeA.diff(timeB); // Chronological sort
+              }
+
+              console.warn(
+                `sort: Fallback to string comparison for times: ${a.time} vs ${b.time}`
+              );
+              return (a.time || "").localeCompare(b.time || "");
+            });
+            
           setShowTimeOptions(showTimes);
           // Reset show time and related fields if date changes
           setReportData((prev) => ({
@@ -276,7 +334,7 @@ const ReportPage = () => {
     const originalTitle = document.title;
     document.title = generateFilename();
     window.print();
-    
+
     setTimeout(() => {
       document.title = originalTitle;
     }, 1000);
@@ -455,7 +513,9 @@ const ReportPage = () => {
                   <div className="md:hidden">
                     <div className="p-4 space-y-4">
                       <div>
-                        <label className="block font-medium text-gray-700 mb-2">Date</label>
+                        <label className="block font-medium text-gray-700 mb-2">
+                          Date
+                        </label>
                         <input
                           type="date"
                           value={reportData.date}
@@ -466,14 +526,14 @@ const ReportPage = () => {
                         />
                       </div>
                       <div>
-                        <label className="block font-medium text-gray-700 mb-2">Show Time</label>
+                        <label className="block font-medium text-gray-700 mb-2">
+                          Show Time
+                        </label>
                         <div className="relative showtime-dropdown">
                           <div
                             className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white cursor-pointer flex items-center justify-between"
                             onClick={() =>
-                              setIsShowTimeDropdownOpen(
-                                !isShowTimeDropdownOpen
-                              )
+                              setIsShowTimeDropdownOpen(!isShowTimeDropdownOpen)
                             }
                           >
                             <span
@@ -574,7 +634,9 @@ const ReportPage = () => {
                   <div className="md:hidden">
                     <div className="p-4 space-y-4">
                       <div>
-                        <label className="block font-medium text-gray-700 mb-2">Total Tickets Sold</label>
+                        <label className="block font-medium text-gray-700 mb-2">
+                          Total Tickets Sold
+                        </label>
                         <input
                           type="number"
                           value={reportData.totalTicketsSold}
@@ -584,7 +646,9 @@ const ReportPage = () => {
                         />
                       </div>
                       <div>
-                        <label className="block font-medium text-gray-700 mb-2">Pass</label>
+                        <label className="block font-medium text-gray-700 mb-2">
+                          Pass
+                        </label>
                         <input
                           type="number"
                           value={reportData.pass}
@@ -625,7 +689,9 @@ const ReportPage = () => {
                   <div className="md:hidden">
                     <div className="p-4">
                       <div>
-                        <label className="block font-medium text-gray-700 mb-2">Net Tickets (Sold - Passes)</label>
+                        <label className="block font-medium text-gray-700 mb-2">
+                          Net Tickets (Sold - Passes)
+                        </label>
                         <input
                           type="number"
                           value={reportData.netTickets}
@@ -677,7 +743,10 @@ const ReportPage = () => {
                                 type="number"
                                 value={reportData.counterPass}
                                 onChange={(e) =>
-                                  handleInputChange("counterPass", e.target.value)
+                                  handleInputChange(
+                                    "counterPass",
+                                    e.target.value
+                                  )
                                 }
                                 className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500"
                                 placeholder="Enter number of passes"
@@ -706,7 +775,9 @@ const ReportPage = () => {
                     <div className="md:hidden">
                       <div className="p-4 space-y-4">
                         <div>
-                          <label className="block font-medium text-gray-700 mb-2">Tickets Sold</label>
+                          <label className="block font-medium text-gray-700 mb-2">
+                            Tickets Sold
+                          </label>
                           <input
                             type="number"
                             value={reportData.counterTotalTickets}
@@ -721,7 +792,9 @@ const ReportPage = () => {
                           />
                         </div>
                         <div>
-                          <label className="block font-medium text-gray-700 mb-2">Pass</label>
+                          <label className="block font-medium text-gray-700 mb-2">
+                            Pass
+                          </label>
                           <input
                             type="number"
                             value={reportData.counterPass}
@@ -733,7 +806,9 @@ const ReportPage = () => {
                           />
                         </div>
                         <div>
-                          <label className="block font-medium text-gray-700 mb-2">Net Tickets (Sold - Passes)</label>
+                          <label className="block font-medium text-gray-700 mb-2">
+                            Net Tickets (Sold - Passes)
+                          </label>
                           <input
                             type="number"
                             value={reportData.counterNetTickets}
@@ -887,8 +962,9 @@ const ReportPage = () => {
                                 <td className="p-3 font-bold text-emerald-600">
                                   ₹
                                   {(
-                                    parseInt(reportData.totalCounterCollection) ||
-                                    0
+                                    parseInt(
+                                      reportData.totalCounterCollection
+                                    ) || 0
                                   ).toLocaleString()}
                                 </td>
                               </tr>
@@ -904,13 +980,20 @@ const ReportPage = () => {
                     {/* Denomination Section */}
                     <div className="border border-gray-300 rounded-lg overflow-hidden">
                       <div className="bg-orange-50 p-3 border-b border-gray-300">
-                        <h4 className="font-bold text-orange-700">Cash Denominations</h4>
+                        <h4 className="font-bold text-orange-700">
+                          Cash Denominations
+                        </h4>
                       </div>
                       <div className="p-4 space-y-3">
                         {[500, 200, 100, 50, 20, 10].map((denom) => (
-                          <div key={denom} className="flex items-center justify-between gap-3">
+                          <div
+                            key={denom}
+                            className="flex items-center justify-between gap-3"
+                          >
                             <div className="flex-1">
-                              <label className="block font-medium text-gray-700 text-sm">₹{denom}</label>
+                              <label className="block font-medium text-gray-700 text-sm">
+                                ₹{denom}
+                              </label>
                             </div>
                             <div className="flex-1">
                               <input
@@ -928,16 +1011,42 @@ const ReportPage = () => {
                             </div>
                             <div className="flex-1 text-right">
                               <span className="font-medium text-orange-600">
-                                ₹{((parseInt(reportData[`denomination${denom}`]) || 0) * denom).toLocaleString()}
+                                ₹
+                                {(
+                                  (parseInt(
+                                    reportData[`denomination${denom}`]
+                                  ) || 0) * denom
+                                ).toLocaleString()}
                               </span>
                             </div>
                           </div>
                         ))}
                         <div className="border-t border-gray-300 pt-3 mt-3 bg-orange-50 -mx-4 px-4 py-3">
                           <div className="flex justify-between items-center font-bold">
-                            <span>Total Count: {[500, 200, 100, 50, 20, 10].reduce((sum, denom) => sum + (parseInt(reportData[`denomination${denom}`]) || 0), 0)}</span>
+                            <span>
+                              Total Count:{" "}
+                              {[500, 200, 100, 50, 20, 10].reduce(
+                                (sum, denom) =>
+                                  sum +
+                                  (parseInt(
+                                    reportData[`denomination${denom}`]
+                                  ) || 0),
+                                0
+                              )}
+                            </span>
                             <span className="text-black">
-                              ₹{[500, 200, 100, 50, 20, 10].reduce((sum, denom) => sum + (parseInt(reportData[`denomination${denom}`]) || 0) * denom, 0).toLocaleString()}
+                              ₹
+                              {[500, 200, 100, 50, 20, 10]
+                                .reduce(
+                                  (sum, denom) =>
+                                    sum +
+                                    (parseInt(
+                                      reportData[`denomination${denom}`]
+                                    ) || 0) *
+                                      denom,
+                                  0
+                                )
+                                .toLocaleString()}
                             </span>
                           </div>
                         </div>
@@ -948,17 +1057,16 @@ const ReportPage = () => {
                     <div className="border border-gray-300 rounded-lg overflow-hidden">
                       <div className="p-4 space-y-4">
                         <div>
-                          <label className="block font-medium text-gray-700 mb-2">User Return (-)</label>
+                          <label className="block font-medium text-gray-700 mb-2">
+                            User Return (-)
+                          </label>
                           <div className="flex items-center gap-2">
                             <span>₹</span>
                             <input
                               type="number"
                               value={reportData.userReturn}
                               onChange={(e) =>
-                                handleInputChange(
-                                  "userReturn",
-                                  e.target.value
-                                )
+                                handleInputChange("userReturn", e.target.value)
                               }
                               className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500"
                               placeholder="0"
@@ -966,7 +1074,9 @@ const ReportPage = () => {
                           </div>
                         </div>
                         <div>
-                          <label className="block font-medium text-gray-700 mb-2">Balance Counter Amount (-)</label>
+                          <label className="block font-medium text-gray-700 mb-2">
+                            Balance Counter Amount (-)
+                          </label>
                           <div className="flex items-center gap-2">
                             <span>₹</span>
                             <input
@@ -985,9 +1095,14 @@ const ReportPage = () => {
                         </div>
                         <div className="bg-emerald-50 p-3 -mx-4 -mb-4 mt-4 rounded-b-lg">
                           <div className="flex justify-between items-center">
-                            <span className="font-bold text-emerald-700">Total Counter Collection</span>
+                            <span className="font-bold text-emerald-700">
+                              Total Counter Collection
+                            </span>
                             <span className="font-bold text-emerald-600">
-                              ₹{(parseInt(reportData.totalCounterCollection) || 0).toLocaleString()}
+                              ₹
+                              {(
+                                parseInt(reportData.totalCounterCollection) || 0
+                              ).toLocaleString()}
                             </span>
                           </div>
                         </div>
@@ -1055,7 +1170,9 @@ const ReportPage = () => {
                     <div className="md:hidden">
                       <div className="p-4 space-y-4">
                         <div>
-                          <label className="block font-medium text-gray-700 mb-2">Tickets Sold</label>
+                          <label className="block font-medium text-gray-700 mb-2">
+                            Tickets Sold
+                          </label>
                           <input
                             type="number"
                             value={reportData.onlineTotalTickets}
@@ -1071,7 +1188,9 @@ const ReportPage = () => {
                         </div>
                         <div className="bg-emerald-50 p-3 -mx-4 -mb-4 mt-4 rounded-b-lg">
                           <div>
-                            <label className="block font-bold text-emerald-700 mb-2">Total Online Collection</label>
+                            <label className="block font-bold text-emerald-700 mb-2">
+                              Total Online Collection
+                            </label>
                             <div className="flex items-center gap-2">
                               <span>₹</span>
                               <input

@@ -376,18 +376,13 @@ const SeatsPage = () => {
         const seatNumbers = [];
         if (response && Array.isArray(response)) {
           response.forEach((booking) => {
-            const bookingDate = new Date(booking.date)
-              .toISOString()
-              .split("T")[0];
-            if (bookingDate === currentShow.date) {
-              const seats = booking[key];
-              if (seats && Array.isArray(seats)) {
-                seats.forEach((seat) => {
-                  if (seat.seatNo) {
-                    seatNumbers.push(seat.seatNo);
-                  }
-                });
-              }
+            const seats = booking[key];
+            if (seats && Array.isArray(seats)) {
+              seats.forEach((seat) => {
+                if (seat.seatNo) {
+                  seatNumbers.push(seat.seatNo);
+                }
+              });
             }
           });
         }

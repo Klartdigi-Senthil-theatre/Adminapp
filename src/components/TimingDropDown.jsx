@@ -145,42 +145,29 @@ const TimingDropdown = ({ currentShow, onTimeSelect }) => {
       try {
         setLoading(true);
         const formattedDate = currentShow.date || moment().format("YYYY-MM-DD");
-
-        // Fetch assigned showtimes for the date
         const plannedShowtimes = await api.get(
           `/show-time-planner/date/${formattedDate}`
         );
 
         const moviesMap = new Map();
         plannedShowtimes.forEach((entry) => {
-          // Skip inactive or invalid entries
-          if (!entry.active || !entry.movie || !entry.showTime) {
-            //console.warn(`Skipping invalid entry: ${JSON.stringify(entry)}`);
-            return;
-          }
-
+          if (!entry.active || !entry.movie || !entry.showTime) return;
           const movieId = entry.movieId;
-          // Initialize movie entry if it doesn't exist
           if (!moviesMap.has(movieId)) {
             moviesMap.set(movieId, {
               id: movieId,
               title: entry.movie.movieName,
-              genre: entry.movie.genre || "Not specified", // Fallback for missing genre
+              genre: entry.movie.genre || "Not specified",
               language: entry.movie.language || "Not specified",
               poster: entry.movie.image || "/default-poster.jpg",
               certificate: entry.movie.certificate || "Not specified",
               duration: entry.movie.duration || 0,
               timings: [],
-              prices: new Map(), // Map showTimeId to price
+              prices: new Map(),
             });
           }
-
-          // Add showtime to the movie's timings and prices
           const movie = moviesMap.get(movieId);
-
-          // Use raw showTime format to match ShowTimePage approach
           const rawShowTime = entry.showTime.showTime;
-
           if (rawShowTime) {
             movie.timings.push(rawShowTime);
             movie.prices.set(entry.showTimeId, entry.price);
@@ -192,17 +179,54 @@ const TimingDropdown = ({ currentShow, onTimeSelect }) => {
         });
         setMoviesMap(moviesMap);
 
-        // Process showtime data with movie information
-        const processedData = plannedShowtimes
-          .filter((item) => {
-            const hasData = item.movie && item.showTime;
-            if (!hasData) {
-              //console.log('TimingDropdown: Skipping item without movie or showTime:', item);
+        // Normalize time format to "hh:mm A" for consistent sorting
+        const normalizeTime = (timeStr) => {
+          if (!timeStr) {
+            console.warn("normalizeTime: Empty or null time string received");
+            return null;
+          }
+          let timeOnly = String(timeStr).trim();
+
+          // Extract time if datetime string (e.g., "2025-08-14 14:30:00" -> "14:30:00")
+          if (/\d{4}-\d{2}-\d{2}/.test(timeOnly)) {
+            timeOnly = timeOnly.split(/\s+/).pop();
+          }
+
+          // Normalize spaces and AM/PM format
+          timeOnly = timeOnly
+            .replace(/\s+/g, " ") // Collapse multiple spaces
+            .replace(/(\d+):(\d{1,2})\s*([AP]M)$/i, "$1:$2 $3") // Ensure "HH:mm AM/PM"
+            .replace(/(\d+):(\d{1})\s*([AP]M)$/i, "$1:0$2 $3"); // Pad single-digit minutes (e.g., "6:0 PM" -> "6:00 PM")
+
+          // Try parsing with flexible formats, including non-strict mode as fallback
+          let parsed = moment(timeOnly, ["hh:mm A", "h:mm A"], true);
+          if (!parsed.isValid()) {
+            parsed = moment(timeOnly, ["HH:mm:ss", "HH:mm"], true);
+            if (parsed.isValid()) {
+              // Convert 24-hour to 12-hour format
+              timeOnly = parsed.format("hh:mm A");
+            } else {
+              // Fallback to non-strict parsing
+              parsed = moment(timeOnly);
+              if (parsed.isValid()) {
+                timeOnly = parsed.format("hh:mm A");
+              } else {
+                console.warn(
+                  `normalizeTime: Failed to parse time string: ${timeOnly}`
+                );
+                return timeOnly; // Fallback to original string
+              }
             }
-            return hasData;
-          })
+          }
+
+          return parsed.format("hh:mm A"); // Always return "hh:mm A" format (e.g., "02:00 PM")
+        };
+
+        // Process and sort showtime data
+        const processedData = plannedShowtimes
+          .filter((item) => item.movie && item.showTime)
           .map((item) => ({
-            time: item.showTime.showTime, // Use raw time format like ShowTimePage
+            time: normalizeTime(item.showTime.showTime),
             movie: {
               id: item.movie.id,
               title: item.movie.movieName,
@@ -218,80 +242,39 @@ const TimingDropdown = ({ currentShow, onTimeSelect }) => {
             price: item.price,
           }))
           .sort((a, b) => {
-            // Sort chronologically from AM to PM (earliest to latest)
-            const parseTime = (timeStr) => {
-              if (!timeStr) return null;
+            const timeA = moment(a.time, "hh:mm A", true);
+            const timeB = moment(b.time, "hh:mm A", true);
 
-              // Handle different formats: "14:30", "14:30:00", "2023-10-05 14:30:00"
-              let timeOnly = timeStr;
-
-              // If it contains a space, extract just the time part
-              if (timeStr.includes(" ")) {
-                timeOnly = timeStr.split(" ")[1] || timeStr.split(" ")[0];
-              }
-
-              // Try parsing with moment using various time formats
-              const formats = ["HH:mm", "HH:mm:ss", "H:mm", "H:mm:ss"];
-
-              for (const format of formats) {
-                const parsed = moment(timeOnly, format);
-                if (parsed.isValid()) {
-                  return parsed;
-                }
-              }
-
-              // Fallback: try default moment parsing
-              const defaultParsed = moment(timeStr);
-              if (defaultParsed.isValid()) {
-                return defaultParsed;
-              }
-
-              return null;
-            };
-
-            const timeA = parseTime(a.time);
-            const timeB = parseTime(b.time);
-
-            if (timeA && timeB) {
-              return timeA.diff(timeB);
+            if (timeA.isValid() && timeB.isValid()) {
+              return timeA.diff(timeB); // Chronological sort
             }
 
-            // If parsing fails, fallback to string comparison
-            if (!timeA && !timeB) return 0;
-            if (!timeA) return 1;
-            if (!timeB) return -1;
-
-            return a.time.localeCompare(b.time);
+            // Log sorting fallback for debugging
+            console.warn(
+              `sort: Fallback to string comparison for times: ${a.time} vs ${b.time}`
+            );
+            return (a.time || "").localeCompare(b.time || "");
           });
 
-        // Store the full data and extract unique timings
         setShowTimeData(processedData);
-        const timings = processedData
-          .map((item) => item.time)
-          .filter((time, index, array) => array.indexOf(time) === index); // Remove duplicates
-
-        // Debug log to verify chronological sorting (AM to PM)
-        // console.log(
-        //   "TimingDropDown: Times sorted chronologically (AM to PM):",
-        //   timings
-        // );
+        const timings = Array.from(
+          new Set(processedData.map((item) => item.time))
+        );
 
         setAvailableTimings(timings);
 
-        // If the currently selected time is not available for the new date, clear it
         if (currentShow.time && !timings.includes(currentShow.time)) {
-          onTimeSelect("", null); // Clear the time selection and movie data
+          onTimeSelect("", null);
         }
       } catch (error) {
         console.error(
           "TimingDropdown: Error fetching available timings:",
           error
         );
-        setAvailableTimings([]); // Empty array if no assignments
-        setShowTimeData([]); // Clear showtime data on error
-        // Clear the time selection on error
+        setAvailableTimings([]);
+        setShowTimeData([]);
         if (currentShow.time) {
-          onTimeSelect("", null); // Pass null for movie data
+          onTimeSelect("", null);
         }
       } finally {
         setLoading(false);
@@ -304,11 +287,8 @@ const TimingDropdown = ({ currentShow, onTimeSelect }) => {
   }, [currentShow.date, onTimeSelect, currentShow.time]);
 
   const handleTimeSelect = (time) => {
-    console.log(time);
-
     // double-guard: prevent selecting past times even if UI somehow allows it
     if (isTimeInPast(time)) {
-      alert("hh");
       return;
     }
     const selectedShowTime = showTimeData.find((item) => item.time === time);
@@ -319,7 +299,9 @@ const TimingDropdown = ({ currentShow, onTimeSelect }) => {
   return (
     <div className="relative flex items-center gap-1 sm:gap-3">
       {/* Time label on the left - only show on desktop */}
-      <span className="hidden sm:inline text-xs sm:text-sm text-gray-600">Time :</span>
+      <span className="hidden sm:inline text-xs sm:text-sm text-gray-600">
+        Time :
+      </span>
 
       <div
         className="flex items-center gap-1 sm:gap-2 cursor-pointer relative"
@@ -371,7 +353,9 @@ const TimingDropdown = ({ currentShow, onTimeSelect }) => {
                       }
                     `}
                     >
-                      <span className="inline-block w-18 sm:w-24 truncate">{time}</span>
+                      <span className="inline-block w-18 sm:w-24 truncate">
+                        {time}
+                      </span>
                     </button>
                   );
                 })

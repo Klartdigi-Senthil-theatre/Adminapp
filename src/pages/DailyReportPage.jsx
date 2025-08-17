@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import PageHeader from "../components/PageHeader";
 import { FileText } from "lucide-react";
 import api from "../config/api";
+import moment from "moment/moment";
 
 const DailyReportPage = () => {
   const [loading, setLoading] = useState(false);
@@ -33,18 +34,73 @@ const DailyReportPage = () => {
           `/reports/bookings/showtime/date?startDate=${startDate}&endDate=${endDate}`
         );
 
+        // Normalize time format to "hh:mm A" for consistent sorting
+        const normalizeTime = (timeStr) => {
+          if (!timeStr) {
+            console.warn("normalizeTime: Empty or null time string received");
+            return null;
+          }
+          let timeOnly = String(timeStr).trim();
+
+          // Extract time if datetime string (e.g., "2025-08-14 14:30:00" -> "14:30:00")
+          if (/\d{4}-\d{2}-\d{2}/.test(timeOnly)) {
+            timeOnly = timeOnly.split(/\s+/).pop();
+          }
+
+          // Normalize spaces and AM/PM format
+          timeOnly = timeOnly
+            .replace(/\s+/g, " ") // Collapse multiple spaces
+            .replace(/(\d+):(\d{1,2})\s*([AP]M)$/i, "$1:$2 $3") // Ensure "HH:mm AM/PM"
+            .replace(/(\d+):(\d{1})\s*([AP]M)$/i, "$1:0$2 $3"); // Pad single-digit minutes
+
+          // Try parsing with flexible formats, including non-strict mode as fallback
+          let parsed = moment(timeOnly, ["hh:mm A", "h:mm A"], true);
+          if (!parsed.isValid()) {
+            parsed = moment(timeOnly, ["HH:mm:ss", "HH:mm"], true);
+            if (parsed.isValid()) {
+              timeOnly = parsed.format("hh:mm A");
+            } else {
+              parsed = moment(timeOnly);
+              if (parsed.isValid()) {
+                timeOnly = parsed.format("hh:mm A");
+              } else {
+                console.warn(
+                  `normalizeTime: Failed to parse time string: ${timeOnly}`
+                );
+                return timeOnly; // Fallback to original string
+              }
+            }
+          }
+          return parsed.format("hh:mm A"); // Always return "hh:mm A" format
+        };
+
         // Map showData to create shows array dynamically
-        const showsMapped = showData.map((apiShow, index) => ({
-          counter: {
-            totalTickets: apiShow.offlineReport?.totalSeats || 0,
-            amount: apiShow.offlineReport?.totalAmount || 0,
-          },
-          online: {
-            totalTickets: apiShow.onlineReport?.totalSeats || 0,
-            amount: apiShow.onlineReport?.totalAmount || 0,
-          },
-          showTime: apiShow.showTime, // Store showTime for display
-        }));
+        const showsMapped = showData
+          .filter((apiShow) => apiShow.showTime)
+          .map((apiShow) => ({
+            counter: {
+              totalTickets: apiShow.offlineReport?.totalSeats || 0,
+              amount: apiShow.offlineReport?.totalAmount || 0,
+            },
+            online: {
+              totalTickets: apiShow.onlineReport?.totalSeats || 0,
+              amount: apiShow.onlineReport?.totalAmount || 0,
+            },
+            showTime: normalizeTime(apiShow.showTime),
+          }))
+          .sort((a, b) => {
+            const timeA = moment(a.showTime, "hh:mm A", true);
+            const timeB = moment(b.showTime, "hh:mm A", true);
+
+            if (timeA.isValid() && timeB.isValid()) {
+              return timeA.diff(timeB); // Chronological sort
+            }
+
+            console.warn(
+              `sort: Fallback to string comparison for times: ${a.showTime} vs ${b.showTime}`
+            );
+            return (a.showTime || "").localeCompare(b.showTime || "");
+          });
 
         setReportData((prev) => ({
           ...prev,
