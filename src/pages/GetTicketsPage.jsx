@@ -5,6 +5,7 @@ import api from "../config/api";
 import GetTicketPreviewPopup from "../dialog/GetTicketPreviewPopup";
 import { Tickets, Eye } from "lucide-react";
 import moment from "moment";
+import { formatShowTime } from "../utils/formatShowTime";
 
 const GetTicketsPage = () => {
   const [searchBookingId, setSearchBookingId] = useState("");
@@ -560,6 +561,17 @@ const GetTicketsPage = () => {
 
       {isTicketPopupOpen && bookingResult && (
         <div className="lg:sticky lg:top-4">
+          {(() => {
+            const timeValue =
+              bookingResult.showTimePlanner?.showTime?.showTime ||
+              bookingResult.showTimePlanner?.showTime ||
+              bookingResult.time ||
+              bookingResult.showTime;
+            console.log("Raw time value:", timeValue);
+            console.log("Formatted time value:", formatShowTime(timeValue));
+            return null; // Return null to avoid rendering anything from this block
+          })()}
+
           <GetTicketPreviewPopup
             selectedSeats={
               bookingResult.seatNumber?.map((seat) => seat.seatNo) || []
@@ -568,11 +580,12 @@ const GetTicketsPage = () => {
               movieName: bookingResult.movieDetails?.movieName || "Movie Title",
               poster: bookingResult.movieDetails?.image,
               date: bookingResult.date || bookingResult.showTimePlanner?.date,
-              time:
+              time: formatShowTime(
                 bookingResult.showTimePlanner?.showTime?.showTime ||
-                bookingResult.showTimePlanner?.showTime ||
-                bookingResult.time ||
-                bookingResult.showTime,
+                  bookingResult.showTimePlanner?.showTime ||
+                  bookingResult.time ||
+                  bookingResult.showTime
+              ),
               price:
                 bookingResult.price || bookingResult.showTimePlanner?.price,
               movieDetails: bookingResult.movieDetails,

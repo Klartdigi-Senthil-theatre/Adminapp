@@ -264,10 +264,6 @@ const GetTicketPreviewPopup = ({
         <div className="p-3 sm:p-6">
           <div className="flex flex-col items-center gap-4 sm:gap-6">
             {selectedSeats.map((seat) => {
-              const formatTime = showTime
-                ? moment(showTime, "HH:mm").format("h:mm A")
-                : "N/A";
-
               return (
                 <div
                   key={seat}
@@ -300,7 +296,7 @@ const GetTicketPreviewPopup = ({
 
                     <div className="flex justify-between">
                       <span className="font-semibold">Time:</span>
-                      <span>{formatTime}</span>
+                      <span>{showTime}</span>
                     </div>
 
                     <div className="border-t border-dashed border-gray-400 my-2"></div>
