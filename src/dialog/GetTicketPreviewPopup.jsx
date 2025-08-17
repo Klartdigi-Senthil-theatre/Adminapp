@@ -16,7 +16,6 @@ const GetTicketPreviewPopup = ({
   bookingId,
 }) => {
   const [isPrinting, setIsPrinting] = useState(false);
-  console.log(currentShow);
 
   const poster = currentShow?.movieDetails?.poster;
 

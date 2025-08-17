@@ -561,17 +561,6 @@ const GetTicketsPage = () => {
 
       {isTicketPopupOpen && bookingResult && (
         <div className="lg:sticky lg:top-4">
-          {(() => {
-            const timeValue =
-              bookingResult.showTimePlanner?.showTime?.showTime ||
-              bookingResult.showTimePlanner?.showTime ||
-              bookingResult.time ||
-              bookingResult.showTime;
-            console.log("Raw time value:", timeValue);
-            console.log("Formatted time value:", formatShowTime(timeValue));
-            return null; // Return null to avoid rendering anything from this block
-          })()}
-
           <GetTicketPreviewPopup
             selectedSeats={
               bookingResult.seatNumber?.map((seat) => seat.seatNo) || []
