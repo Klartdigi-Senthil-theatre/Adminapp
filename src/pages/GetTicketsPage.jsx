@@ -5,6 +5,7 @@ import api from "../config/api";
 import GetTicketPreviewPopup from "../dialog/GetTicketPreviewPopup";
 import { Tickets, Eye } from "lucide-react";
 import moment from "moment";
+import { formatShowTime } from "../utils/formatShowTime";
 
 const GetTicketsPage = () => {
   const [searchBookingId, setSearchBookingId] = useState("");
@@ -568,11 +569,12 @@ const GetTicketsPage = () => {
               movieName: bookingResult.movieDetails?.movieName || "Movie Title",
               poster: bookingResult.movieDetails?.image,
               date: bookingResult.date || bookingResult.showTimePlanner?.date,
-              time:
+              time: formatShowTime(
                 bookingResult.showTimePlanner?.showTime?.showTime ||
-                bookingResult.showTimePlanner?.showTime ||
-                bookingResult.time ||
-                bookingResult.showTime,
+                  bookingResult.showTimePlanner?.showTime ||
+                  bookingResult.time ||
+                  bookingResult.showTime
+              ),
               price:
                 bookingResult.price || bookingResult.showTimePlanner?.price,
               movieDetails: bookingResult.movieDetails,
