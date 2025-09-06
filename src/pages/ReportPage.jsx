@@ -410,6 +410,18 @@ const ReportPage = () => {
         <div className="w-full max-w-4xl">
           <div className="bg-white rounded-lg shadow-lg p-6 overflow-visible">
             <div className="print-area overflow-visible">
+              {/* Theater Name Header - Print Only */}
+              <div className="hidden print:block text-center mb-4 sm:mb-6">
+                <h1
+                  className="font-bold text-2xl sm:text-3xl lg:text-4xl"
+                  style={{
+                    color: "var(--color-teal-700)",
+                  }}
+                >
+                  Senthil Theater, Kattuputhur
+                </h1>
+              </div>
+
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold text-teal-700 flex items-center gap-2">
                   <FileText size={28} />
@@ -1544,6 +1556,23 @@ const ReportPage = () => {
             .border.border-emerald-500.rounded-lg.overflow-hidden.bg-emerald-50 .text-sm {
               font-size: 12px !important;
             }
+            .print-area h1 {
+              font-size: 32px !important;
+              margin-bottom: 20px !important;
+              margin-top: 20px !important;
+              color: #0f766e !important;
+              font-weight: bold !important;
+              text-align: center !important;
+              border: 3px solid #0f766e !important;
+              background-color: #f0fdfa !important;
+              padding: 15px 20px !important;
+              border-radius: 8px !important;
+              text-transform: uppercase !important;
+              letter-spacing: 2px !important;
+              box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+              display: block !important;
+            }
+
             h2.text-2xl.font-bold.text-teal-700 {
               margin-top: 30px !important;
               font-size: 28px !important;
