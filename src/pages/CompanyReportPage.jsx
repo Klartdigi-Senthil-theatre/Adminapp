@@ -4,7 +4,7 @@ import { FileText } from "lucide-react";
 import api from "../config/api";
 import moment from "moment/moment";
 
-const DailyReportPage = () => {
+const CompanyReportPage = () => {
   const [loading, setLoading] = useState(false);
   const [reportData, setReportData] = useState({
     date: "",
@@ -22,12 +22,10 @@ const DailyReportPage = () => {
         const startDate = reportData.date;
         const endDate = reportData.date;
 
-        // 1. Get Daily Summary
+        // 1. Get Company Summary
         const dailyData = await api.get(
           `/reports/bookings/date?startDate=${startDate}&endDate=${endDate}`
         );
-
-        console.log(dailyData);
 
         // 2. Get Show-wise Data
         const showData = await api.get(
@@ -136,14 +134,31 @@ const DailyReportPage = () => {
   const calculateTotal = (showIndex, field) => {
     const show = reportData.shows[showIndex];
     const counter = parseInt(show.counter[field]) || 0;
-    const online = parseInt(show.online[field]) || 0;
+    let online;
+    if (field === "amount") {
+      online = calculateOnlineAmount(showIndex);
+    } else {
+      online = parseInt(show.online[field]) || 0;
+    }
     return counter + online;
   };
 
   const calculateSummary = (type, field) => {
-    return reportData.shows.reduce((total, show) => {
+    return reportData.shows.reduce((total, show, index) => {
+      if (type === "online" && field === "amount") {
+        return total + calculateOnlineAmount(index);
+      }
       return total + (parseInt(show[type][field]) || 0);
     }, 0);
+  };
+
+  const calculateOnlineAmount = (showIndex) => {
+    const show = reportData.shows[showIndex];
+    const baseAmount = parseInt(show.online.amount) || 0;
+    const totalTickets = parseInt(show.online.totalTickets) || 0;
+    const deductionPerTicket = 20; // Fixed deduction per ticket
+    const totalDeduction = totalTickets * deductionPerTicket;
+    return baseAmount - totalDeduction;
   };
 
   return (
@@ -186,7 +201,7 @@ const DailyReportPage = () => {
                 }}
               >
                 <FileText className="w-5 h-5 sm:w-6 sm:h-6" />
-                Daily Collection Report
+                Company Collection Report
               </h2>
             </div>
 
@@ -354,7 +369,7 @@ const DailyReportPage = () => {
                               <span className="mr-1">₹</span>
                               <input
                                 type="number"
-                                value={show.online.amount}
+                                value={calculateOnlineAmount(index)}
                                 onChange={(e) =>
                                   handleShowChange(
                                     index,
@@ -470,7 +485,7 @@ const DailyReportPage = () => {
                               <span>₹</span>
                               <input
                                 type="number"
-                                value={show.online.amount}
+                                value={calculateOnlineAmount(index)}
                                 onChange={(e) =>
                                   handleShowChange(
                                     index,
@@ -501,7 +516,7 @@ const DailyReportPage = () => {
               ))}
             </div>
 
-            {/* Daily Summary */}
+            {/* Company Summary */}
             <div className="border border-gray-300 rounded-lg overflow-hidden">
               <div className="bg-green-50 p-3 border-b border-gray-300">
                 <h2
@@ -672,12 +687,12 @@ const DailyReportPage = () => {
                 type="button"
                 onClick={() => {
                   const formatDateForFilename = (dateString) => {
-                    if (!dateString) return "Daily Report";
+                    if (!dateString) return "Company Report";
                     const date = new Date(dateString);
                     const day = String(date.getDate()).padStart(2, "0");
                     const month = String(date.getMonth() + 1).padStart(2, "0");
                     const year = date.getFullYear();
-                    return `Daily Report (${day}-${month}-${year})`;
+                    return `Company Report (${day}-${month}-${year})`;
                   };
                   document.title = formatDateForFilename(reportData.date);
                   window.print();
@@ -1226,4 +1241,4 @@ const DailyReportPage = () => {
   );
 };
 
-export default DailyReportPage;
+export default CompanyReportPage;

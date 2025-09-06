@@ -649,6 +649,18 @@ const handleSubmit = async () => {
 
   return (
     <div className="p-4 lg:p-6">
+      {/* Print-only Theater Name Header */}
+      <div className="hidden print:block text-center mb-6">
+        <h1
+          className="font-bold text-3xl"
+          style={{
+            color: "var(--color-teal-700)",
+          }}
+        >
+          Senthil Theater, Kattuputhur
+        </h1>
+      </div>
+
       {/* Loading indicator */}
       {loading && (
         <div className="fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center z-50">
@@ -868,6 +880,34 @@ const handleSubmit = async () => {
           </div>
         </div>
       </div>
+
+      {/* Print Styles */}
+      <style>
+        {`
+          @media print {
+            .print\\:block {
+              display: block !important;
+            }
+            
+            .print\\:block h1 {
+              font-size: 32px !important;
+              margin-bottom: 20px !important;
+              margin-top: 20px !important;
+              color: #0f766e !important;
+              font-weight: bold !important;
+              text-align: center !important;
+              border: 3px solid #0f766e !important;
+              background-color: #f0fdfa !important;
+              padding: 15px 20px !important;
+              border-radius: 8px !important;
+              text-transform: uppercase !important;
+              letter-spacing: 2px !important;
+              box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+              display: block !important;
+            }
+          }
+        `}
+      </style>
     </div>
   );
 };

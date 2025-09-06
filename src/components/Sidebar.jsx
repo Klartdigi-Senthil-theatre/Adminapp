@@ -29,6 +29,7 @@ const navItems = [
   { path: "/get-tickets", icon: Tickets, name: "Get Tickets" },
   { path: "/report", icon: FileText, name: "Showtime Report" },
   { path: "/daily-report", icon: FileText, name: "Daily Report" },
+  { path: "/company-report", icon: FileText, name: "Company Report" },
 ];
 
 // Fixed Sidebar Component
@@ -67,18 +68,18 @@ const Sidebar = ({ isOpen, setIsOpen, isMobile }) => {
       };
 
       setSidebarHeight();
-      
+
       // Handle orientation change and viewport changes
       const handleResize = () => {
         setTimeout(setSidebarHeight, 100); // Small delay for orientation change
       };
 
-      window.addEventListener('resize', handleResize);
-      window.addEventListener('orientationchange', handleResize);
-      
+      window.addEventListener("resize", handleResize);
+      window.addEventListener("orientationchange", handleResize);
+
       return () => {
-        window.removeEventListener('resize', handleResize);
-        window.removeEventListener('orientationchange', handleResize);
+        window.removeEventListener("resize", handleResize);
+        window.removeEventListener("orientationchange", handleResize);
       };
     }
   }, [isMobile, isOpen]);
@@ -116,9 +117,9 @@ const Sidebar = ({ isOpen, setIsOpen, isMobile }) => {
         style={{
           // Prevent scroll issues on mobile
           ...(isMobile && {
-            touchAction: 'pan-y',
-            overscrollBehavior: 'contain'
-          })
+            touchAction: "pan-y",
+            overscrollBehavior: "contain",
+          }),
         }}
       >
         {/* Header */}
