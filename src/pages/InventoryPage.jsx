@@ -75,6 +75,17 @@ const InventoryPage = () => {
     }
   };
 
+  // Fetch a single inventory item by ID (for future use)
+  const fetchInventoryItem = async (id) => {
+    try {
+      const data = await api.get(`/inventory/${id}`);
+      return data;
+    } catch (err) {
+      console.error('Error fetching inventory item:', err);
+      throw err;
+    }
+  };
+
   useEffect(() => {
     fetchInventory();
   }, []);
@@ -115,48 +126,32 @@ const InventoryPage = () => {
       minimumStockLevel: minimumStockLevel,
       supplier: formData.supplier.trim(),
       visibility: formData.visibility,
-      updatedAt: new Date().toISOString(), // Add timestamp
     };
 
     try {
       setSubmitting(true);
       
       if (editingItem) {
-        // Update existing item
+        // Update existing item using PUT /inventory/{id}
         const updatedItem = await api.put(`/inventory/${editingItem.id}`, itemData);
         
-        // Update local state with the response data or merge with existing data
-        const finalUpdatedItem = {
-          ...editingItem,
-          ...itemData,
-          ...updatedItem,
-          id: editingItem.id, // Ensure ID is preserved
-        };
-        
+        // Update local state with the response data
         setInventory(prevInventory =>
           prevInventory.map(item =>
-            item.id === editingItem.id ? finalUpdatedItem : item
+            item.id === editingItem.id ? { ...item, ...updatedItem } : item
           )
         );
       } else {
-        // Create new item
+        // Create new item using POST /inventory
         const newItem = await api.post('/inventory', itemData);
         
-        // Create a complete item object
-        const finalNewItem = {
-          ...itemData,
-          ...newItem,
-          id: newItem.id || Date.now(), // Use API response ID or generate one
-          createdAt: newItem.createdAt || new Date().toISOString(),
-          updatedAt: newItem.updatedAt || new Date().toISOString(),
-        };
-        
-        setInventory(prevInventory => [...prevInventory, finalNewItem]);
+        // Add the new item to the inventory list
+        setInventory(prevInventory => [...prevInventory, newItem]);
       }
       
       resetForm();
       
-      // Optional: Show success message
+      // Show success message
       alert(editingItem ? 'Item updated successfully!' : 'Item added successfully!');
       
     } catch (err) {
@@ -213,6 +208,7 @@ const InventoryPage = () => {
     }
 
     try {
+      // Use DELETE /inventory/{id} endpoint
       await api.delete(`/inventory/${id}`);
       setInventory(prevInventory => 
         prevInventory.filter(item => item.id !== id)
