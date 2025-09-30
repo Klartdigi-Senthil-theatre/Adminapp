@@ -323,7 +323,8 @@ useEffect(() => {
   const isDateEditable = () => {
     const today = moment().startOf('day');
     const selected = selectedDate.clone().startOf('day');
-    return selected.isAfter(today);
+    // Allow editing for today and future dates
+    return selected.isSameOrAfter(today, 'day');
   };
 
   // Get active showtimes for display
