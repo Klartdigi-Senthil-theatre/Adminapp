@@ -11,148 +11,56 @@ import {
 import { notify } from "../components/Notification";
 import CustomDropdown from "../components/CustomDropdown";
 import TimingDropdown from "../components/TimingDropDown";
-import autoTable from "jspdf-autotable";
 import jsPDF from "jspdf";
+import api from "../config/api";
 
 export default function SnacksPage() {
-  const [cart, setCart] = useState([]);  
+  const [cart, setCart] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filterCategory, setFilterCategory] = useState("All");
-  const [currentShow, setCurrentShow] = useState({ time: "" });
+  const [currentShow, setCurrentShow] = useState({
+    date: new Date().toISOString().split("T")[0],
+    time: "",
+  });
   const [isMobileCartOpen, setIsMobileCartOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [snacks, setSnacks] = useState([]);
 
-   useEffect(() => {
-      const fetchSnacks = async () => {
-        try {
-          setCurrentShow(data);
-          setLoading(false);
-        } catch (err) {
-          setLoading(false);
-        }
-      };
-  
-      fetchSnacks();
-    }, []);
+  useEffect(() => {
+    const fetchSnacks = async () => {
+      try {
+        setLoading(true);
+        const data = await api.get('/inventory');
+        const mapped = (Array.isArray(data) ? data : [])
+          .filter(item => (item?.visibility ?? true) && (item?.active ?? true))
+          .map(item => ({
+            id: item.id,
+            name: item.itemName || 'N/A',
+            price: Number(item.unitPrice) || 0,
+            image: item.image || '',
+            stock: Number(item.quantity) || 0,
+            category: item.category || 'Others',
+            minimumStockLevel: Number(item.minimumStockLevel) || 0,
+          }));
+        setSnacks(mapped);
+      } catch (err) {
+        console.error('Failed to load snacks', err);
+        notify.error(err?.message || 'Failed to load snacks');
+        setSnacks([]);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const snacks = [
-    {
-      id: 1,
-      name: "Popcorn Large",
-      price: 299,
-      image:
-        "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=300&fit=crop",
-      stock: 50,
-      category: "Snacks",
-    },
-    {
-      id: 2,
-      name: "Coca Cola",
-      price: 149,
-      image:
-        "https://images.unsplash.com/photo-1581636625402-29b2a704ef13?w=400&h=300&fit=crop",
-      stock: 100,
-      category: "Beverages",
-    },
-    {
-      id: 3,
-      name: "Nachos",
-      price: 199,
-      image:
-        "https://images.unsplash.com/photo-1513456852971-30c0b8199d4d?w=400&h=300&fit=crop",
-      stock: 30,
-      category: "Snacks",
-    },
-    {
-      id: 4,
-      name: "Ice Cream",
-      price: 129,
-      image:
-        "https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=400&h=300&fit=crop",
-      stock: 40,
-      category: "Desserts",
-    },
-    {
-      id: 5,
-      name: "Chocolate Bar",
-      price: 119,
-      image:
-        "https://images.unsplash.com/photo-1575377427642-087cf684f29d?w=400&h=300&fit=crop",
-      stock: 45,
-      category: "Desserts",
-    },
-    {
-      id: 6,
-      name: "Burger",
-      price: 229,
-      image:
-        "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&h=300&fit=crop",
-      stock: 15,
-      category: "Meals",
-    },
-    {
-      id: 7,
-      name: "French Fries",
-      price: 169,
-      image:
-        "https://images.unsplash.com/photo-1541592106381-b31e9677c0e5?w=400&h=300&fit=crop",
-      stock: 30,
-      category: "Snacks",
-    },
-    {
-      id: 8,
-      name: "Mineral Water",
-      price: 99,
-      image:
-        "https://images.unsplash.com/photo-1561047029-3000c68339ca?w=400&h=300&fit=crop",
-      stock: 80,
-      category: "Beverages",
-    },
-    {
-      id: 9,
-      name: "Pizza Slice",
-      price: 249,
-      image:
-        "https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&h=300&fit=crop",
-      stock: 20,
-      category: "Meals",
-    },
-    {
-      id: 10,
-      name: "Pretzel",
-      price: 159,
-      image:
-        "https://images.unsplash.com/photo-1580837418631-9dd55f1c3a1a?w=400&h=300&fit=crop",
-      stock: 35,
-      category: "Snacks",
-    },
-    {
-      id: 11,
-      name: "Hot Dog",
-      price: 179,
-      image:
-        "https://images.unsplash.com/photo-1612392062798-2570bc02fdd3?w=400&h=300&fit=crop",
-      stock: 25,
-      category: "Meals",
-    },
-    {
-      id: 12,
-      name: "Iced Tea",
-      price: 139,
-      image:
-        "https://images.unsplash.com/photo-1567095761054-7a60e326e576?w=400&h=300&fit=crop",
-      stock: 60,
-      category: "Beverages",
-    },
-  ];
+    fetchSnacks();
+  }, []);
 
-  const categoryOptions = [
-    { id: "All", title: "All Categories" },
-    { id: "Snacks", title: "Snacks" },
-    { id: "Beverages", title: "Beverages" },
-    { id: "Desserts", title: "Desserts" },
-    { id: "Meals", title: "Meals" },
-  ];
+  const categoryOptions = React.useMemo(() => {
+    const unique = Array.from(
+      new Set(snacks.map(s => s.category).filter(Boolean))
+    ).sort();
+    return [{ id: 'All', title: 'All Categories' }, ...unique.map(c => ({ id: c, title: c }))];
+  }, [snacks]);
 
   const generatePDFReceipt = () => {
     const doc = new jsPDF();
@@ -165,19 +73,24 @@ export default function SnacksPage() {
     doc.setFontSize(12);
     doc.setTextColor(0, 0, 0);
     doc.text("Order Receipt", 15, 35);
-    doc.text(`Date: ${new Date().toLocaleDateString()}`, 195, 35, {
+    doc.text(`Date: ${getCurrentDate()}`, 195, 35, {
       align: "right",
     });
-    doc.text(`Time: ${new Date().toLocaleTimeString()}`, 195, 45, {
+    doc.text(`Time: ${new Date().toLocaleTimeString('en-US', { hour12: true, hour: 'numeric', minute: '2-digit', second: '2-digit' })}`, 195, 45, {
       align: "right",
     });
+
+    // Show timing information if selected
+    if (currentShow.time) {
+      doc.text(`Show Time: ${currentShow.time}`, 15, 45);
+    }
 
     // Decorative line
     doc.setDrawColor(255, 165, 0);
     doc.setLineWidth(1);
-    doc.line(15, 50, 195, 50);
+    doc.line(15, 55, 195, 55);
 
-    let yPosition = 65;
+    let yPosition = 70;
 
     // Group items by category
     const categorizedItems = cart.reduce((acc, item) => {
@@ -285,6 +198,11 @@ export default function SnacksPage() {
     // Footer
     doc.setFontSize(10);
     doc.setTextColor(100, 100, 100);
+
+    // Receipt number
+    const receiptNumber = `REC-${new Date().getTime().toString().slice(-6)}`;
+    doc.text(`Receipt No: ${receiptNumber}`, 15, doc.internal.pageSize.height - 30);
+
     doc.text(
       "Thank you for your purchase! Enjoy your movie!",
       105,
@@ -299,7 +217,7 @@ export default function SnacksPage() {
     );
 
     // Save the PDF
-    doc.save(`snack_order_${new Date().getTime()}.pdf`);
+    doc.save(`snack_order_${receiptNumber}.pdf`);
   };
 
   const handleSave = () => {
@@ -460,7 +378,7 @@ export default function SnacksPage() {
       <div className="hidden lg:flex gap-6 h-[calc(110vh-180px)]">
         {/* Left Side - Snacks Grid */}
         <div className="w-2/3 overflow-y-auto pr-2">
-          <div className="grid grid-cols-4 gap-4 lg:gap-6">
+          <div className="grid grid-cols-1 grid-rows-2 sm:grid-cols-3 lg:grid-rows-1 gap-4 lg:gap-2">
             {filteredSnacks.map((snack) => (
               <div
                 key={snack.id}
@@ -614,7 +532,7 @@ export default function SnacksPage() {
 
       {/* Mobile View - Single Column */}
       <div className="lg:hidden">
-        <div className="grid grid-cols-2 gap-4 lg:gap-6">
+        <div className="grid grid-cols-1 grid-rows-2 sm:grid-cols-2 lg:grid-rows-1 gap-4 lg:gap-2">
           {filteredSnacks.map((snack) => (
             <div
               key={snack.id}
