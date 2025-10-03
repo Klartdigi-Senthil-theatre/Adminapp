@@ -1,14 +1,16 @@
 import { ChevronDown } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import api from "../config/api";
+import { isTimeDisabledForSnacks } from "../utils/snacksTimeHelpers";
 import moment from "moment";
 
-const TimingDropdown = ({ currentShow, onTimeSelect }) => {
+const TimingDropdown = ({ currentShow, onTimeSelect, context = "booking" }) => {
   const [moviesMap, setMoviesMap] = useState(new Map());
   const [isOpen, setIsOpen] = useState(false);
   const [availableTimings, setAvailableTimings] = useState([]);
   const [showTimeData, setShowTimeData] = useState([]); // Store full showtime data with movies
   const [loading, setLoading] = useState(true);
+  const dropdownRef = useRef(null);
 
   const isTimeInPast = (time) => {
     if (!currentShow?.date || !time) return false;
@@ -76,7 +78,13 @@ const TimingDropdown = ({ currentShow, onTimeSelect }) => {
       );
 
       if (tryFull.isValid()) {
-        return moment().isAfter(tryFull.clone().add(1, "hour"));
+        if (context === "snacks") {
+          // For snacks: only disable after next show starts
+          return isSnacksTimeDisabled(tryFull, isoDate);
+        } else {
+          // For booking: use original logic (current time + 1 hour buffer)
+          return moment().isAfter(tryFull.clone().add(1, "hour"));
+        }
       }
       // if can't parse strict, keep going to other attempts
       // extract last token as fallback time
@@ -119,25 +127,41 @@ const TimingDropdown = ({ currentShow, onTimeSelect }) => {
     ); // strict mode
 
     if (parsedStrict.isValid()) {
-      console.log("Now local:", moment().format("YYYY-MM-DD HH:mm"));
-      console.log("Parsed local:", parsedStrict.format("YYYY-MM-DD HH:mm"));
-      console.log(
-        "Buffer cutoff:",
-        moment().add(1, "hour").format("YYYY-MM-DD HH:mm")
-      );
+      if (context === "snacks") {
+        // For snacks: only disable after next show starts
+        return isSnacksTimeDisabled(parsedStrict, isoDate);
+      } else {
+        // For booking: use original logic (current time + 1 hour buffer)
+        console.log("Now local:", moment().format("YYYY-MM-DD HH:mm"));
+        console.log("Parsed local:", parsedStrict.format("YYYY-MM-DD HH:mm"));
+        console.log(
+          "Buffer cutoff:",
+          moment().add(1, "hour").format("YYYY-MM-DD HH:mm")
+        );
 
-      return moment().isAfter(parsedStrict.clone().add(1, "hour"));
+        return moment().isAfter(parsedStrict.clone().add(1, "hour"));
+      }
     }
 
     // Fallback - loose parse
     const parsedLoose = moment(datetimeStr);
     if (parsedLoose.isValid()) {
-      return moment().isAfter(parsedLoose.clone().add(1, "hour"));
+      if (context === "snacks") {
+        // For snacks: only disable after next show starts
+        return isSnacksTimeDisabled(parsedLoose, isoDate);
+      } else {
+        // For booking: use original logic (current time + 1 hour buffer)
+        return moment().isAfter(parsedLoose.clone().add(1, "hour"));
+      }
     }
 
     // If we still cannot parse, be permissive (allow selection)
     return false;
   };
+
+  // Wrapper to call shared snacks helper with local state
+  const isSnacksTimeDisabled = (showTime, isoDate) =>
+    isTimeDisabledForSnacks(availableTimings, showTime, isoDate);
 
   // Fetch available showtimes with assigned movies for the selected date
   useEffect(() => {
@@ -296,8 +320,21 @@ const TimingDropdown = ({ currentShow, onTimeSelect }) => {
     setIsOpen(false);
   };
 
+  // Close when clicking outside of the dropdown
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!isOpen) return;
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isOpen]);
+
   return (
-    <div className="relative flex items-center gap-1 sm:gap-3">
+    <div ref={dropdownRef} className="relative flex items-center gap-1 sm:gap-3">
       {/* Time label on the left - only show on desktop */}
       <span className="hidden sm:inline text-xs sm:text-sm text-gray-600">
         Time :
@@ -311,8 +348,8 @@ const TimingDropdown = ({ currentShow, onTimeSelect }) => {
           {loading
             ? "Loading..."
             : availableTimings.length === 0
-            ? "No shows"
-            : currentShow.time || "Select Time"}
+              ? "No shows"
+              : currentShow.time || "Select Time"}
         </span>
         <ChevronDown className="text-orange-600" size={14} />
 
@@ -341,16 +378,14 @@ const TimingDropdown = ({ currentShow, onTimeSelect }) => {
                       disabled={disabled}
                       aria-disabled={disabled}
                       className={`block w-full text-left px-2 sm:px-4 py-1 sm:py-2 text-xs sm:text-sm
-                      ${
-                        currentShow.time === time
+                      ${currentShow.time === time
                           ? "bg-orange-100 text-orange-700"
                           : ""
-                      }
-                      ${
-                        disabled
+                        }
+                      ${disabled
                           ? "cursor-not-allowed text-gray-400 opacity-70"
                           : "text-gray-700 hover:bg-gray-100"
-                      }
+                        }
                     `}
                     >
                       <span className="inline-block w-18 sm:w-24 truncate">

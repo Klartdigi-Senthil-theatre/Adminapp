@@ -11,7 +11,6 @@ import {
 import { notify } from "../components/Notification";
 import CustomDropdown from "../components/CustomDropdown";
 import TimingDropdown from "../components/TimingDropDown";
-import jsPDF from "jspdf";
 import api from "../config/api";
 
 export default function SnacksPage() {
@@ -62,36 +61,7 @@ export default function SnacksPage() {
     return [{ id: 'All', title: 'All Categories' }, ...unique.map(c => ({ id: c, title: c }))];
   }, [snacks]);
 
-  const generatePDFReceipt = () => {
-    const doc = new jsPDF();
-
-    // Header
-    doc.setFontSize(18);
-    doc.setTextColor(255, 165, 0); // Orange color
-    doc.text("Movie Snacks & Concessions", 105, 20, { align: "center" });
-
-    doc.setFontSize(12);
-    doc.setTextColor(0, 0, 0);
-    doc.text("Order Receipt", 15, 35);
-    doc.text(`Date: ${getCurrentDate()}`, 195, 35, {
-      align: "right",
-    });
-    doc.text(`Time: ${new Date().toLocaleTimeString('en-US', { hour12: true, hour: 'numeric', minute: '2-digit', second: '2-digit' })}`, 195, 45, {
-      align: "right",
-    });
-
-    // Show timing information if selected
-    if (currentShow.time) {
-      doc.text(`Show Time: ${currentShow.time}`, 15, 45);
-    }
-
-    // Decorative line
-    doc.setDrawColor(255, 165, 0);
-    doc.setLineWidth(1);
-    doc.line(15, 55, 195, 55);
-
-    let yPosition = 70;
-
+  const generateThermalPDFReceipt = () => {
     // Group items by category
     const categorizedItems = cart.reduce((acc, item) => {
       if (!acc[item.category]) {
@@ -101,128 +71,353 @@ export default function SnacksPage() {
       return acc;
     }, {});
 
-    // Draw each category and its items as cards
-    Object.entries(categorizedItems).forEach(([category, items]) => {
-      // Category header
-      doc.setFontSize(14);
-      doc.setTextColor(255, 165, 0);
-      doc.text(`${category}`, 15, yPosition);
-      yPosition += 10;
-
-      // Draw items as cards
-      items.forEach((item, index) => {
-        // Check if we need a new page
-        if (yPosition > 250) {
-          doc.addPage();
-          yPosition = 20;
-        }
-
-        // Card background (light gray rectangle)
-        doc.setFillColor(248, 249, 250); // Light gray
-        doc.setDrawColor(200, 200, 200); // Border color
-        doc.setLineWidth(0.5);
-        doc.roundedRect(15, yPosition - 5, 180, 35, 3, 3, "FD"); // Rounded rectangle with fill and border
-
-        // Item details
-        doc.setFontSize(12);
-        doc.setTextColor(0, 0, 0);
-        doc.text(item.name, 20, yPosition + 5);
-
-        doc.setFontSize(10);
-        doc.setTextColor(100, 100, 100);
-        doc.text(`Category: ${item.category}`, 20, yPosition + 15);
-
-        // Quantity and price info (right side of card)
-        doc.setFontSize(11);
-        doc.setTextColor(0, 0, 0);
-        doc.text(`Qty: ${item.quantity}`, 130, yPosition + 5);
-        doc.text(
-          `Unit Price: ₹${item.price.toLocaleString("en-IN")}`,
-          130,
-          yPosition + 15
-        );
-
-        // Total price (highlighted)
-        doc.setFontSize(12);
-        doc.setTextColor(255, 165, 0); // Orange color
-        doc.text(
-          `Total: ₹${(item.price * item.quantity).toLocaleString("en-IN")}`,
-          130,
-          yPosition + 25
-        );
-
-        yPosition += 45; // Space between cards
-      });
-
-      yPosition += 5; // Extra space between categories
-    });
-
-    // Summary section - ensure it fits on current page
-    if (yPosition > 200) {
-      doc.addPage();
-      yPosition = 20;
-    }
-
-    // Add some space before summary
-    yPosition += 5;
-
-    // Summary card
-    doc.setFillColor(255, 245, 235); // Light orange background
-    doc.setDrawColor(255, 165, 0); // Orange border
-    doc.setLineWidth(1);
-    doc.roundedRect(15, yPosition, 180, 60, 5, 5, "FD");
-
-    doc.setFontSize(16);
-    doc.setTextColor(255, 165, 0);
-    doc.text("Order Summary", 105, yPosition + 18, { align: "center" });
-
-    doc.setFontSize(12);
-    doc.setTextColor(0, 0, 0);
-    doc.text(`Total Items: ${getTotalItems()}`, 25, yPosition + 35);
-    doc.text(
-      `Subtotal: ₹${getTotalPrice().toLocaleString("en-IN")}`,
-      25,
-      yPosition + 45
-    );
-
-    // Final total (properly aligned)
-    doc.setFontSize(14);
-    doc.setTextColor(255, 165, 0);
-    doc.text(
-      `Grand Total: ₹${getTotalPrice().toLocaleString("en-IN")}`,
-      170,
-      yPosition + 45,
-      { align: "right" }
-    );
-
-    // Footer
-    doc.setFontSize(10);
-    doc.setTextColor(100, 100, 100);
-
-    // Receipt number
+    // Generate receipt number
     const receiptNumber = `REC-${new Date().getTime().toString().slice(-6)}`;
-    doc.text(`Receipt No: ${receiptNumber}`, 15, doc.internal.pageSize.height - 30);
 
-    doc.text(
-      "Thank you for your purchase! Enjoy your movie!",
-      105,
-      doc.internal.pageSize.height - 20,
-      { align: "center" }
-    );
-    doc.text(
-      "Visit us again for more delicious snacks!",
-      105,
-      doc.internal.pageSize.height - 10,
-      { align: "center" }
-    );
+    // Create thermal printer optimized HTML content
+    const printContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          /* 3-inch thermal paper optimized styles */
+          * {
+            -webkit-print-color-adjust: exact !important;
+            color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+          }
+          
+          body {
+            font-family: 'Courier New', monospace;
+            background: white;
+            margin: 0;
+            padding: 0;
+          }
+          
+          .thermal-receipt {
+            width: 100%;
+            max-width: 100vw;
+            margin: 0 2mm 2mm 0;
+            padding: 2mm;
+            background: white;
+            border: 1px dashed #ccc;
+            page-break-inside: avoid;
+            break-inside: avoid;
+          }
+          
+          .thermal-receipt:last-child {
+            margin-bottom: 0;
+          }
+          
+          .receipt-header {
+            background: #000 !important;
+            color: white !important;
+            padding: 1mm;
+            text-align: center;
+            margin-bottom: 1mm;
+          }
+          
+          .cinema-name {
+            font-size: 1.25rem;
+            font-weight: bold;
+            line-height: calc(2/1.25);
+            margin-bottom: 0.5mm;
+          }
+          
+          .receipt-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            line-height: calc(2/1.5);
+            margin-bottom: 0.5mm;
+            word-wrap: break-word;
+          }
+          
+          .receipt-body {
+            padding: 2mm;
+            font-size: 1.3rem;
+            font-weight: bold;
+            line-height: calc(2/1.5);
+          }
+          
+          .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1mm;
+            font-size: 1rem;
+            font-weight: bold;
+            line-height: calc(1.75/0.875);
+          }
+          
+          .label {
+            font-weight: bold;
+          }
+          
+          .value {
+            text-align: right;
+            max-width: 35mm;
+            word-wrap: break-word;
+          }
+          
+          .divider {
+            border-top: 1px dashed #000;
+            margin: 1.5mm 0;
+          }
+          
+          .center {
+            text-align: center;
+          }
+          
+          .category-header {
+            font-size: 1.5rem;
+            font-weight: bold;
+            text-align: center;
+            margin: 2mm 0;
+            color: #FF6C38;
+            border-bottom: 2px solid #FF6C38;
+            padding-bottom: 1mm;
+          }
+          
+          .item-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1mm;
+            font-size: 1rem;
+            font-weight: bold;
+          }
+          
+          .item-name {
+            flex: 1;
+            margin-right: 2mm;
+          }
+          
+          .item-details {
+            text-align: right;
+            min-width: 20mm;
+          }
+          
+          .summary-section {
+            margin-top: 3mm;
+            padding-top: 2mm;
+            border-top: 2px solid #000;
+          }
+          
+          .total-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 1mm;
+          }
+          
+          .grand-total {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #FF6C38;
+          }
+          
+          @media print {
+            body {
+              margin: 2mm !important;
+              padding: 0 !important;
+              orphans: 3;
+              widows: 3;
+            }
+            
+            @page {
+              size: 80mm auto;
+              margin: 0;
+            }
+            
+            .thermal-receipt {
+              margin: 0 2mm 2mm 0 !important;
+              border: 1px dashed #999 !important;
+              page-break-inside: avoid !important;
+              break-inside: avoid !important;
+              page-break-before: auto;
+              orphans: 1;
+              widows: 1;
+            }
+            
+            .thermal-receipt:last-child {
+              margin-bottom: 0 !important;
+            }
+            
+            .receipt-header, .receipt-body {
+              page-break-inside: avoid !important;
+              break-inside: avoid !important;
+            }
+          }
+        </style>
+      </head>
+      <body>
+        ${Object.entries(categorizedItems).map(([category, items]) => {
+          const categoryTotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+          const categoryItems = items.reduce((sum, item) => sum + item.quantity, 0);
+          
+          return `
+            <div class="thermal-receipt">
+              <div class="receipt-header">
+                <div class="cinema-name">SENTHIL CINEMAS A/C</div>
+                <div class="receipt-title">SNACKS ORDER</div>
+              </div>
+              
+              <div class="receipt-body">
+                <div class="info-row">
+                  <span class="label">Receipt No:</span>
+                  <span class="value">${receiptNumber}</span>
+                </div>
+                
+                <div class="info-row">
+                  <span class="label">Date:</span>
+                  <span class="value">${getCurrentDate()}</span>
+                </div>
+                
+                <div class="info-row">
+                  <span class="label">Time:</span>
+                  <span class="value">${new Date().toLocaleTimeString('en-US', { hour12: true, hour: 'numeric', minute: '2-digit', second: '2-digit' })}</span>
+                </div>
+                
+                ${currentShow.time ? `
+                  <div class="info-row">
+                    <span class="label">Show Time:</span>
+                    <span class="value">${currentShow.time}</span>
+                  </div>
+                ` : ''}
+                
+                <div class="divider"></div>
+                
+                <div class="category-header">${category.toUpperCase()}</div>
+                
+                ${items.map(item => `
+                  <div class="item-row">
+                    <div class="item-name">${item.name}</div>
+                    <div class="item-details">
+                      <div>Qty: ${item.quantity}</div>
+                      <div>₹${item.price} × ${item.quantity}</div>
+                      <div style="color: #FF6C38; font-weight: bold;">₹${(item.price * item.quantity).toFixed(0)}</div>
+                    </div>
+                  </div>
+                `).join('')}
+                
+                <div class="summary-section">
+                  <div class="total-row">
+                    <span>Total:</span>
+                    <span>₹${categoryTotal.toFixed(0)}</span>
+                  </div>
+                  <div class="total-row">
+                    <span>Items:</span>
+                    <span>${categoryItems}</span>
+                  </div>
+                </div>
+                
+                <div class="divider"></div>
+                
+                <div class="center" style="font-size: 0.875rem; margin-top: 1.5mm;">
+                  <div>GST: 33CMMPP7822B1Z2</div>
+                  <div style="margin-top: 0.5mm;">Premium Cinema Experience</div>
+                  <div style="margin-top: 1mm;">Thank You!</div>
+                  <div style="margin-top: 0.5mm; font-size: 0.75rem;">மது அருந்தியவர்களுக்கு அனுமதி இல்லை. 3 வயது மற்றும் அதற்கு மேற்பட்டவர்களுக்கு டிக்கெட் கட்டாயம்.</div>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('')}
+        
+        <!-- Overall Summary Receipt -->
+        <div class="thermal-receipt">
+          <div class="receipt-header">
+            <div class="cinema-name">SENTHIL CINEMAS A/C</div>
+            <div class="receipt-title">ORDER SUMMARY</div>
+          </div>
+          
+          <div class="receipt-body">
+            <div class="info-row">
+              <span class="label">Receipt No:</span>
+              <span class="value">${receiptNumber}</span>
+            </div>
+            
+            <div class="info-row">
+              <span class="label">Date:</span>
+              <span class="value">${getCurrentDate()}</span>
+            </div>
+            
+            <div class="info-row">
+              <span class="label">Time:</span>
+              <span class="value">${new Date().toLocaleTimeString('en-US', { hour12: true, hour: 'numeric', minute: '2-digit', second: '2-digit' })}</span>
+            </div>
+            
+            ${currentShow.time ? `
+              <div class="info-row">
+                <span class="label">Show Time:</span>
+                <span class="value">${currentShow.time}</span>
+              </div>
+            ` : ''}
+            
+            <div class="divider"></div>
+            
+            <div class="category-header">ORDER BREAKDOWN</div>
+            
+            ${Object.entries(categorizedItems).map(([category, items]) => {
+              const categoryTotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+              const categoryItems = items.reduce((sum, item) => sum + item.quantity, 0);
+              
+              return `
+                <div class="item-row">
+                  <div class="item-name">${category}</div>
+                  <div class="item-details">
+                    <div>${categoryItems} items</div>
+                    <div style="color: #FF6C38; font-weight: bold;">₹${categoryTotal.toFixed(0)}</div>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+            
+            <div class="summary-section">
+              <div class="total-row">
+                <span>Total Items:</span>
+                <span>${getTotalItems()}</span>
+              </div>
+              <div class="total-row grand-total">
+                <span>GRAND TOTAL:</span>
+                <span>₹${getTotalPrice().toFixed(0)}</span>
+              </div>
+            </div>
+            
+            <div class="divider"></div>
+            
+            <div class="center" style="font-size: 0.875rem; margin-top: 1.5mm;">
+              <div>GST: 33CMMPP7822B1Z2</div>
+              <div style="margin-top: 0.5mm;">Premium Cinema Experience</div>
+              <div style="margin-top: 1mm;">Thank You!</div>
+              <div style="margin-top: 0.5mm; font-size: 0.75rem;">மது அருந்தியவர்களுக்கு அனுமதி இல்லை. 3 வயது மற்றும் அதற்கு மேற்பட்டவர்களுக்கு டிக்கெட் கட்டாயம்.</div>
+            </div>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
 
-    // Save the PDF
-    doc.save(`snack_order_${receiptNumber}.pdf`);
+    document.write(printContent);
+    document.close();
+
+    // Wait for content to load before printing
+    setTimeout(() => {
+      window.print();
+      window.location.reload(); // go back to your app
+    }, 500);
+
   };
 
   const handleSave = () => {
+    if (!currentShow.time) {
+      notify.error("Please select a show time before printing.");
+      return;
+    }
     notify.success("Checkout Successfully !...");
-    generatePDFReceipt();
+    generateThermalPDFReceipt();
   };
 
   const addToCart = (item) => {
@@ -312,6 +507,7 @@ export default function SnacksPage() {
             <TimingDropdown
               currentShow={currentShow}
               onTimeSelect={(time) => setCurrentShow({ ...currentShow, time })}
+              context="snacks"
             />
           </div>
 
@@ -350,6 +546,7 @@ export default function SnacksPage() {
             <TimingDropdown
               currentShow={currentShow}
               onTimeSelect={(time) => setCurrentShow({ ...currentShow, time })}
+              context="snacks"
             />
           </div>
 
