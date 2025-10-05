@@ -12,6 +12,8 @@ import moment from "moment";
 import PageHeader from "../components/PageHeader";
 import CustomDropdown from "../components/CustomDropdown";
 import api from "../config/api"; // Import the global API file
+import { storage } from "../config/firebase";
+import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 
 // Inventory Page Component
 const InventoryPage = () => {
@@ -24,6 +26,9 @@ const InventoryPage = () => {
   const [filterCategory, setFilterCategory] = useState("All");
   const [filterStatus, setFilterStatus] = useState("All");
   const [submitting, setSubmitting] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [imagePreview, setImagePreview] = useState("");
   const [formData, setFormData] = useState({
     itemName: "",
     image: "",
@@ -102,6 +107,11 @@ const InventoryPage = () => {
       return;
     }
 
+    if (uploading) {
+      alert("Please wait for the image upload to finish");
+      return;
+    }
+
     // Validate numeric fields
     const quantity = parseInt(formData.quantity);
     const unitPrice = parseFloat(formData.unitPrice);
@@ -173,6 +183,9 @@ const InventoryPage = () => {
       supplier: "",
       visibility: true,
     });
+    setImagePreview("");
+    setUploadProgress(0);
+    setUploading(false);
     setShowDialog(false);
     setEditingItem(null);
   };
@@ -195,6 +208,7 @@ const InventoryPage = () => {
         supplier: item.supplier || "",
         visibility: item.visibility !== undefined ? item.visibility : true,
       });
+      setImagePreview(item.image || "");
       setShowDialog(true);
     } catch (err) {
       console.error('Error editing item:', err);
@@ -230,6 +244,55 @@ const InventoryPage = () => {
     if (quantity === 0) return "Out of Stock";
     if (quantity <= minimumStockLevel) return "Low Stock";
     return "In Stock";
+  };
+
+  const handleImageSelected = (event) => {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+
+    // Basic validation
+    if (!file.type.startsWith("image/")) {
+      alert("Please select a valid image file");
+      return;
+    }
+
+    // Local preview
+    setImagePreview(URL.createObjectURL(file));
+
+    // Start upload
+    const uniqueName = `inventory/${Date.now()}_${file.name}`;
+    const storageRef = ref(storage, uniqueName);
+    const uploadTask = uploadBytesResumable(storageRef, file);
+
+    setUploading(true);
+    setUploadProgress(0);
+
+    uploadTask.on(
+      "state_changed",
+      (snapshot) => {
+        const progress = Math.round(
+          (snapshot.bytesTransferred / snapshot.totalBytes) * 100
+        );
+        setUploadProgress(progress);
+      },
+      (err) => {
+        console.error("Image upload error:", err);
+        setUploading(false);
+        setUploadProgress(0);
+        alert(`Upload error: ${err.message || 'Failed to upload image'}`);
+      },
+      async () => {
+        try {
+          const downloadUrl = await getDownloadURL(uploadTask.snapshot.ref);
+          setFormData((prev) => ({ ...prev, image: downloadUrl }));
+        } catch (e) {
+          console.error("Failed to get download URL", e);
+          alert("Failed to get image URL after upload");
+        } finally {
+          setUploading(false);
+        }
+      }
+    );
   };
 
   const filteredInventory = inventory.filter((item) => {
@@ -538,17 +601,35 @@ const InventoryPage = () => {
 
                 <div>
                   <label className="block text-sm font-medium mb-1">
-                    Image URL
+                    Image
                   </label>
                   <input
                     type="file"
-                    onChange={(e) =>
-                      setFormData({ ...formData, image: e.target.value })
-                    }
+                    accept="image/*"
+                    onChange={handleImageSelected}
                     className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                    placeholder="Enter image URL"
                     disabled={submitting}
                   />
+                  {(imagePreview || formData.image) && (
+                    <div className="mt-2">
+                      <img
+                        src={imagePreview || formData.image}
+                        alt="Preview"
+                        className="h-24 w-24 object-cover rounded"
+                      />
+                    </div>
+                  )}
+                  {uploading && (
+                    <div className="mt-2">
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div
+                          className="bg-orange-600 h-2 rounded-full"
+                          style={{ width: `${uploadProgress}%` }}
+                        ></div>
+                      </div>
+                      <p className="text-xs text-gray-600 mt-1">Uploading... {uploadProgress}%</p>
+                    </div>
+                  )}
                 </div>
 
                 <div>
@@ -662,7 +743,7 @@ const InventoryPage = () => {
                     type="button"
                     onClick={handleSubmit}
                     className="flex-1 bg-orange-600 text-white py-3 px-4 rounded-lg hover:bg-orange-700 font-medium disabled:bg-gray-400"
-                    disabled={submitting}
+                    disabled={submitting || uploading}
                   >
                     {submitting 
                       ? (editingItem ? "Updating..." : "Adding...") 

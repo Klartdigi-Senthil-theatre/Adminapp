@@ -12,8 +12,10 @@ import { notify } from "../components/Notification";
 import CustomDropdown from "../components/CustomDropdown";
 import TimingDropdown from "../components/TimingDropDown";
 import api from "../config/api";
+import { useAuth } from "../context/AuthContext";
 
 export default function SnacksPage() {
+  const { user } = useAuth();
   const [cart, setCart] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filterCategory, setFilterCategory] = useState("All");
@@ -24,6 +26,17 @@ export default function SnacksPage() {
   const [isMobileCartOpen, setIsMobileCartOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [snacks, setSnacks] = useState([]);
+  const [checkingOut, setCheckingOut] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [paymentMode, setPaymentMode] = useState("Cash");
+
+  const paymentOptions = [
+    { id: "Cash", title: "Cash" },
+    { id: "UPI", title: "UPI" },
+    { id: "Card", title: "Card" },
+    { id: "Debit Card", title: "Debit Card" },
+    { id: "Credit Card", title: "Credit Card" },
+  ];
 
   useEffect(() => {
     const fetchSnacks = async () => {
@@ -254,10 +267,10 @@ export default function SnacksPage() {
       </head>
       <body>
         ${Object.entries(categorizedItems).map(([category, items]) => {
-          const categoryTotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-          const categoryItems = items.reduce((sum, item) => sum + item.quantity, 0);
-          
-          return `
+      const categoryTotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+      const categoryItems = items.reduce((sum, item) => sum + item.quantity, 0);
+
+      return `
             <div class="thermal-receipt">
               <div class="receipt-header">
                 <div class="cinema-name">SENTHIL CINEMAS A/C</div>
@@ -324,7 +337,7 @@ export default function SnacksPage() {
               </div>
             </div>
           `;
-        }).join('')}
+    }).join('')}
         
         <!-- Overall Summary Receipt -->
         <div class="thermal-receipt">
@@ -361,10 +374,10 @@ export default function SnacksPage() {
             <div class="category-header">ORDER BREAKDOWN</div>
             
             ${Object.entries(categorizedItems).map(([category, items]) => {
-              const categoryTotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-              const categoryItems = items.reduce((sum, item) => sum + item.quantity, 0);
-              
-              return `
+      const categoryTotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+      const categoryItems = items.reduce((sum, item) => sum + item.quantity, 0);
+
+      return `
                 <div class="item-row">
                   <div class="item-name">${category}</div>
                   <div class="item-details">
@@ -373,7 +386,7 @@ export default function SnacksPage() {
                   </div>
                 </div>
               `;
-            }).join('')}
+    }).join('')}
             
             <div class="summary-section">
               <div class="total-row">
@@ -411,13 +424,54 @@ export default function SnacksPage() {
 
   };
 
-  const handleSave = () => {
+  const openPaymentModal = () => {
     if (!currentShow.time) {
       notify.error("Please select a show time before printing.");
       return;
     }
-    notify.success("Checkout Successfully !...");
-    generateThermalPDFReceipt();
+    if (cart.length === 0) {
+      notify.error("Your cart is empty.");
+      return;
+    }
+    setShowPaymentModal(true);
+  };
+
+  const confirmCheckout = async () => {
+    const createdBy = user?.username || "System";
+    const amount = Number(getTotalPrice());
+
+    try {
+      setCheckingOut(true);
+
+      const orderPayload = {
+        paymentMode: paymentMode || "Cash",
+        amount,
+        createdBy,
+      };
+      const createdOrder = await api.post('/inventory-orders', orderPayload);
+      const orderId = createdOrder?.id ?? createdOrder?.orderId;
+      if (!orderId) {
+        throw new Error('Failed to create order: missing order id');
+      }
+
+      const detailPromises = cart.map((item) =>
+        api.post('/inventory-order-details', {
+          orderId,
+          inventoryId: item.id,
+          quantity: item.quantity,
+        })
+      );
+      await Promise.all(detailPromises);
+
+      setShowPaymentModal(false);
+      notify.success("Checkout Successfully !...");
+      generateThermalPDFReceipt();
+    } catch (err) {
+      console.error('Checkout failed', err);
+      notify.error(err?.message || 'Checkout failed');
+    } finally {
+      setCheckingOut(false);
+    }
   };
 
   const addToCart = (item) => {
@@ -506,7 +560,8 @@ export default function SnacksPage() {
           <div className="flex-1 flex justify-start">
             <TimingDropdown
               currentShow={currentShow}
-              onTimeSelect={(time) => setCurrentShow({ ...currentShow, time })}
+              onTimeSelect={(time) => setCurrentShow({ ...currentShow, time })
+              }
               context="snacks"
             />
           </div>
@@ -708,10 +763,11 @@ export default function SnacksPage() {
 
                   <div className="space-y-2">
                     <button
-                      onClick={handleSave}
-                      className="w-full bg-green-600 text-white py-3 px-4 rounded-lg hover:bg-green-700 font-medium"
+                      onClick={openPaymentModal}
+                      className="w-full bg-green-600 text-white py-3 px-4 rounded-lg hover:bg-green-700 font-medium disabled:opacity-50"
+                      disabled={checkingOut}
                     >
-                      Proceed to Checkout
+                      {checkingOut ? 'Processing...' : 'Proceed to Checkout'}
                     </button>
                     <button
                       onClick={() => setCart([])}
@@ -887,7 +943,7 @@ export default function SnacksPage() {
 
                   <div className="space-y-2">
                     <button
-                      onClick={handleSave}
+                      onClick={openPaymentModal}
                       className="w-full bg-green-600 text-white py-3 px-4 rounded-lg hover:bg-green-700 font-medium"
                     >
                       Proceed to Checkout
@@ -904,6 +960,59 @@ export default function SnacksPage() {
             )}
           </div>
         </>
+      )}
+
+      {/* Payment Modal */}
+      {showPaymentModal && (
+        <div className="fixed inset-0 bg-black/80 bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg w-full max-w-sm mx-auto my-8">
+            <div className="p-5 border-b flex items-center justify-between">
+              <h3 className="text-lg font-semibold">Complete Payment</h3>
+              <button
+                onClick={() => !checkingOut && setShowPaymentModal(false)}
+                className="text-gray-500 hover:text-gray-700"
+                disabled={checkingOut}
+              >
+                <X size={22} />
+              </button>
+            </div>
+
+            <div className="p-5 space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Payment Method</label>
+                <CustomDropdown
+                  value={paymentMode}
+                  onChange={setPaymentMode}
+                  options={paymentOptions}
+                  disabled={checkingOut}
+                  showDeselect={false}
+                />
+              </div>
+
+              <div className="flex items-center justify-between text-sm text-gray-600">
+                <span>Total Amount</span>
+                <span className="text-base font-semibold text-orange-600">₹{getTotalPrice()}</span>
+              </div>
+            </div>
+
+            <div className="p-5 pt-0 flex gap-3">
+              <button
+                onClick={() => !checkingOut && setShowPaymentModal(false)}
+                className="flex-1 bg-gray-200 text-gray-700 py-2.5 rounded-lg hover:bg-gray-300 disabled:opacity-50"
+                disabled={checkingOut}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmCheckout}
+                className="flex-1 bg-green-600 text-white py-2.5 rounded-lg hover:bg-green-700 disabled:opacity-50"
+                disabled={checkingOut}
+              >
+                {checkingOut ? 'Processing...' : 'Confirm & Print'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
