@@ -1,9 +1,10 @@
 import axios from "axios";
 
+const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 // Create axios instance with base configuration
 const api = axios.create({
-  baseURL:
-    "https://theatre-app-backend-api-fuarhje3aceffkcu.centralindia-01.azurewebsites.net/api",
+  baseURL: BASE_URL,
   timeout: 10000, // 10 seconds timeout
   headers: {
     "Content-Type": "application/json",

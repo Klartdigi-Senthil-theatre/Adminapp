@@ -32,10 +32,7 @@ export default function SnacksPage() {
 
   const paymentOptions = [
     { id: "Cash", title: "Cash" },
-    { id: "UPI", title: "UPI" },
-    { id: "Card", title: "Card" },
-    { id: "Debit Card", title: "Debit Card" },
-    { id: "Credit Card", title: "Credit Card" },
+    { id: "Gpay", title: "Gpay" },
   ];
 
   useEffect(() => {
@@ -188,8 +185,8 @@ export default function SnacksPage() {
             font-weight: bold;
             text-align: center;
             margin: 2mm 0;
-            color: #FF6C38;
-            border-bottom: 2px solid #FF6C38;
+            color: #000;
+            border-bottom: 2px solid #000;
             padding-bottom: 1mm;
           }
           
@@ -228,7 +225,7 @@ export default function SnacksPage() {
           .grand-total {
             font-size: 1.5rem;
             font-weight: bold;
-            color: #FF6C38;
+            color: #000;
           }
           
           @media print {
@@ -310,7 +307,7 @@ export default function SnacksPage() {
                     <div class="item-details">
                       <div>Qty: ${item.quantity}</div>
                       <div>₹${item.price} × ${item.quantity}</div>
-                      <div style="color: #FF6C38; font-weight: bold;">₹${(item.price * item.quantity).toFixed(0)}</div>
+                      <div style="color: #000; font-weight: bold;">₹${(item.price * item.quantity).toFixed(0)}</div>
                     </div>
                   </div>
                 `).join('')}
@@ -382,7 +379,7 @@ export default function SnacksPage() {
                   <div class="item-name">${category}</div>
                   <div class="item-details">
                     <div>${categoryItems} items</div>
-                    <div style="color: #FF6C38; font-weight: bold;">₹${categoryTotal.toFixed(0)}</div>
+                    <div style="color: #000; font-weight: bold;">₹${categoryTotal.toFixed(0)}</div>
                   </div>
                 </div>
               `;
@@ -454,21 +451,21 @@ export default function SnacksPage() {
         throw new Error('Failed to create order: missing order id');
       }
 
-      const detailPromises = cart.map((item) =>
-        api.post('/inventory-order-details', {
-          orderId,
-          inventoryId: item.id,
-          quantity: item.quantity,
-        })
-      );
-      await Promise.all(detailPromises);
+      // Send all order details in a single request as an array
+      const orderDetailsPayload = cart.map((item) => ({
+        orderId,
+        inventoryId: item.id,
+        quantity: item.quantity,
+      }));
+      await api.post('/inventory-order-details', orderDetailsPayload);
 
       setShowPaymentModal(false);
       notify.success("Checkout Successfully !...");
       generateThermalPDFReceipt();
     } catch (err) {
       console.error('Checkout failed', err);
-      notify.error(err?.message || 'Checkout failed');
+      const backendMessage = err?.response?.data?.error || err?.response?.data?.message;
+      notify.error(backendMessage || err?.message || 'Checkout failed');
     } finally {
       setCheckingOut(false);
     }
@@ -486,6 +483,9 @@ export default function SnacksPage() {
       );
     } else {
       setCart([...cart, { ...item, quantity: 1 }]);
+    }
+    if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+      setIsMobileCartOpen(true);
     }
   };
 
@@ -699,53 +699,48 @@ export default function SnacksPage() {
                   {cart.map((item) => (
                     <div
                       key={item.id}
-                      className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg mb-2"
+                      className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg mb-2"
                     >
                       <img
                         src={item.image}
                         alt={item.name}
-                        className="w-16 h-16 rounded object-cover"
+                        className="w-14 h-14 rounded object-cover flex-shrink-0"
                       />
 
                       <div className="flex-1 min-w-0">
-                        <h4 className="font-medium truncate">{item.name}</h4>
-                        <p className="text-sm text-gray-500">
-                          ₹{item.price} each
-                        </p>
-                        <p className="text-sm font-medium text-orange-600">
-                          ₹{item.price * item.quantity}
-                        </p>
-                      </div>
-
-                      <div className="flex items-center space-x-2">
-                        <button
-                          onClick={() =>
-                            updateQuantity(item.id, item.quantity - 1)
-                          }
-                          className="w-4 h-4 bg-gray-200 rounded flex items-center justify-center hover:bg-gray-300"
-                        >
-                          <Minus size={16} />
-                        </button>
-
-                        <span className="w-8 text-center font-medium">
-                          {item.quantity}
-                        </span>
-
-                        <button
-                          onClick={() =>
-                            updateQuantity(item.id, item.quantity + 1)
-                          }
-                          className="w-4 h-4 bg-gray-200 rounded flex items-center justify-center hover:bg-gray-300"
-                        >
-                          <Plus size={16} />
-                        </button>
-
-                        <button
-                          onClick={() => removeFromCart(item.id)}
-                          className="ml-2 text-red-500 hover:text-red-700 p-1"
-                        >
-                          <Trash2 size={16} />
-                        </button>
+                        <div className="flex justify-between gap-3">
+                          <h4 className="font-medium text-sm leading-snug break-words">
+                            {item.name}
+                          </h4>
+                          <button
+                            onClick={() => removeFromCart(item.id)}
+                            className="text-red-500 hover:text-red-700 p-1"
+                            title="Remove"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <p className="text-xs text-gray-500">₹{item.price} each</p>
+                          <p className="text-sm font-semibold text-orange-600">₹{(item.price * item.quantity).toFixed(0)}</p>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <button
+                            onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                            className="w-4 h-4 bg-gray-200 rounded flex items-center justify-center hover:bg-gray-300"
+                            aria-label="Decrease quantity"
+                          >
+                            <Minus size={14} />
+                          </button>
+                          <span className="w-4 text-center font-medium">{item.quantity}</span>
+                          <button
+                            onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                            className="w-4 h-4 bg-gray-200 rounded flex items-center justify-center hover:bg-gray-300"
+                            aria-label="Increase quantity"
+                          >
+                            <Plus size={14} />
+                          </button>
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -875,57 +870,52 @@ export default function SnacksPage() {
               </div>
             ) : (
               <>
-                <div className="space-y-4">
+                <div className="space-y-3">
                   {cart.map((item) => (
                     <div
                       key={item.id}
-                      className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg"
+                      className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg"
                     >
                       <img
                         src={item.image}
                         alt={item.name}
-                        className="w-16 h-16 rounded object-cover"
+                        className="w-14 h-14 rounded object-cover flex-shrink-0"
                       />
 
                       <div className="flex-1 min-w-0">
-                        <h4 className="font-medium truncate">{item.name}</h4>
-                        <p className="text-sm text-gray-500">
-                          ₹{item.price} each
-                        </p>
-                        <p className="text-sm font-medium text-orange-600">
-                          ₹{item.price * item.quantity}
-                        </p>
-                      </div>
-
-                      <div className="flex items-center space-x-2">
-                        <button
-                          onClick={() =>
-                            updateQuantity(item.id, item.quantity - 1)
-                          }
-                          className="w-8 h-8 bg-gray-200 rounded flex items-center justify-center hover:bg-gray-300"
-                        >
-                          <Minus size={16} />
-                        </button>
-
-                        <span className="w-8 text-center font-medium">
-                          {item.quantity}
-                        </span>
-
-                        <button
-                          onClick={() =>
-                            updateQuantity(item.id, item.quantity + 1)
-                          }
-                          className="w-8 h-8 bg-gray-200 rounded flex items-center justify-center hover:bg-gray-300"
-                        >
-                          <Plus size={16} />
-                        </button>
-
-                        <button
-                          onClick={() => removeFromCart(item.id)}
-                          className="ml-2 text-red-500 hover:text-red-700 p-1"
-                        >
-                          <Trash2 size={16} />
-                        </button>
+                        <div className="flex justify-between gap-3">
+                          <h4 className="font-medium text-sm leading-snug break-words">
+                            {item.name}
+                          </h4>
+                          <button
+                            onClick={() => removeFromCart(item.id)}
+                            className="text-red-500 hover:text-red-700 p-1"
+                            title="Remove"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                        <div className="mt-1 flex items-center justify-between gap-3">
+                          <p className="text-xs text-gray-500">₹{item.price} each</p>
+                          <p className="text-sm font-semibold text-orange-600 min-w-[56px] text-right">₹{(item.price * item.quantity).toFixed(0)}</p>
+                        </div>
+                        <div className="mt-2 flex items-center gap-2">
+                          <button
+                            onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                            className="w-6 h-6 bg-gray-200 rounded flex items-center justify-center hover:bg-gray-300"
+                            aria-label="Decrease quantity"
+                          >
+                            <Minus size={14} />
+                          </button>
+                          <span className="w-8 text-center font-medium">{item.quantity}</span>
+                          <button
+                            onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                            className="w-6 h-6 bg-gray-200 rounded flex items-center justify-center hover:bg-gray-300"
+                            aria-label="Increase quantity"
+                          >
+                            <Plus size={14} />
+                          </button>
+                        </div>
                       </div>
                     </div>
                   ))}

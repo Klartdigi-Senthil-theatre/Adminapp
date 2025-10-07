@@ -11,6 +11,7 @@ import {
 import moment from "moment";
 import PageHeader from "../components/PageHeader";
 import CustomDropdown from "../components/CustomDropdown";
+import { notify } from "../components/Notification";
 import api from "../config/api"; // Import the global API file
 import { storage } from "../config/firebase";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
@@ -103,12 +104,12 @@ const InventoryPage = () => {
       !formData.quantity ||
       !formData.unitPrice
     ) {
-      alert("Please fill in all required fields");
+      notify.error("Please fill in all required fields");
       return;
     }
 
     if (uploading) {
-      alert("Please wait for the image upload to finish");
+      notify.error("Please wait for the image upload to finish");
       return;
     }
 
@@ -118,12 +119,12 @@ const InventoryPage = () => {
     const minimumStockLevel = parseInt(formData.minimumStockLevel) || 0;
 
     if (isNaN(quantity) || quantity < 0) {
-      alert("Please enter a valid quantity");
+      notify.error("Please enter a valid quantity");
       return;
     }
 
     if (isNaN(unitPrice) || unitPrice < 0) {
-      alert("Please enter a valid unit price");
+      notify.error("Please enter a valid unit price");
       return;
     }
 
@@ -162,11 +163,11 @@ const InventoryPage = () => {
       resetForm();
       
       // Show success message
-      alert(editingItem ? 'Item updated successfully!' : 'Item added successfully!');
+      notify.success(editingItem ? 'Item updated successfully!' : 'Item added successfully!');
       
     } catch (err) {
       console.error('Error saving item:', err);
-      alert(`Error: ${err.message || 'Failed to save item'}`);
+      notify.error(err?.response?.data?.error || err?.message || 'Failed to save item');
     } finally {
       setSubmitting(false);
     }
@@ -227,10 +228,10 @@ const InventoryPage = () => {
       setInventory(prevInventory => 
         prevInventory.filter(item => item.id !== id)
       );
-      alert('Item deleted successfully!');
+      notify.success('Item deleted successfully!');
     } catch (err) {
       console.error('Error deleting item:', err);
-      alert(`Error: ${err.message || 'Failed to delete item'}`);
+      notify.error(err?.response?.data?.error || err?.message || 'Failed to delete item');
     }
   };
 
@@ -252,7 +253,7 @@ const InventoryPage = () => {
 
     // Basic validation
     if (!file.type.startsWith("image/")) {
-      alert("Please select a valid image file");
+      notify.error("Please select a valid image file");
       return;
     }
 
@@ -279,7 +280,7 @@ const InventoryPage = () => {
         console.error("Image upload error:", err);
         setUploading(false);
         setUploadProgress(0);
-        alert(`Upload error: ${err.message || 'Failed to upload image'}`);
+        notify.error(err?.message || 'Failed to upload image');
       },
       async () => {
         try {
@@ -287,7 +288,7 @@ const InventoryPage = () => {
           setFormData((prev) => ({ ...prev, image: downloadUrl }));
         } catch (e) {
           console.error("Failed to get download URL", e);
-          alert("Failed to get image URL after upload");
+          notify.error("Failed to get image URL after upload");
         } finally {
           setUploading(false);
         }
@@ -457,6 +458,9 @@ const InventoryPage = () => {
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Image
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Item Name
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -475,6 +479,9 @@ const InventoryPage = () => {
                   Supplier
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Visibility
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Status
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -488,6 +495,19 @@ const InventoryPage = () => {
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredInventory.map((item) => (
                 <tr key={item.id} className="hover:bg-gray-50">
+                  <td className="px-4 py-4 whitespace-nowrap">
+                    {item.image ? (
+                      <img
+                        src={item.image}
+                        alt={item.itemName || 'Item'}
+                        className="w-12 h-12 rounded object-cover"
+                      />
+                    ) : (
+                      <div className="w-12 h-12 rounded bg-gray-100 text-gray-400 text-xs flex items-center justify-center">
+                        N/A
+                      </div>
+                    )}
+                  </td>
                   <td className="px-4 py-4">
                     <div className="text-sm font-medium text-gray-900">
                       {item.itemName || 'N/A'}
@@ -515,6 +535,15 @@ const InventoryPage = () => {
                     <div className="text-sm text-gray-600 max-w-xs truncate">
                       {item.supplier || 'N/A'}
                     </div>
+                  </td>
+                  <td className="px-4 py-4 whitespace-nowrap">
+                    <span
+                      className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                        item.visibility ? 'bg-green-100 text-green-800' : 'bg-gray-200 text-gray-700'
+                      }`}
+                    >
+                      {item.visibility ? 'Visible' : 'Hidden'}
+                    </span>
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap">
                     <span
