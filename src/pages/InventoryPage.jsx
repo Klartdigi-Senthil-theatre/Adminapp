@@ -71,7 +71,9 @@ const InventoryPage = () => {
       setLoading(true);
       setError(null);
       const data = await api.get('/inventory');
-      setInventory(Array.isArray(data) ? data : []);
+      const list = Array.isArray(data) ? data : [];
+      list.sort((a, b) => String(a?.itemName || '').localeCompare(String(b?.itemName || '')));
+      setInventory(list);
     } catch (err) {
       console.error('Error fetching inventory:', err);
       setError(err.message || 'Failed to fetch inventory data');
@@ -146,18 +148,24 @@ const InventoryPage = () => {
         // Update existing item using PUT /inventory/{id}
         const updatedItem = await api.put(`/inventory/${editingItem.id}`, itemData);
         
-        // Update local state with the response data
-        setInventory(prevInventory =>
-          prevInventory.map(item =>
+        // Update local state with the response data and keep deterministic ordering
+        setInventory(prevInventory => {
+          const next = prevInventory.map(item =>
             item.id === editingItem.id ? { ...item, ...updatedItem } : item
-          )
-        );
+          );
+          next.sort((a, b) => String(a?.itemName || '').localeCompare(String(b?.itemName || '')));
+          return next;
+        });
       } else {
         // Create new item using POST /inventory
         const newItem = await api.post('/inventory', itemData);
         
-        // Add the new item to the inventory list
-        setInventory(prevInventory => [...prevInventory, newItem]);
+        // Add the new item to the inventory list and keep deterministic ordering
+        setInventory(prevInventory => {
+          const next = [...prevInventory, newItem];
+          next.sort((a, b) => String(a?.itemName || '').localeCompare(String(b?.itemName || '')));
+          return next;
+        });
       }
       
       resetForm();

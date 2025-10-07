@@ -50,7 +50,8 @@ export default function SnacksPage() {
             stock: Number(item.quantity) || 0,
             category: item.category || 'Others',
             minimumStockLevel: Number(item.minimumStockLevel) || 0,
-          }));
+          }))
+          .sort((a, b) => String(a.name).localeCompare(String(b.name)));
         setSnacks(mapped);
       } catch (err) {
         console.error('Failed to load snacks', err);
