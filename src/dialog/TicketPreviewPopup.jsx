@@ -145,7 +145,7 @@ const TicketPreviewPopup = ({
           }
           
           .large-text {
-          font-size: 16px !important;
+          font-size: 18px !important;
           font-weight: bold;
           line-height: 1.2;
           }
