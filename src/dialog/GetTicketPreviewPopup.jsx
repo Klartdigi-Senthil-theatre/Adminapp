@@ -219,12 +219,7 @@ const GetTicketPreviewPopup = ({
                     <div style="margin-top: 1mm;">Thank You!</div>
                     <div style="margin-top: 0.5mm; font-size: 0.75rem;">மது அருந்தியவர்களுக்கு அனுமதி இல்லை. 3 வயது மற்றும் அதற்கு மேற்பட்டவர்களுக்கு டிக்கெட் கட்டாயம்.</div>
                      <div class="divider"></div>
-                    <div style={{
-                      fontSize: "0.275rem",
-                      marginTop: "1.5mm",
-                      textAlign: "center",
-                      color: "gray",
-                    }}>User ID: ${currentShow.userId}</div>
+                    ${currentShow.userId ? `<div style="font-size: 0.275rem; margin-top: 1.5mm; text-align: center; color: gray;">User ID: ${currentShow.userId}</div>` : ''}
                   </div>
                 </div>
               </div>
@@ -321,9 +316,11 @@ const GetTicketPreviewPopup = ({
                       </div>
                     </div>
                     <div className="border-t border-dashed border-gray-400 my-2"></div>
-                    <div className="text-center text-[8px] text-gray-500">
-                      User ID: {currentShow.userId}
-                    </div>
+                    {currentShow.userId && (
+                      <div className="text-center text-[8px] text-gray-500">
+                        User ID: {currentShow.userId}
+                      </div>
+                    )}
                   </div>
                 </div>
               );
