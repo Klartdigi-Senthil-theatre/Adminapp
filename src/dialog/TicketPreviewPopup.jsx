@@ -33,6 +33,19 @@ const TicketPreviewPopup = ({
   };
 
   const handlePrint = () => {
+    // Block printing for past dates
+    try {
+      const selected = showDate ? new Date(showDate) : null;
+      if (selected) {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        selected.setHours(0, 0, 0, 0);
+        if (selected < today) {
+          notify.error("Cannot print for a past date.");
+          return;
+        }
+      }
+    } catch (_) {}
     setIsPrinting(true);
     notify.info("Preparing for printing...");
 

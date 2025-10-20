@@ -42,8 +42,21 @@ const SnacksReceiptPreviewPopup = ({
     const showDate = currentShow?.date || now.toISOString().split("T")[0];
     const payment = paymentMode === "gpay" ? "Gpay" : paymentMode === "online" ? "Online" : "Cash";
 
-    const handlePrint = () => {
-        setIsPrinting(true);
+  const handlePrint = () => {
+    // Block printing for past dates
+    try {
+      const selected = currentShow?.date ? new Date(currentShow.date) : null;
+      if (selected) {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        selected.setHours(0, 0, 0, 0);
+        if (selected < today) {
+          alert("Cannot print for a past date. Please select today or a future date.");
+          return;
+        }
+      }
+    } catch (_) {}
+    setIsPrinting(true);
         const printHtml = `
       <!DOCTYPE html>
       <html>
