@@ -144,9 +144,9 @@ const GetTicketPreviewPopup = ({
           }
           
           .large-text {
-            font-size: 2.25rem;
+            font-size: 16px;
             font-weight: bold;
-            line-height: calc(2.5/2.25);
+            line-height: 1.2;
           }
           
           @media print {
@@ -295,14 +295,14 @@ const GetTicketPreviewPopup = ({
 
                     <div className="flex justify-between items-center">
                       <span className="font-semibold">Date:</span>
-                      <span className="font-bold text-3xl">
+                      <span className="font-bold text-[16px]">
                         {new Date(showDate).toLocaleDateString("en-GB")}
                       </span>
                     </div>
                     
                     <div className="flex justify-between items-center">
                       <span className="font-semibold">Time:</span>
-                      <span className="font-bold text-3xl">{showTime}</span>
+                      <span className="font-bold text-[16px]">{showTime}</span>
                     </div>
 
                     <div className="border-t border-dashed border-gray-400 my-2"></div>
