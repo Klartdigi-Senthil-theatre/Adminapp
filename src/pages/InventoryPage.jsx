@@ -11,6 +11,8 @@ import {
 import moment from "moment";
 import PageHeader from "../components/PageHeader";
 import CustomDropdown from "../components/CustomDropdown";
+import { notify } from "../components/Notification";
+import { uploadImageToFirebase } from "../utils/firebaseUpload";
 import api from "../config/api"; // Import the global API file
 
 // Inventory Page Component
@@ -24,6 +26,8 @@ const InventoryPage = () => {
   const [filterCategory, setFilterCategory] = useState("All");
   const [filterStatus, setFilterStatus] = useState("All");
   const [submitting, setSubmitting] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
   const [formData, setFormData] = useState({
     itemName: "",
     image: "",
@@ -33,6 +37,7 @@ const InventoryPage = () => {
     minimumStockLevel: "",
     supplier: "",
     visibility: true,
+    reduceQty: "1",
   });
 
   const categories = [
@@ -90,6 +95,42 @@ const InventoryPage = () => {
     fetchInventory();
   }, []);
 
+  const handleImageUpload = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      notify.error('Please select a valid image file');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      notify.error('Image size should be less than 5MB');
+      return;
+    }
+
+    try {
+      setUploadingImage(true);
+      setSelectedFile(file);
+      
+      // Upload to Firebase
+      const imageUrl = await uploadImageToFirebase(file, 'inventory');
+      
+      // Update form data with the uploaded image URL
+      setFormData({ ...formData, image: imageUrl });
+      notify.success('Image uploaded successfully!');
+      
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      notify.error('Failed to upload image');
+      setSelectedFile(null);
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
   const handleSubmit = async () => {
     // Validate required fields
     if (
@@ -98,7 +139,7 @@ const InventoryPage = () => {
       !formData.quantity ||
       !formData.unitPrice
     ) {
-      alert("Please fill in all required fields");
+      notify.error("Please fill in all required fields");
       return;
     }
 
@@ -106,14 +147,20 @@ const InventoryPage = () => {
     const quantity = parseInt(formData.quantity);
     const unitPrice = parseFloat(formData.unitPrice);
     const minimumStockLevel = parseInt(formData.minimumStockLevel) || 0;
+    const reduceQty = parseFloat(formData.reduceQty) || 0;
 
     if (isNaN(quantity) || quantity < 0) {
-      alert("Please enter a valid quantity");
+      notify.error("Please enter a valid quantity");
       return;
     }
 
     if (isNaN(unitPrice) || unitPrice < 0) {
-      alert("Please enter a valid unit price");
+      notify.error("Please enter a valid unit price");
+      return;
+    }
+
+    if (isNaN(reduceQty) || reduceQty <= 0) {
+      notify.error("Please enter a valid reduce quantity (must be greater than 0)");
       return;
     }
 
@@ -126,15 +173,16 @@ const InventoryPage = () => {
       minimumStockLevel: minimumStockLevel,
       supplier: formData.supplier.trim(),
       visibility: formData.visibility,
+      reduceQty: reduceQty,
     };
 
     try {
       setSubmitting(true);
-      
+
       if (editingItem) {
         // Update existing item using PUT /inventory/{id}
         const updatedItem = await api.put(`/inventory/${editingItem.id}`, itemData);
-        
+
         // Update local state with the response data
         setInventory(prevInventory =>
           prevInventory.map(item =>
@@ -144,19 +192,19 @@ const InventoryPage = () => {
       } else {
         // Create new item using POST /inventory
         const newItem = await api.post('/inventory', itemData);
-        
+
         // Add the new item to the inventory list
         setInventory(prevInventory => [...prevInventory, newItem]);
       }
-      
+
       resetForm();
-      
+
       // Show success message
-      alert(editingItem ? 'Item updated successfully!' : 'Item added successfully!');
-      
+      notify.success(editingItem ? 'Item updated successfully!' : 'Item added successfully!');
+
     } catch (err) {
       console.error('Error saving item:', err);
-      alert(`Error: ${err.message || 'Failed to save item'}`);
+      notify.error(`Error: ${err.message || 'Failed to save item'}`);
     } finally {
       setSubmitting(false);
     }
@@ -172,7 +220,9 @@ const InventoryPage = () => {
       minimumStockLevel: "",
       supplier: "",
       visibility: true,
+      reduceQty: "1",
     });
+    setSelectedFile(null);
     setShowDialog(false);
     setEditingItem(null);
   };
@@ -194,11 +244,13 @@ const InventoryPage = () => {
         minimumStockLevel: (item.minimumStockLevel || 0).toString(),
         supplier: item.supplier || "",
         visibility: item.visibility !== undefined ? item.visibility : true,
+        reduceQty: (item.reduceQty || 0).toString(),
       });
+      setSelectedFile(null); // Clear selected file when editing
       setShowDialog(true);
     } catch (err) {
       console.error('Error editing item:', err);
-      alert('Error opening item for editing');
+      notify.error('Error opening item for editing');
     }
   };
 
@@ -210,13 +262,13 @@ const InventoryPage = () => {
     try {
       // Use DELETE /inventory/{id} endpoint
       await api.delete(`/inventory/${id}`);
-      setInventory(prevInventory => 
+      setInventory(prevInventory =>
         prevInventory.filter(item => item.id !== id)
       );
-      alert('Item deleted successfully!');
+      notify.success('Item deleted successfully!');
     } catch (err) {
       console.error('Error deleting item:', err);
-      alert(`Error: ${err.message || 'Failed to delete item'}`);
+      notify.error(`Error: ${err.message || 'Failed to delete item'}`);
     }
   };
 
@@ -234,11 +286,11 @@ const InventoryPage = () => {
 
   const filteredInventory = inventory.filter((item) => {
     if (!item) return false;
-    
+
     const itemName = item.itemName || "";
     const supplier = item.supplier || "";
     const category = item.category || "";
-    
+
     const matchesSearch =
       itemName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       supplier.toLowerCase().includes(searchTerm.toLowerCase());
@@ -249,6 +301,18 @@ const InventoryPage = () => {
       filterStatus === "All" || actualStatus === filterStatus;
     return matchesSearch && matchesCategory && matchesStatus;
   });
+
+  // Check if all required fields are filled
+  const isFormValid = () => {
+    return (
+      formData.itemName.trim() &&
+      formData.category &&
+      formData.quantity &&
+      formData.unitPrice &&
+      formData.reduceQty &&
+      parseFloat(formData.reduceQty) > 0
+    );
+  };
 
   if (error) return <div className="p-6 text-red-500">Error: {error}</div>;
 
@@ -409,6 +473,9 @@ const InventoryPage = () => {
                   Min Stock
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Reduce Qty
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Supplier
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -446,6 +513,11 @@ const InventoryPage = () => {
                   <td className="px-4 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-600">
                       {item.minimumStockLevel || 0}
+                    </div>
+                  </td>
+                  <td className="px-4 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-600">
+                      {item.reduceQty || 0}
                     </div>
                   </td>
                   <td className="px-4 py-4">
@@ -521,7 +593,7 @@ const InventoryPage = () => {
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium mb-1">
-                    Item Name *
+                    Item Name <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -529,7 +601,7 @@ const InventoryPage = () => {
                     onChange={(e) =>
                       setFormData({ ...formData, itemName: e.target.value })
                     }
-                    className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                    className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                     placeholder="Enter item name"
                     required
                     disabled={submitting}
@@ -538,22 +610,37 @@ const InventoryPage = () => {
 
                 <div>
                   <label className="block text-sm font-medium mb-1">
-                    Image URL
+                    Image Upload
                   </label>
                   <input
                     type="file"
-                    onChange={(e) =>
-                      setFormData({ ...formData, image: e.target.value })
-                    }
-                    className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                    placeholder="Enter image URL"
-                    disabled={submitting}
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                    disabled={submitting || uploadingImage}
                   />
+                  {uploadingImage && (
+                    <div className="mt-2 text-sm text-orange-600">
+                      Uploading image...
+                    </div>
+                  )}
+                  {formData.image && (
+                    <div className="mt-2">
+                      <img 
+                        src={formData.image} 
+                        alt="Preview" 
+                        className="w-20 h-20 object-cover rounded border"
+                      />
+                      <div className="text-xs text-gray-500 mt-1">
+                        Image uploaded successfully
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium mb-1">
-                    Category *
+                    Category <span className="text-red-500">*</span>
                   </label>
                   <CustomDropdown
                     value={formData.category}
@@ -569,7 +656,7 @@ const InventoryPage = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium mb-1">
-                      Quantity *
+                      Quantity <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="number"
@@ -577,7 +664,7 @@ const InventoryPage = () => {
                       onChange={(e) =>
                         setFormData({ ...formData, quantity: e.target.value })
                       }
-                      className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                      className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                       placeholder="0"
                       min="0"
                       required
@@ -586,7 +673,7 @@ const InventoryPage = () => {
                   </div>
                   <div>
                     <label className="block text-sm font-medium mb-1">
-                      Unit Price *
+                      Unit Price <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="number"
@@ -595,7 +682,7 @@ const InventoryPage = () => {
                       onChange={(e) =>
                         setFormData({ ...formData, unitPrice: e.target.value })
                       }
-                      className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                      className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                       placeholder="0.00"
                       min="0"
                       required
@@ -604,24 +691,46 @@ const InventoryPage = () => {
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium mb-1">
-                    Minimum Stock Level
-                  </label>
-                  <input
-                    type="number"
-                    value={formData.minimumStockLevel}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        minimumStockLevel: e.target.value,
-                      })
-                    }
-                    className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                    placeholder="0"
-                    min="0"
-                    disabled={submitting}
-                  />
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-1">
+                      Minimum Stock Level
+                    </label>
+                    <input
+                      type="number"
+                      value={formData.minimumStockLevel}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          minimumStockLevel: e.target.value,
+                        })
+                      }
+                      className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                      placeholder="0"
+                      min="0"
+                      disabled={submitting}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">
+                      Reduce Quantity
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={formData.reduceQty}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          reduceQty: e.target.value,
+                        })
+                      }
+                      className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                      placeholder="1.00"
+                      min="0.01"
+                      disabled={submitting}
+                    />
+                  </div>
                 </div>
 
                 <div>
@@ -634,7 +743,7 @@ const InventoryPage = () => {
                     onChange={(e) =>
                       setFormData({ ...formData, supplier: e.target.value })
                     }
-                    className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                    className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                     placeholder="Enter supplier name"
                     disabled={submitting}
                   />
@@ -661,18 +770,18 @@ const InventoryPage = () => {
                   <button
                     type="button"
                     onClick={handleSubmit}
-                    className="flex-1 bg-orange-600 text-white py-3 px-4 rounded-lg hover:bg-orange-700 font-medium disabled:bg-gray-400"
-                    disabled={submitting}
+                    className="flex-1 bg-orange-600 text-white py-2 px-4 rounded-lg hover:bg-orange-700 font-medium disabled:bg-gray-400"
+                    disabled={submitting || !isFormValid()}
                   >
-                    {submitting 
-                      ? (editingItem ? "Updating..." : "Adding...") 
+                    {submitting
+                      ? (editingItem ? "Updating..." : "Adding...")
                       : (editingItem ? "Update Item" : "Add Item")
                     }
                   </button>
                   <button
                     type="button"
                     onClick={resetForm}
-                    className="flex-1 bg-gray-300 text-gray-700 py-3 px-4 rounded-lg hover:bg-gray-400 font-medium disabled:bg-gray-200"
+                    className="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-400 font-medium disabled:bg-gray-200"
                     disabled={submitting}
                   >
                     Cancel

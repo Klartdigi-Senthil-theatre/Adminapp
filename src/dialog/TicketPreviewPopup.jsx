@@ -190,14 +190,14 @@ const TicketPreviewPopup = ({
                   
                   <div class="info-row">
                     <span class="label">Date:</span>
-                    <span class="value">${new Date(showDate).toLocaleDateString(
+                    <span class="value large-text">${new Date(showDate).toLocaleDateString(
                       "en-GB"
                     )}</span>
                   </div>
                   
                   <div class="info-row">
                     <span class="label">Time:</span>
-                    <span class="value">${showTime}</span>
+                    <span class="value large-text">${showTime}</span>
                   </div>
                   
                   <div class="divider"></div>
@@ -286,16 +286,16 @@ const TicketPreviewPopup = ({
                       <span>ST-{bookingId}</span>
                     </div>
 
-                    <div className="flex justify-between">
+                    <div className="flex justify-between items-center">
                       <span className="font-semibold">Date:</span>
-                      <span>
+                      <span className="font-bold text-3xl">
                         {new Date(showDate).toLocaleDateString("en-GB")}
                       </span>
                     </div>
-
-                    <div className="flex justify-between">
+                    
+                    <div className="flex justify-between items-center">
                       <span className="font-semibold">Time:</span>
-                      <span>{showTime}</span>
+                      <span className="font-bold text-3xl">{showTime}</span>
                     </div>
 
                     <div className="border-t border-dashed border-gray-400 my-2"></div>

@@ -1,9 +1,14 @@
 import axios from "axios";
 
+// Resolve API base URL from environment with fallback
+const resolvedBaseURL =
+  import.meta?.env?.REACT_APP_API_URL ||
+  (typeof window !== "undefined" && window?.__APP_CONFIG__?.API_URL) ||
+  "http://localhost:3000/api";
+
 // Create axios instance with base configuration
 const api = axios.create({
-  baseURL:
-    "https://theatre-app-backend-api-fuarhje3aceffkcu.centralindia-01.azurewebsites.net/api",
+  baseURL: resolvedBaseURL,
   timeout: 10000, // 10 seconds timeout
   headers: {
     "Content-Type": "application/json",
@@ -129,4 +134,5 @@ export default {
 
   // You can also expose the axios instance directly if needed
   axiosInstance: api,
+  baseURL: resolvedBaseURL,
 };

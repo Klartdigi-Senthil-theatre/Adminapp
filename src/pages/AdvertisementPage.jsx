@@ -96,14 +96,16 @@ const AdvertisementPage = () => {
     }
   };
 
-  const IMAGE_URL = 'https://theatre-app-backend-api-fuarhje3aceffkcu.centralindia-01.azurewebsites.net/uploads';
+  // Derive uploads base from API base URL
+  const API_BASE = api.baseURL || "";
+  const IMAGE_URL = API_BASE.replace(/\/$/, "").replace(/\/api\/?$/, "") + "/uploads";
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
       // In a real app, you'd upload to a server
       // For demo, we'll create a fake URL
-      const fakeUrl = `${IMAGE_URL}/uploads/${file.name}`;
+      const fakeUrl = `${IMAGE_URL}/${file.name}`;
       setFormData({ ...formData, image: fakeUrl });
       setShowImageUpload(false);
     }

@@ -1,158 +1,63 @@
-import React, { useEffect, useState } from "react";
-import {
-  ShoppingCart,
-  X,
-  Plus,
-  Minus,
-  Trash2,
-  Calendar,
-  Search,
-} from "lucide-react";
-import { notify } from "../components/Notification";
-import CustomDropdown from "../components/CustomDropdown";
-import TimingDropdown from "../components/TimingDropDown";
-import autoTable from "jspdf-autotable";
 import jsPDF from "jspdf";
+import {
+  Calendar,
+  Minus,
+  Plus,
+  Search,
+  ShoppingCart,
+  Trash2,
+  X,
+} from "lucide-react";
+import React, { useEffect, useState } from "react";
+import SnacksReceiptPreviewPopup from "../dialog/SnacksReceiptPreviewPopup";
+import CustomDropdown from "../components/CustomDropdown";
+import { notify } from "../components/Notification";
+import TimingDropdown from "../components/TimingDropDown";
+import api from "../config/api";
 
 export default function SnacksPage() {
   const [cart, setCart] = useState([]);  
   const [loading, setLoading] = useState(true);
+  const [snacks, setSnacks] = useState([]);
   const [filterCategory, setFilterCategory] = useState("All");
-  const [currentShow, setCurrentShow] = useState({ time: "" });
+  // Initialize date to today in local timezone so TimingDropdown can fetch
+  const today = new Date();
+  today.setMinutes(today.getMinutes() - today.getTimezoneOffset());
+  const todayStr = today.toISOString().split("T")[0];
+  const [currentShow, setCurrentShow] = useState({ date: todayStr, time: "" });
   const [isMobileCartOpen, setIsMobileCartOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [selectedPayment, setSelectedPayment] = useState('cash'); // 'cash' | 'gpay'
+  const [showReceiptPreview, setShowReceiptPreview] = useState(false);
+  const [lastOrderMeta, setLastOrderMeta] = useState({ orderId: null, paymentMode: "cash" });
 
    useEffect(() => {
       const fetchSnacks = async () => {
         try {
-          setCurrentShow(data);
-          setLoading(false);
+        setLoading(true);
+        const inventory = await api.get('/inventory');
+        const mapped = (Array.isArray(inventory) ? inventory : []).filter((it) => it.visibility !== false && it.active !== false).map((it) => ({
+          id: it.id,
+          name: it.itemName,
+          price: typeof it.unitPrice === 'number' ? it.unitPrice : Number(it.unitPrice || 0),
+          image: it.image,
+          stock: typeof it.quantity === 'number' ? it.quantity : Number(it.quantity || 0),
+          category: it.category || 'Others',
+        }));
+        setSnacks(mapped);
         } catch (err) {
+        setSnacks([]);
+      } finally {
           setLoading(false);
         }
       };
-  
       fetchSnacks();
     }, []);
 
-  const snacks = [
-    {
-      id: 1,
-      name: "Popcorn Large",
-      price: 299,
-      image:
-        "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=300&fit=crop",
-      stock: 50,
-      category: "Snacks",
-    },
-    {
-      id: 2,
-      name: "Coca Cola",
-      price: 149,
-      image:
-        "https://images.unsplash.com/photo-1581636625402-29b2a704ef13?w=400&h=300&fit=crop",
-      stock: 100,
-      category: "Beverages",
-    },
-    {
-      id: 3,
-      name: "Nachos",
-      price: 199,
-      image:
-        "https://images.unsplash.com/photo-1513456852971-30c0b8199d4d?w=400&h=300&fit=crop",
-      stock: 30,
-      category: "Snacks",
-    },
-    {
-      id: 4,
-      name: "Ice Cream",
-      price: 129,
-      image:
-        "https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=400&h=300&fit=crop",
-      stock: 40,
-      category: "Desserts",
-    },
-    {
-      id: 5,
-      name: "Chocolate Bar",
-      price: 119,
-      image:
-        "https://images.unsplash.com/photo-1575377427642-087cf684f29d?w=400&h=300&fit=crop",
-      stock: 45,
-      category: "Desserts",
-    },
-    {
-      id: 6,
-      name: "Burger",
-      price: 229,
-      image:
-        "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&h=300&fit=crop",
-      stock: 15,
-      category: "Meals",
-    },
-    {
-      id: 7,
-      name: "French Fries",
-      price: 169,
-      image:
-        "https://images.unsplash.com/photo-1541592106381-b31e9677c0e5?w=400&h=300&fit=crop",
-      stock: 30,
-      category: "Snacks",
-    },
-    {
-      id: 8,
-      name: "Mineral Water",
-      price: 99,
-      image:
-        "https://images.unsplash.com/photo-1561047029-3000c68339ca?w=400&h=300&fit=crop",
-      stock: 80,
-      category: "Beverages",
-    },
-    {
-      id: 9,
-      name: "Pizza Slice",
-      price: 249,
-      image:
-        "https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&h=300&fit=crop",
-      stock: 20,
-      category: "Meals",
-    },
-    {
-      id: 10,
-      name: "Pretzel",
-      price: 159,
-      image:
-        "https://images.unsplash.com/photo-1580837418631-9dd55f1c3a1a?w=400&h=300&fit=crop",
-      stock: 35,
-      category: "Snacks",
-    },
-    {
-      id: 11,
-      name: "Hot Dog",
-      price: 179,
-      image:
-        "https://images.unsplash.com/photo-1612392062798-2570bc02fdd3?w=400&h=300&fit=crop",
-      stock: 25,
-      category: "Meals",
-    },
-    {
-      id: 12,
-      name: "Iced Tea",
-      price: 139,
-      image:
-        "https://images.unsplash.com/photo-1567095761054-7a60e326e576?w=400&h=300&fit=crop",
-      stock: 60,
-      category: "Beverages",
-    },
-  ];
+  // snacks are loaded dynamically from API
 
-  const categoryOptions = [
-    { id: "All", title: "All Categories" },
-    { id: "Snacks", title: "Snacks" },
-    { id: "Beverages", title: "Beverages" },
-    { id: "Desserts", title: "Desserts" },
-    { id: "Meals", title: "Meals" },
-  ];
+  const categoryOptions = [{ id: "All", title: "All Categories" }, ...Array.from(new Set(snacks.map((s) => s.category))).map((c) => ({ id: c, title: c }))];
 
   const generatePDFReceipt = () => {
     const doc = new jsPDF();
@@ -302,9 +207,360 @@ export default function SnacksPage() {
     doc.save(`snack_order_${new Date().getTime()}.pdf`);
   };
 
-  const handleSave = () => {
-    notify.success("Checkout Successfully !...");
-    generatePDFReceipt();
+  const handleSave = async () => {
+    if (!currentShow.time) {
+      notify.error("Please select a showtime before proceeding to checkout.");
+      return;
+    }
+    if (cart.length === 0) {
+      notify.error("Your cart is empty.");
+      return;
+    }
+    // Open modal to select payment method before proceeding
+    setSelectedPayment('cash'); // Default to Cash
+    setShowPaymentModal(true);
+  };
+
+  const proceedCheckoutWithPayment = async (payment) => {
+    try {
+      setLoading(true);
+      const totalAmount = getTotalPrice();
+      // Ensure we have showTimePlannerId provided by TimingDropdown selection
+      const showTimePlannerId = currentShow.showTimePlannerId || null;
+      if (!showTimePlannerId) {
+        notify.error("Unable to resolve show time. Please select a time again.");
+        setLoading(false);
+        return;
+      }
+      const payloadOrder = {
+        showTimePlannerId,
+        phoneNumber: null,
+        paymentMode: payment === "gpay" ? "Gpay" : "Cash",
+        amount: totalAmount,
+        createdBy: "Admin",
+      };
+
+      const orderRes = await api.post("/inventory-orders", payloadOrder);
+      const orderId = orderRes?.id;
+      if (!orderId) {
+        throw new Error("Invalid order response");
+      }
+
+      const details = cart.map((item) => ({
+        orderId,
+        inventoryId: item.id,
+        quantity: item.quantity,
+      }));
+
+      await api.post("/inventory-order-details", details);
+
+      notify.success("Checkout successful. Preparing receipt preview...");
+      setLastOrderMeta({ orderId, paymentMode: payment });
+      setShowReceiptPreview(true);
+    } catch (err) {
+      console.error("Checkout failed:", err);
+      const msg = err?.response?.data?.error || err?.message || "Checkout failed. Please try again.";
+      notify.error(msg);
+    } finally {
+      setLoading(false);
+      setShowPaymentModal(false);
+    }
+  };
+
+  const generateThermalReceipts = (cartItems, show, orderId, grandTotal, payment) => {
+    // Group by category
+    const grouped = cartItems.reduce((acc, item) => {
+      const key = item.category || "Others";
+      if (!acc[key]) acc[key] = [];
+      acc[key].push(item);
+      return acc;
+    }, {});
+
+    const categories = Object.keys(grouped);
+    if (categories.length === 0) return;
+
+    const receiptNo = `REC-${String(orderId || Date.now()).slice(-6)}`;
+    const nowTime = new Date().toLocaleTimeString();
+    const showTime = show.time || "--";
+    const showDate = show.date || new Date().toISOString().split("T")[0];
+    const paymentMode = payment === "gpay" ? "Gpay" : "Cash";
+
+    const printContent = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <title>Snacks Receipt</title>
+          <style>
+            * {
+              -webkit-print-color-adjust: exact !important;
+              color-adjust: exact !important;
+              print-color-adjust: exact !important;
+              margin: 0;
+              padding: 0;
+              box-sizing: border-box;
+            }
+            
+            @page {
+              size: 80mm auto;
+              margin: 0;
+            }
+            
+            body {
+              font-family: 'Courier New', monospace;
+              font-size: 12px;
+              line-height: 1.2;
+              margin: 0;
+              padding: 2mm;
+              width: 76mm;
+              color: #000;
+              background: white;
+            }
+            
+            .receipt {
+              width: 100%;
+              text-align: center;
+              page-break-inside: avoid;
+              page-break-after: always;
+              margin-bottom: 0;
+            }
+            
+            .receipt:last-child {
+              page-break-after: auto;
+            }
+            
+            .header-banner {
+              background-color: #000 !important;
+              color: #fff !important;
+              padding: 3mm 0;
+              margin-bottom: 2mm;
+            }
+            
+            .cinema-name {
+              font-size: 14px;
+              font-weight: bold;
+              margin-bottom: 1mm;
+            }
+            
+            .order-type {
+              font-size: 12px;
+            }
+            
+            .dotted-line {
+              border-top: 1px dotted #000;
+              margin: 2mm 0;
+            }
+            
+            .solid-line {
+              border-top: 1px solid #000;
+              margin: 2mm 0;
+            }
+            
+            .info-row {
+              display: flex;
+              justify-content: space-between;
+              margin: 1mm 0;
+              font-size: 11px;
+            }
+            
+            .label {
+              font-weight: bold;
+            }
+            
+            .value {
+              text-align: right;
+            }
+            
+            .category-header {
+              margin: 3mm 0 2mm 0;
+            }
+            
+            .category-title {
+              color: #FF6C38 !important;
+              font-size: 13px;
+              font-weight: bold;
+              margin-bottom: 1mm;
+            }
+            
+            .category-line {
+              border-top: 2px solid #FF6C38 !important;
+              margin: 1mm 0;
+            }
+            
+            .item-row {
+              margin: 2mm 0;
+              text-align: left;
+            }
+            
+            .item-name {
+              font-weight: bold;
+              margin-bottom: 1mm;
+            }
+            
+            .item-details {
+              display: flex;
+              justify-content: space-between;
+              font-size: 10px;
+              margin-bottom: 1mm;
+            }
+            
+            .item-price {
+              font-size: 10px;
+              margin-bottom: 1mm;
+              text-align: right;
+            }
+            
+            .item-total {
+              color: #FF6C38 !important;
+              font-size: 12px;
+              font-weight: bold;
+              text-align: right;
+            }
+            
+            .totals {
+              margin: 3mm 0;
+            }
+            
+            .total-row {
+              display: flex;
+              justify-content: space-between;
+              margin: 1mm 0;
+            }
+            
+            .total-label {
+              font-weight: bold;
+            }
+            
+            .total-value {
+              font-weight: bold;
+            }
+            
+            .footer {
+              text-align: center;
+              margin-top: 3mm;
+              font-size: 10px;
+            }
+            
+            .gst {
+              margin-bottom: 1mm;
+            }
+            
+            .tagline {
+              margin-bottom: 1mm;
+            }
+            
+            .thank-you {
+              font-weight: bold;
+              margin-bottom: 2mm;
+            }
+            
+            .tamil-text {
+              font-size: 9px;
+              line-height: 1.3;
+            }
+            
+            @media print {
+              body {
+                margin: 2mm !important;
+                padding: 0 !important;
+              }
+              
+              .receipt {
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+                page-break-after: always !important;
+                margin-bottom: 0 !important;
+              }
+              
+              .receipt:last-child {
+                page-break-after: auto !important;
+              }
+            }
+          </style>
+        </head>
+        <body>
+          ${categories.map(cat => `
+            <div class="receipt">
+              <div class="header-banner">
+                <div class="cinema-name">SENTHIL CINEMAS A/C</div>
+                <div class="order-type">SNACKS ORDER</div>
+              </div>
+              
+              <div class="dotted-line"></div>
+              
+              <div class="info-row">
+                <span class="label">Receipt No:</span>
+                <span class="value">${receiptNo}</span>
+              </div>
+              <div class="info-row">
+                <span class="label">Date:</span>
+                <span class="value">${new Date().toLocaleDateString('en-GB')}</span>
+              </div>
+              <div class="info-row">
+                <span class="label">Time:</span>
+                <span class="value">${nowTime}</span>
+              </div>
+              <div class="info-row">
+                <span class="label">Show Time:</span>
+                <span class="value">${showTime}</span>
+              </div>
+              
+              <div class="dotted-line"></div>
+              
+              <div class="category-header">
+                <div class="category-title">${cat.toUpperCase()}</div>
+                <div class="category-line"></div>
+              </div>
+              
+              ${grouped[cat].map(item => {
+      const lineTotal = (item.price || 0) * (item.quantity || 0);
+      return `
+                  <div class="item-row">
+                    <div class="item-name">${item.name || "Item"}</div>
+                    <div class="item-details">
+                      <span>Qty: ${item.quantity || 0}</span>
+                    </div>
+                    <div class="item-price">
+                      ₹${Number(item.price || 0).toLocaleString("en-IN")} × ${item.quantity || 0}
+                    </div>
+                    <div class="item-total">₹${Number(lineTotal).toLocaleString("en-IN")}</div>
+                  </div>
+                `;
+    }).join('')}
+              
+              <div class="solid-line"></div>
+              
+              <div class="totals">
+                <div class="total-row">
+                  <span class="total-label">Total:</span>
+                  <span class="total-value">₹${grouped[cat].reduce((sum, item) => sum + (item.price || 0) * (item.quantity || 0), 0).toLocaleString("en-IN")}</span>
+                </div>
+                <div class="total-row">
+                  <span class="total-label">Items:</span>
+                  <span class="total-value">${grouped[cat].reduce((sum, item) => sum + (item.quantity || 0), 0)}</span>
+                </div>
+              </div>
+              
+              <div class="dotted-line"></div>
+              
+              <div class="footer">
+                <div class="gst">GST: 33CMMPP7822B1Z2</div>
+                <div class="tagline">Premium Cinema Experience</div>
+                <div class="thank-you">Thank You!</div>
+                <div class="tamil-text">மது அருந்தியவர்களுக்கு அனுமதி இல்லை. 3 வயது மற்றும் அதற்கு மேற்பட்டவர்களுக்கு டிக்கெட் கட்டாயம்.</div>
+              </div>
+            </div>
+          `).join('')}
+        </body>
+      </html>
+    `;
+
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(printContent);
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
+    printWindow.close();
   };
 
   const addToCart = (item) => {
@@ -393,7 +649,17 @@ export default function SnacksPage() {
           <div className="flex-1 flex justify-start">
             <TimingDropdown
               currentShow={currentShow}
-              onTimeSelect={(time) => setCurrentShow({ ...currentShow, time })}
+              onTimeSelect={(time, selectedShowTime) =>
+                setCurrentShow((prev) => ({
+                  ...prev,
+                  time,
+                  price: selectedShowTime?.price || null,
+                  showTimePlannerId:
+                    selectedShowTime && selectedShowTime.showTimePlannerId
+                      ? selectedShowTime.showTimePlannerId
+                      : null,
+                }))
+              }
             />
           </div>
 
@@ -431,7 +697,17 @@ export default function SnacksPage() {
 
             <TimingDropdown
               currentShow={currentShow}
-              onTimeSelect={(time) => setCurrentShow({ ...currentShow, time })}
+              onTimeSelect={(time, selectedShowTime) =>
+                setCurrentShow((prev) => ({
+                  ...prev,
+                  time,
+                  price: selectedShowTime?.price || null,
+                  showTimePlannerId:
+                    selectedShowTime && selectedShowTime.showTimePlannerId
+                      ? selectedShowTime.showTimePlannerId
+                      : null,
+                }))
+              }
             />
           </div>
 
@@ -457,10 +733,10 @@ export default function SnacksPage() {
       </div>
 
       {/* Split View for Desktop */}
-      <div className="hidden lg:flex gap-6 h-[calc(110vh-180px)]">
+      <div className="hidden lg:flex gap-2 h-[calc(110vh-180px)]">
         {/* Left Side - Snacks Grid */}
         <div className="w-2/3 overflow-y-auto pr-2">
-          <div className="grid grid-cols-4 gap-4 lg:gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 md:gap-2">
             {filteredSnacks.map((snack) => (
               <div
                 key={snack.id}
@@ -614,7 +890,7 @@ export default function SnacksPage() {
 
       {/* Mobile View - Single Column */}
       <div className="lg:hidden">
-        <div className="grid grid-cols-2 gap-4 lg:gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 md:gap-2">
           {filteredSnacks.map((snack) => (
             <div
               key={snack.id}
@@ -789,6 +1065,47 @@ export default function SnacksPage() {
             )}
           </div>
         </>
+      )}
+
+      {/* Payment Method Modal */}
+      {showPaymentModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[70] p-4">
+          <div className="bg-white rounded-lg w-full max-w-sm mx-auto p-4">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-lg font-semibold">Select Payment Method</h3>
+              <button onClick={() => setShowPaymentModal(false)} className="text-gray-500 hover:text-gray-700">
+                <X size={20} />
+              </button>
+            </div>
+            <div className="space-y-3">
+              <label className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer ${selectedPayment === 'cash' ? 'border-green-600' : 'border-gray-300'}`}>
+                <span>Cash</span>
+                <input type="radio" name="payment" value="cash" checked={selectedPayment === 'cash'} onChange={() => setSelectedPayment('cash')} />
+              </label>
+              <label className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer ${selectedPayment === 'gpay' ? 'border-green-600' : 'border-gray-300'}`}>
+                <span>Gpay</span>
+                <input type="radio" name="payment" value="gpay" checked={selectedPayment === 'gpay'} onChange={() => setSelectedPayment('gpay')} />
+              </label>
+            </div>
+            <div className="mt-4 flex gap-2 justify-end">
+              <button onClick={() => setShowPaymentModal(false)} className="px-4 py-2 rounded bg-gray-200 text-gray-700">Cancel</button>
+              <button onClick={() => selectedPayment ? proceedCheckoutWithPayment(selectedPayment) : notify.error('Please select a payment method')} className="px-4 py-2 rounded bg-green-600 text-white">Confirm</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showReceiptPreview && (
+        <SnacksReceiptPreviewPopup
+          cartItems={cart}
+          currentShow={currentShow}
+          orderId={lastOrderMeta.orderId}
+          paymentMode={lastOrderMeta.paymentMode}
+          onClose={() => {
+            setShowReceiptPreview(false);
+            setCart([]);
+          }}
+        />
       )}
     </div>
   );

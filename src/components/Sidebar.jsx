@@ -28,6 +28,7 @@ const navItems = [
   { path: "/show-time", icon: Clock, name: "Showtime Planner" },
   { path: "/get-tickets", icon: Tickets, name: "Get Tickets" },
   { path: "/report", icon: FileText, name: "Showtime Report" },
+  { path: "/snacks-report", icon: Coffee, name: "Snacks Report" },
   { path: "/daily-report", icon: FileText, name: "Daily Report" },
   { path: "/company-report", icon: FileText, name: "Company Report" },
 ];
@@ -99,12 +100,11 @@ const Sidebar = ({ isOpen, setIsOpen, isMobile }) => {
         ref={sidebarRef}
         className={`
           ${isMobile ? "fixed" : "relative"} 
-          ${
-            isOpen
-              ? isMobile
-                ? "translate-x-0"
-                : "w-64"
-              : isMobile
+          ${isOpen
+            ? isMobile
+              ? "translate-x-0"
+              : "w-64"
+            : isMobile
               ? "-translate-x-full"
               : "w-20"
           }
@@ -143,10 +143,9 @@ const Sidebar = ({ isOpen, setIsOpen, isMobile }) => {
                 <NavLink
                   to={item.path}
                   className={({ isActive }) =>
-                    `flex items-center p-3 mx-2 rounded-lg transition-colors ${
-                      isActive
-                        ? "bg-orange-600 text-white"
-                        : "hover:bg-orange-300"
+                    `flex items-center p-3 mx-2 rounded-lg transition-colors ${isActive
+                      ? "bg-orange-600 text-white"
+                      : "hover:bg-orange-300"
                     }`
                   }
                   onClick={() => isMobile && setIsOpen(false)}

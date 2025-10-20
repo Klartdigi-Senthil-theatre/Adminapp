@@ -15,6 +15,7 @@ import ReportPage from "../pages/ReportPage";
 import Seats from "../pages/SeatsPage";
 import ShowTimePage from "../pages/ShowTimePage";
 import Snacks from "../pages/SnacksPage";
+import SnacksReportPage from "../pages/SnacksReportPage";
 import Users from "../pages/UserPage";
 import ProtectedRoute from "./ProtectedRoute";
 
@@ -43,6 +44,7 @@ function AppRouter() {
             <Route path="/show-time" element={<ShowTimePage />} />
             <Route path="/get-tickets" element={<GetTicketsPage />} />
             <Route path="/report" element={<ReportPage />} />
+            <Route path="/snacks-report" element={<SnacksReportPage />} />
             <Route path="/daily-report" element={<DailyReportPage />} />
             <Route path="/company-report" element={<CompanyReportPage />} />
             <Route path="/" element={<Dashboard />} />
