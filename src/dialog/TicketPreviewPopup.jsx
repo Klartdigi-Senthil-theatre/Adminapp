@@ -145,7 +145,7 @@ const TicketPreviewPopup = ({
           }
           
           .large-text {
-          font-size: 16px;
+          font-size: 16px !important;
           font-weight: bold;
           line-height: 1.2;
           }
@@ -178,9 +178,10 @@ const TicketPreviewPopup = ({
             }
             
             /* Ensure ticket content doesn't split */
-            .ticket-header, .ticket-body {
+            .ticket-header, .ticket-body, .info-row .value, .info-row .label, .large-text {
               page-break-inside: avoid !important;
               break-inside: avoid !important;
+              font-size: inherit !important;
             }
           }
         </style>

@@ -13,6 +13,7 @@ const GetTicketsPage = () => {
   const [isBookingIdMode, setIsBookingIdMode] = useState(false); // false = booking ID, true = phone number
   const [bookingResult, setBookingResult] = useState(null);
   const [searchLoading, setSearchLoading] = useState(false);
+  const [bookingList, setBookingList] = useState([]);
   const [isTicketPopupOpen, setIsTicketPopupOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -42,6 +43,7 @@ const GetTicketsPage = () => {
     }
     setSearchLoading(true);
     setShowBookingSummary(false);
+    setBookingList([]);
 
     try {
       let bookingResult;
@@ -52,14 +54,46 @@ const GetTicketsPage = () => {
         const response = await api.get(
           `/movie-seat-bookings/phone/${phoneNumber}`
         );
-        // Take the last booking from the array
-        bookingResult =
-          response && response.length > 0
-            ? response[response.length - 1]
-            : null;
-        if (!bookingResult) {
+        const arrayResp = Array.isArray(response) ? response : [];
+
+        // Filter current and future dated bookings only (by calendar day)
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const filtered = arrayResp
+          .filter((br) => {
+            if (!br?.date) return false;
+            const d = new Date(br.date);
+            d.setHours(0, 0, 0, 0);
+            return d >= today;
+          })
+          .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+        if (filtered.length === 0) {
           throw new Error("No bookings found for this phone number.");
         }
+
+        // Map list into unified shape used by UI (time from API showTime)
+        const mapped = filtered.map((br) => ({
+          bookingId: br.id,
+          movieId: br.movieId || null,
+          movieName: br.movieName || null,
+          userId: br.userId || null,
+          adminUserId: br.adminUserId || null,
+          showTimePlannerId: br.showTimePlannerId || null,
+          date: br.date,
+          seatNumber: (br.bookingSeats || []).map((seat) => ({ seatNo: seat })),
+          price: br.price,
+          time: br.showTime,
+          customerName: br.customerName,
+          customerEmailId: br.customerEmailId,
+          customerPhoneNumber: br.customerPhoneNumber,
+          totalAmount: br.totalAmount,
+          movieDetails: { movieName: br.movieName, image: br.image },
+        }));
+
+        setBookingList(mapped);
+        // Use first item as default selection for summary view
+        bookingResult = mapped[0];
       } else {
         // Call booking ID endpoint
         bookingResult = await api.get(
@@ -67,21 +101,23 @@ const GetTicketsPage = () => {
         );
       }
 
-      // Map the phone number endpoint response to match the booking ID response structure
-      if (isBookingIdMode) {
+      // Map the booking ID response to the unified structure (phone mode already mapped)
+      if (!isBookingIdMode) {
+        const seatNumberArray = Array.isArray(bookingResult.seatNumber)
+          ? bookingResult.seatNumber.map((s) => ({ seatNo: s.seatNo || s }))
+          : (bookingResult.bookingSeats || []).map((seat) => ({ seatNo: seat }));
+
         bookingResult = {
-          bookingId: bookingResult.id,
+          bookingId: bookingResult.bookingId || bookingResult.id,
           movieId: bookingResult.movieId || null,
           movieName: bookingResult.movieName || null,
           userId: bookingResult.userId || null,
           adminUserId: bookingResult.adminUserId || null,
           showTimePlannerId: bookingResult.showTimePlannerId || null,
           date: bookingResult.date,
-          seatNumber: bookingResult.bookingSeats.map((seat) => ({
-            seatNo: seat,
-          })),
+          seatNumber: seatNumberArray,
           price: bookingResult.price,
-          time: bookingResult.showTime,
+          time: bookingResult.showTime || null,
           customerName: bookingResult.customerName,
           customerEmailId: bookingResult.customerEmailId,
           customerPhoneNumber: bookingResult.customerPhoneNumber,
@@ -227,9 +263,19 @@ const GetTicketsPage = () => {
         }
       }
 
+      // Resolve time from planner if not present
+      const resolvedTime =
+        bookingResult.time ||
+        bookingResult.showTime ||
+        (showTimePlannerData &&
+          (showTimePlannerData.showTime?.showTime ||
+            showTimePlannerData.showTime)) ||
+        null;
+
       // Combine the results
       const combinedResult = {
         ...bookingResult,
+        time: resolvedTime,
         movieDetails: movieResponse,
         showTimePlanner: showTimePlannerData,
         price: ticketPrice,
@@ -331,29 +377,25 @@ const GetTicketsPage = () => {
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-3 sm:gap-2">
                 <div className="flex items-center justify-center gap-2 sm:gap-2">
                   <span
-                    className={`text-xs sm:text-sm font-medium ${
-                      isBookingIdMode ? "text-gray-500" : "text-orange-600"
-                    }`}
+                    className={`text-xs sm:text-sm font-medium ${isBookingIdMode ? "text-gray-500" : "text-orange-600"
+                      }`}
                   >
                     Booking ID
                   </span>
                   <button
                     onClick={() => setIsBookingIdMode(!isBookingIdMode)}
-                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 ${
-                      isBookingIdMode ? "bg-orange-600" : "bg-gray-300"
-                    }`}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 ${isBookingIdMode ? "bg-orange-600" : "bg-gray-300"
+                      }`}
                     disabled={showBookingSummary}
                   >
                     <span
-                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                        isBookingIdMode ? "translate-x-6" : "translate-x-1"
-                      }`}
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${isBookingIdMode ? "translate-x-6" : "translate-x-1"
+                        }`}
                     />
                   </button>
                   <span
-                    className={`text-xs sm:text-sm font-medium ${
-                      isBookingIdMode ? "text-orange-600" : "text-gray-500"
-                    }`}
+                    className={`text-xs sm:text-sm font-medium ${isBookingIdMode ? "text-orange-600" : "text-gray-500"
+                      }`}
                   >
                     Phone Number
                   </span>
@@ -464,94 +506,116 @@ const GetTicketsPage = () => {
                   <Tickets size={16} className="sm:w-5 sm:h-5" />
                   Booking Summary
                 </h3>
-                <div className="bg-gray-50 rounded-lg p-3 sm:p-4">
-                  <div className="space-y-2 sm:space-y-3 text-xs sm:text-sm">
-                    {/* Booking ID */}
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-600 font-medium">
-                        Booking ID:
-                      </span>
-                      <span className="font-semibold text-orange-600 text-sm sm:text-sm">
-                        ST - {bookingResult.bookingId || searchBookingId}
-                      </span>
+                <div className={`bg-gray-50 rounded-lg p-3 sm:p-4 ${isBookingIdMode && bookingList.length > 0 ? 'max-h-[60vh] overflow-y-auto' : ''}`}>
+                  {isBookingIdMode && bookingList.length > 0 ? (
+                    <div className="space-y-3">
+                      {bookingList.map((item, idx) => {
+                        const seatCountItem = item?.seatNumber?.length || 0;
+                        const totalAmountItem = seatCountItem * (item?.price || 0);
+                        return (
+                          <div key={item.bookingId || idx} className="bg-white rounded-md p-3 shadow-sm border">
+                            <div className="space-y-2 sm:space-y-3 text-xs sm:text-sm">
+                              <div className="flex justify-between items-center">
+                                <span className="text-gray-600 font-medium">Booking ID:</span>
+                                <span className="font-semibold text-orange-600">ST - {item.bookingId}</span>
+                              </div>
+                              <div className="flex justify-between items-start"><span className="text-gray-600 flex-shrink-0">User ID:</span><span className="font-medium text-right max-w-[60%] break-words">{item.userId || 'N/A'}</span></div>
+                              <div className="flex justify-between items-start"><span className="text-gray-600 flex-shrink-0">Movie:</span><span className="font-medium text-right max-w-[60%] break-words">{item.movieDetails?.movieName || item.movieName || 'N/A'}</span></div>
+                              <div className="flex justify-between items-start"><span className="text-gray-600 flex-shrink-0">Date:</span><span className="font-medium text-right max-w-[60%] break-words">{moment(item.date).format('MMM D, YYYY')}</span></div>
+                              <div className="flex justify-between items-start"><span className="text-gray-600 flex-shrink-0">Time:</span><span className="font-medium text-right max-w-[60%] break-words">{formatShowTime(item.time)}</span></div>
+                              <div className="flex justify-between items-start"><span className="text-gray-600 flex-shrink-0">Seats:</span><span className="font-medium text-blue-600 text-right max-w-[60%] break-all">{item.seatNumber?.map((s) => s.seatNo).join(', ') || 'N/A'}</span></div>
+                              <div className="flex justify-between items-center font-medium mt-2 pt-2 border-t border-gray-200"><span className="text-sm sm:text-lg text-gray-800">Total:</span><span className="text-base sm:text-lg text-green-600 font-bold">₹{totalAmountItem || 'N/A'}</span></div>
+                            </div>
+                            <div className="mt-2 flex gap-2">
+                              <button onClick={() => { setBookingResult(item); setIsTicketPopupOpen(true); }} className="flex-1 bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-3 rounded-md text-sm">View Tickets</button>
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
+                  ) : (
+                    <div className="space-y-2 sm:space-y-3 text-xs sm:text-sm">
+                      {/* Booking ID */}
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-600 font-medium">
+                          Booking ID:
+                        </span>
+                        <span className="font-semibold text-orange-600 text-sm sm:text-sm">
+                          ST - {bookingResult.bookingId || searchBookingId}
+                        </span>
+                      </div>
 
-                    <div className="flex justify-between items-start">
-                      <span className="text-gray-600 flex-shrink-0">
-                        User ID:
-                      </span>
-                      <span className="font-medium text-right max-w-[60%] break-words text-xs sm:text-sm">
-                        {bookingResult.userId || "N/A"}
-                      </span>
+                      <div className="flex justify-between items-start">
+                        <span className="text-gray-600 flex-shrink-0">
+                          User ID:
+                        </span>
+                        <span className="font-medium text-right max-w-[60%] break-words text-xs sm:text-sm">
+                          {bookingResult.userId || "N/A"}
+                        </span>
+                      </div>
+
+                      <div className="flex justify-between items-start">
+                        <span className="text-gray-600 flex-shrink-0">
+                          Movie:
+                        </span>
+                        <span className="font-medium text-right max-w-[60%] break-words text-xs sm:text-sm">
+                          {bookingResult.movieDetails?.movieName || "N/A"}
+                        </span>
+                      </div>
+
+                      {/* Date */}
+                      <div className="flex justify-between items-start">
+                        <span className="text-gray-600 flex-shrink-0">Date:</span>
+                        <span className="font-medium text-right max-w-[60%] break-words text-xs sm:text-sm">
+                          {moment(bookingResult.date).format("MMM D, YYYY")}
+                        </span>
+                      </div>
+
+                      {/* Show Time */}
+                      <div className="flex justify-between items-start">
+                        <span className="text-gray-600 flex-shrink-0">Time:</span>
+                        <span className="font-medium text-right max-w-[60%] break-words text-xs sm:text-sm">
+                          {(() => {
+                            const timeValue = bookingResult.time || bookingResult.showTime;
+                            if (timeValue) {
+                              const momentTime = moment(timeValue, [
+                                "HH:mm",
+                                "HH:mm:ss",
+                                "h:mm A",
+                                "h:mm a",
+                              ]);
+                              return momentTime.isValid()
+                                ? momentTime.format("h:mm A")
+                                : timeValue;
+                            }
+                            return "N/A";
+                          })()}
+                        </span>
+                      </div>
+
+                      {/* Seats */}
+                      <div className="flex justify-between items-start">
+                        <span className="text-gray-600 flex-shrink-0">
+                          Seats:
+                        </span>
+                        <span className="font-medium text-blue-600 text-right max-w-[60%] break-all text-xs sm:text-sm">
+                          {bookingResult.seatNumber
+                            ?.map((seat) => seat.seatNo)
+                            .join(", ") || "N/A"}
+                        </span>
+                      </div>
+
+                      {/* Total Amount */}
+                      <div className="flex justify-between items-center font-medium mt-2 pt-2 border-t border-gray-200">
+                        <span className="text-sm sm:text-lg text-gray-800">
+                          Total:
+                        </span>
+                        <span className="text-base sm:text-lg text-green-600 font-bold">
+                          ₹{totalAmount || "N/A"}
+                        </span>
+                      </div>
                     </div>
-
-                    <div className="flex justify-between items-start">
-                      <span className="text-gray-600 flex-shrink-0">
-                        Movie:
-                      </span>
-                      <span className="font-medium text-right max-w-[60%] break-words text-xs sm:text-sm">
-                        {bookingResult.movieDetails?.movieName || "N/A"}
-                      </span>
-                    </div>
-
-                    {/* Date */}
-                    <div className="flex justify-between items-start">
-                      <span className="text-gray-600 flex-shrink-0">Date:</span>
-                      <span className="font-medium text-right max-w-[60%] break-words text-xs sm:text-sm">
-                        {moment(bookingResult.date).format("MMM D, YYYY")}
-                      </span>
-                    </div>
-
-                    {/* Show Time */}
-                    <div className="flex justify-between items-start">
-                      <span className="text-gray-600 flex-shrink-0">Time:</span>
-                      <span className="font-medium text-right max-w-[60%] break-words text-xs sm:text-sm">
-                        {(() => {
-                          // Try multiple possible sources for show time
-                          const timeValue =
-                            bookingResult.showTimePlanner?.showTime?.showTime ||
-                            bookingResult.showTimePlanner?.showTime ||
-                            bookingResult.time ||
-                            bookingResult.showTime;
-
-                          if (timeValue) {
-                            const momentTime = moment(timeValue, [
-                              "HH:mm",
-                              "HH:mm:ss",
-                              "h:mm A",
-                              "h:mm a",
-                            ]);
-                            return momentTime.isValid()
-                              ? momentTime.format("h:mm A")
-                              : timeValue;
-                          }
-                          return "N/A";
-                        })()}
-                      </span>
-                    </div>
-
-                    {/* Seats */}
-                    <div className="flex justify-between items-start">
-                      <span className="text-gray-600 flex-shrink-0">
-                        Seats:
-                      </span>
-                      <span className="font-medium text-blue-600 text-right max-w-[60%] break-all text-xs sm:text-sm">
-                        {bookingResult.seatNumber
-                          ?.map((seat) => seat.seatNo)
-                          .join(", ") || "N/A"}
-                      </span>
-                    </div>
-
-                    {/* Total Amount */}
-                    <div className="flex justify-between items-center font-medium mt-2 pt-2 border-t border-gray-200">
-                      <span className="text-sm sm:text-lg text-gray-800">
-                        Total:
-                      </span>
-                      <span className="text-base sm:text-lg text-green-600 font-bold">
-                        ₹{totalAmount || "N/A"}
-                      </span>
-                    </div>
-                  </div>
+                  )}
                 </div>
               </div>
             )}
@@ -569,12 +633,7 @@ const GetTicketsPage = () => {
               movieName: bookingResult.movieDetails?.movieName || "Movie Title",
               poster: bookingResult.movieDetails?.image,
               date: bookingResult.date || bookingResult.showTimePlanner?.date,
-              time: formatShowTime(
-                bookingResult.showTimePlanner?.showTime?.showTime ||
-                  bookingResult.showTimePlanner?.showTime ||
-                  bookingResult.time ||
-                  bookingResult.showTime
-              ),
+              time: formatShowTime(bookingResult.time || bookingResult.showTime),
               price:
                 bookingResult.price || bookingResult.showTimePlanner?.price,
               movieDetails: bookingResult.movieDetails,
