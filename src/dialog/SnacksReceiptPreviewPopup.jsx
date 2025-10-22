@@ -78,7 +78,7 @@ const SnacksReceiptPreviewPopup = ({
             .section-title { color: #000 !important; font-size: 11px; font-weight: bold; margin: 1.5mm 0 0.5mm; text-align: center; }
             .section-line { border-top: 2px solid #000 !important; margin: 0.5mm 0; }
             .item { margin: 1mm 0; }
-            .item-head { display: flex; justify-content: space-between; font-weight: bold; font-size: 10px; }
+            .item-head { display: flex; justify-content: space-between; font-weight: bold; font-size: 16px; }
             .item-sub { display: flex; justify-content: space-between; font-size: 9px; }
             .large-text { font-size: 16px !important; font-weight: bold; line-height: 1.2; }
             .date-time-text { font-size: 16px !important; font-weight: bold; line-height: 1.2; }
@@ -215,7 +215,7 @@ const SnacksReceiptPreviewPopup = ({
                                         const lineTotal = Number(it.price || 0) * Number(it.quantity || 0);
                                         return (
                                             <div key={`${cat}-${idx}`} className="mb-1">
-                                                <div className="flex justify-between font-semibold"><span className="truncate pr-2">{it.name}</span><span>₹{lineTotal.toLocaleString("en-IN")}</span></div>
+                                                <div className="flex justify-between font-bold text-[16px]"><span className="truncate pr-2">{it.name}</span><span>₹{lineTotal.toLocaleString("en-IN")}</span></div>
                                                 <div className="flex justify-between text-[10px]"><span>Qty: {it.quantity}</span><span>₹{Number(it.price || 0).toLocaleString("en-IN")} × {it.quantity}</span></div>
                                             </div>
                                         );
