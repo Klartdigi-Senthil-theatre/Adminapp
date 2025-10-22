@@ -66,26 +66,28 @@ const SnacksReceiptPreviewPopup = ({
           <style>
             * { -webkit-print-color-adjust: exact !important; color-adjust: exact !important; print-color-adjust: exact !important; margin: 0; padding: 0; box-sizing: border-box; }
             @page { size: 80mm auto; margin: 0; }
-            body { font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.2; margin: 0; padding: 2mm; width: 100%; max-width: 100vw; color: #000; background: #fff; }
+            body { font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.2; margin: 0; padding: 2mm; width: 76mm; max-width: 76mm; color: #000; background: #fff; }
             .ticket { width: 100%; page-break-inside: avoid; break-inside: avoid; page-break-after: always; margin-bottom: 0; }
             .ticket:last-child { page-break-after: auto; }
             .header { background: #000 !important; color: #fff !important; text-align: center; padding: 3mm 0; }
             .cinema { font-size: 14px; font-weight: bold; }
             .subtitle { font-size: 12px; }
-            .row { display: flex; justify-content: space-between; margin: 1.5mm 0; }
-            .label { font-weight: bold; }
+            .row { display: flex; justify-content: space-between; margin: 1.5mm 0; word-wrap: break-word; }
+            .label { font-weight: bold; flex-shrink: 0; }
+            .row span:last-child { text-align: right; max-width: 60%; word-wrap: break-word; }
             .dotted { border-top: 1px dotted #000; margin: 2mm 0; }
             .section-title { color: #000 !important; font-size: 13px; font-weight: bold; margin: 2mm 0 1mm; text-align: center; }
             .section-line { border-top: 2px solid #000 !important; margin: 1mm 0; }
             .item { margin: 1.5mm 0; }
-            .item-head { display: flex; justify-content: space-between; font-weight: bold; }
-            .item-sub { display: flex; justify-content: space-between; font-size: 10px; }
-            .large-text { font-size: 22px !important; font-weight: bold; line-height: 1.2; }
+            .item-head { display: flex; justify-content: space-between; font-weight: bold; word-wrap: break-word; }
+            .item-sub { display: flex; justify-content: space-between; font-size: 10px; word-wrap: break-word; }
+            .large-text { font-size: 18px !important; font-weight: bold; line-height: 1.2; }
+            .date-time-text { font-size: 18px !important; font-weight: bold; line-height: 1.2; }
             .item-total { text-align: right; color: #000 !important; font-size: 12px; font-weight: bold; }
             .totals { margin-top: 3mm; }
             .center { text-align: center; }
             .foot { text-align: center; font-size: 10px; margin-top: 3mm; }
-            @media print { .large-text { font-size: 22px !important; } }
+            @media print { .large-text { font-size: 18px !important; } .date-time-text { font-size: 18px !important; } }
           </style>
         </head>
         <body>
@@ -102,9 +104,9 @@ const SnacksReceiptPreviewPopup = ({
                   </div>
                   <div class="dotted"></div>
                   <div class="row"><span class="label">Receipt No:</span><span>${receiptNo}</span></div>
-                  <div class="row"><span class="label large-text">Date:</span><span class="large-text">${nowDate}</span></div>
-                  <div class="row"><span class="label large-text">Time:</span><span class="large-text">${nowTime}</span></div>
-                  <div class="row"><span class="label large-text">Show Time:</span><span class="large-text">${showTime}</span></div>
+                  <div class="row"><span class="label">Date:</span><span class="date-time-text">${nowDate}</span></div>
+                  <div class="row"><span class="label">Time:</span><span class="date-time-text">${nowTime}</span></div>
+                  <div class="row"><span class="label">Show Time:</span><span>${showTime}</span></div>
                   <div class="row"><span class="label">Payment:</span><span>${payment}</span></div>
                   <div class="dotted"></div>
                   <div class="section-title">${cat.toUpperCase()}</div>
