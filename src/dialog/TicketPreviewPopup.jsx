@@ -140,9 +140,9 @@ const TicketPreviewPopup = ({
           }
           
           .large-text {
-            font-size: 1.4rem;
+            font-size: 22px !important;
             font-weight: bold;
-            line-height: calc(2.5/1.5);
+            line-height: 1.2;
           }
           
           @media print {
@@ -197,14 +197,14 @@ const TicketPreviewPopup = ({
                   </div>
                   
                   <div class="info-row">
-                    <span class="label">Date:</span>
+                    <span class="label large-text">Date:</span>
                     <span class="value large-text">${new Date(showDate).toLocaleDateString(
             "en-GB"
           )}</span>
                   </div>
                   
                   <div class="info-row">
-                    <span class="label">Time:</span>
+                    <span class="label large-text">Time:</span>
                     <span class="value large-text">${showTime}</span>
                   </div>
                   

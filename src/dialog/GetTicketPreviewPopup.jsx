@@ -177,10 +177,9 @@ const GetTicketPreviewPopup = ({
             }
             
             /* Ensure ticket content doesn't split */
-            .ticket-header, .ticket-body, .info-row .value, .info-row .label, .large-text {
+            .ticket-header, .ticket-body {
               page-break-inside: avoid !important;
               break-inside: avoid !important;
-              font-size: inherit !important;
             }
           }
         </style>
@@ -202,14 +201,14 @@ const GetTicketPreviewPopup = ({
                   </div>
                   
                   <div class="info-row">
-                    <span class="label">Date:</span>
+                    <span class="label large-text">Date:</span>
                     <span class="value large-text">${new Date(showDate).toLocaleDateString(
             "en-GB"
           )}</span>
                   </div>
                   
                   <div class="info-row">
-                    <span class="label">Time:</span>
+                    <span class="label large-text">Time:</span>
                     <span class="value large-text">${showTime}</span>
                   </div>
                   
