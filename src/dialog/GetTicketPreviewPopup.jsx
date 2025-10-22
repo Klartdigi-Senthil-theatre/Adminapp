@@ -149,6 +149,13 @@ const GetTicketPreviewPopup = ({
             line-height: 1.2;
           }
           
+          /* Larger font specifically for seat value */
+          .seat-value {
+            font-size: 32px !important;
+            font-weight: 800 !important;
+            line-height: 1.2;
+          }
+          
           @media print {
             body {
               margin: 2mm !important;
@@ -216,7 +223,7 @@ const GetTicketPreviewPopup = ({
                   
                   <div class="info-row">
                     <span class="label large-text">SEAT:</span>
-                    <span class="value large-text">${seat}</span>
+                    <span class="value seat-value">${seat}</span>
                   </div>
                   
                   <div class="info-row">
@@ -309,7 +316,7 @@ const GetTicketPreviewPopup = ({
 
                     <div className="flex justify-between items-center">
                       <span className="font-bold text-lg">SEAT:</span>
-                      <span className="font-bold text-lg">{seat}</span>
+                      <span className="font-bold text-xl">{seat}</span>
                     </div>
 
                     <div className="flex justify-between">
