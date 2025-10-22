@@ -91,19 +91,17 @@ const SeatLayout = ({
                     return (
                       <div key={seat.id} className="px-0.5 py-1">
                         <button
-                          className={`relative w-6 h-6 flex justify-center items-center rounded-t-lg rounded-b-sm font-bold text-xs border-2 transition-all duration-200 shadow-sm animate-seatPop ${
-                            isBooked
+                          className={`relative w-6 h-6 flex justify-center items-center rounded-t-lg rounded-b-sm font-bold text-xs border-2 transition-all duration-200 shadow-sm animate-seatPop ${isBooked
                               ? "bg-gradient-to-b from-gray-300 to-gray-500 text-white border-gray-700 cursor-not-allowed"
                               : isSelected
-                              ? "bg-gradient-to-b from-orange-400 to-orange-600 text-white border-orange-700 shadow-lg scale-105"
-                              : "bg-gradient-to-b from-orange-100 to-orange-200 text-orange-800 border-orange-300 hover:border-orange-500 hover:from-orange-200 hover:to-orange-300 hover:shadow-md hover:scale-110"
-                          }`}
+                                ? "bg-gradient-to-b from-orange-400 to-orange-600 text-white border-orange-700 shadow-lg scale-105"
+                                : "bg-gradient-to-b from-orange-100 to-orange-200 text-orange-800 border-orange-300 hover:border-orange-500 hover:from-orange-200 hover:to-orange-300 hover:shadow-md hover:scale-110"
+                            }`}
                           onClick={() => !isBooked && onSeatSelect(seat.id)}
                           disabled={isBooked || disabled}
                           style={{
-                            animationDelay: `${
-                              rowIndex * 50 + seatIndex * 10
-                            }ms`,
+                            animationDelay: `${rowIndex * 50 + seatIndex * 10
+                              }ms`,
                           }}
                         >
                           <span className="relative z-10 text-[10px]">
@@ -111,13 +109,12 @@ const SeatLayout = ({
                           </span>
                           {/* Seat cushion effect */}
                           <div
-                            className={`absolute bottom-0 left-0.5 right-0.5 h-1.5 rounded-sm ${
-                              isBooked
+                            className={`absolute bottom-0 left-0.5 right-0.5 h-1.5 rounded-sm ${isBooked
                                 ? "bg-gray-600"
                                 : isSelected
-                                ? "bg-orange-700"
-                                : "bg-orange-300"
-                            }`}
+                                  ? "bg-orange-700"
+                                  : "bg-orange-300"
+                              }`}
                           />
                         </button>
                       </div>
@@ -141,20 +138,18 @@ const SeatLayout = ({
                     return (
                       <div key={seat.id} className="px-0.5 py-1">
                         <button
-                          className={`relative w-6 h-6 flex justify-center items-center rounded-t-lg rounded-b-sm font-bold text-xs border-2 transition-all duration-200 shadow-sm animate-seatPop ${
-                            isBooked
+                          className={`relative w-6 h-6 flex justify-center items-center rounded-t-lg rounded-b-sm font-bold text-xs border-2 transition-all duration-200 shadow-sm animate-seatPop ${isBooked
                               ? "bg-gradient-to-b from-gray-300 to-gray-500 text-white border-gray-700 cursor-not-allowed"
                               : isSelected
-                              ? "bg-gradient-to-b from-orange-400 to-orange-600 text-white border-orange-700 shadow-lg scale-105"
-                              : "bg-gradient-to-b from-orange-100 to-orange-200 text-orange-800 border-orange-300 hover:border-orange-500 hover:from-orange-200 hover:to-orange-300 hover:shadow-md hover:scale-110"
-                          }`}
+                                ? "bg-gradient-to-b from-orange-400 to-orange-600 text-white border-orange-700 shadow-lg scale-105"
+                                : "bg-gradient-to-b from-orange-100 to-orange-200 text-orange-800 border-orange-300 hover:border-orange-500 hover:from-orange-200 hover:to-orange-300 hover:shadow-md hover:scale-110"
+                            }`}
                           onClick={() => !isBooked && onSeatSelect(seat.id)}
                           disabled={isBooked}
                           style={{
-                            animationDelay: `${
-                              rowIndex * 50 +
+                            animationDelay: `${rowIndex * 50 +
                               (leftSeats.length + seatIndex) * 10
-                            }ms`,
+                              }ms`,
                           }}
                         >
                           <span className="relative z-10 text-[10px]">
@@ -163,21 +158,20 @@ const SeatLayout = ({
                           {(seat.id === "R13" ||
                             seat.id === "R14" ||
                             seat.id === "R15") && (
-                            <X
-                              size={20}
-                              className="absolute inset-0 text-red-600 z-30"
-                              strokeWidth={2}
-                            />
-                          )}
+                              <X
+                                size={20}
+                                className="absolute inset-0 text-red-600 z-30"
+                                strokeWidth={2}
+                              />
+                            )}
                           {/* Seat cushion effect */}
                           <div
-                            className={`absolute bottom-0 left-0.5 right-0.5 h-1.5 rounded-sm ${
-                              isBooked
+                            className={`absolute bottom-0 left-0.5 right-0.5 h-1.5 rounded-sm ${isBooked
                                 ? "bg-gray-600"
                                 : isSelected
-                                ? "bg-orange-700"
-                                : "bg-orange-300"
-                            }`}
+                                  ? "bg-orange-700"
+                                  : "bg-orange-300"
+                              }`}
                           />
                         </button>
                       </div>
@@ -614,14 +608,14 @@ const SeatsPage = () => {
                         price: selectedShowTime?.price || null,
                         movie:
                           selectedShowTime &&
-                          selectedShowTime.movie &&
-                          selectedShowTime.movie.title
+                            selectedShowTime.movie &&
+                            selectedShowTime.movie.title
                             ? selectedShowTime.movie.title
                             : "Select showtime",
                         movieId:
                           selectedShowTime &&
-                          selectedShowTime.movie &&
-                          selectedShowTime.movie.id
+                            selectedShowTime.movie &&
+                            selectedShowTime.movie.id
                             ? selectedShowTime.movie.id
                             : null,
                         showTimePlannerId:
@@ -704,14 +698,14 @@ const SeatsPage = () => {
                         price: selectedShowTime?.price || null,
                         movie:
                           selectedShowTime &&
-                          selectedShowTime.movie &&
-                          selectedShowTime.movie.title
+                            selectedShowTime.movie &&
+                            selectedShowTime.movie.title
                             ? selectedShowTime.movie.title
                             : "Select showtime",
                         movieId:
                           selectedShowTime &&
-                          selectedShowTime.movie &&
-                          selectedShowTime.movie.id
+                            selectedShowTime.movie &&
+                            selectedShowTime.movie.id
                             ? selectedShowTime.movie.id
                             : null,
                         showTimePlannerId:

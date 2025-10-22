@@ -42,21 +42,21 @@ const SnacksReceiptPreviewPopup = ({
     const showDate = currentShow?.date || now.toISOString().split("T")[0];
     const payment = paymentMode === "gpay" ? "Gpay" : paymentMode === "online" ? "Online" : "Cash";
 
-  const handlePrint = () => {
-    // Block printing for past dates
-    try {
-      const selected = currentShow?.date ? new Date(currentShow.date) : null;
-      if (selected) {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        selected.setHours(0, 0, 0, 0);
-        if (selected < today) {
-          alert("Cannot print for a past date. Please select today or a future date.");
-          return;
-        }
-      }
-    } catch (_) {}
-    setIsPrinting(true);
+    const handlePrint = () => {
+        // Block printing for past dates
+        try {
+            const selected = currentShow?.date ? new Date(currentShow.date) : null;
+            if (selected) {
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                selected.setHours(0, 0, 0, 0);
+                if (selected < today) {
+                    alert("Cannot print for a past date. Please select today or a future date.");
+                    return;
+                }
+            }
+        } catch (_) { }
+        setIsPrinting(true);
         const printHtml = `
       <!DOCTYPE html>
       <html>
@@ -66,7 +66,7 @@ const SnacksReceiptPreviewPopup = ({
           <style>
             * { -webkit-print-color-adjust: exact !important; color-adjust: exact !important; print-color-adjust: exact !important; margin: 0; padding: 0; box-sizing: border-box; }
             @page { size: 80mm auto; margin: 0; }
-            body { font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.2; margin: 0; padding: 2mm; width: 76mm; color: #000; background: #fff; }
+            body { font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.2; margin: 0; padding: 2mm; width: 100%; max-width: 100vw; color: #000; background: #fff; }
             .ticket { width: 100%; page-break-inside: avoid; break-inside: avoid; page-break-after: always; margin-bottom: 0; }
             .ticket:last-child { page-break-after: auto; }
             .header { background: #000 !important; color: #fff !important; text-align: center; padding: 3mm 0; }
@@ -102,9 +102,9 @@ const SnacksReceiptPreviewPopup = ({
                   </div>
                   <div class="dotted"></div>
                   <div class="row"><span class="label">Receipt No:</span><span>${receiptNo}</span></div>
-                  <div class="row"><span class="label">Date:</span><span class="large-text">${nowDate}</span></div>
-                  <div class="row"><span class="label">Time:</span><span class="large-text">${nowTime}</span></div>
-                  <div class="row"><span class="label">Show Time:</span><span>${showTime}</span></div>
+                  <div class="row"><span class="label large-text">Date:</span><span class="large-text">${nowDate}</span></div>
+                  <div class="row"><span class="label large-text">Time:</span><span class="large-text">${nowTime}</span></div>
+                  <div class="row"><span class="label large-text">Show Time:</span><span class="large-text">${showTime}</span></div>
                   <div class="row"><span class="label">Payment:</span><span>${payment}</span></div>
                   <div class="dotted"></div>
                   <div class="section-title">${cat.toUpperCase()}</div>
@@ -142,9 +142,9 @@ const SnacksReceiptPreviewPopup = ({
             </div>
             <div class="dotted"></div>
             <div class="row"><span class="label">Receipt No:</span><span>${receiptNo}</span></div>
-            <div class="row"><span class="label">Date:</span><span>${nowDate}</span></div>
-            <div class="row"><span class="label">Time:</span><span>${nowTime}</span></div>
-            <div class="row"><span class="label">Show Time:</span><span>${showTime}</span></div>
+            <div class="row"><span class="label large-text">Date:</span><span class="large-text">${nowDate}</span></div>
+            <div class="row"><span class="label large-text">Time:</span><span class="large-text">${nowTime}</span></div>
+            <div class="row"><span class="label large-text">Show Time:</span><span class="large-text">${showTime}</span></div>
             <div class="dotted"></div>
             <div class="section-title">ORDER BREAKDOWN</div>
             <div class="section-line"></div>
@@ -203,9 +203,9 @@ const SnacksReceiptPreviewPopup = ({
                                 </div>
                                 <div className="p-3 text-xs space-y-1">
                                     <div className="flex justify-between"><span className="font-semibold">Receipt No:</span><span>{receiptNo}</span></div>
-                  <div className="flex justify-between items-center"><span className="font-semibold">Date:</span><span className="font-bold text-3xl">{nowDate}</span></div>
-                  <div className="flex justify-between items-center"><span className="font-semibold">Time:</span><span className="font-bold text-3xl">{nowTime}</span></div>
-                                    <div className="flex justify-between"><span className="font-semibold">Show Time:</span><span>{showTime}</span></div>
+                                    <div className="flex justify-between items-center"><span className="font-semibold text-lg">Date:</span><span className="font-bold text-lg">{nowDate}</span></div>
+                                    <div className="flex justify-between items-center"><span className="font-semibold text-lg">Time:</span><span className="font-bold text-lg">{nowTime}</span></div>
+                                    <div className="flex justify-between items-center"><span className="font-semibold text-lg">Show Time:</span><span className="font-bold text-lg">{showTime}</span></div>
                                     <div className="flex justify-between"><span className="font-semibold">Payment:</span><span>{payment}</span></div>
                                     <div className="border-t border-dashed border-gray-400 my-2"></div>
                                     <div className="text-black font-bold text-xs text-center">{cat.toUpperCase()}</div>
@@ -242,9 +242,9 @@ const SnacksReceiptPreviewPopup = ({
                         </div>
                         <div className="p-3 text-xs space-y-1">
                             <div className="flex justify-between"><span className="font-semibold">Receipt No:</span><span>{receiptNo}</span></div>
-                            <div className="flex justify-between items-center"><span className="font-semibold">Date:</span><span className="font-bold text-3xl">{nowDate}</span></div>
-                            <div className="flex justify-between items-center"><span className="font-semibold">Time:</span><span className="font-bold text-3xl">{nowTime}</span></div>
-                            <div className="flex justify-between"><span className="font-semibold">Show Time:</span><span>{showTime}</span></div>
+                            <div className="flex justify-between items-center"><span className="font-semibold text-lg">Date:</span><span className="font-bold text-lg">{nowDate}</span></div>
+                            <div className="flex justify-between items-center"><span className="font-semibold text-lg">Time:</span><span className="font-bold text-lg">{nowTime}</span></div>
+                            <div className="flex justify-between items-center"><span className="font-semibold text-lg">Show Time:</span><span className="font-bold text-lg">{showTime}</span></div>
                             <div className="border-t border-dashed border-gray-400 my-2"></div>
                             <div className="text-black font-bold text-xs text-center">ORDER BREAKDOWN</div>
                             <div className="border-t-2 border-black my-1"></div>
