@@ -72,7 +72,7 @@ const SnacksReceiptPreviewPopup = ({
             .header { background: #000 !important; color: #fff !important; text-align: center; padding: 3mm 0; }
             .cinema { font-size: 16px; font-weight: bold; }
             .subtitle { font-size: 12px; font-weight: bold; }
-            .row { display: flex; justify-content: space-between; margin: 1.5mm 0; font-size: 12px; }
+            .row { display: flex; justify-content: space-between; margin: 1.5mm 0; font-size: 12px; font-weight: bold; }
             .label { font-weight: bold; }
             .dotted { border-top: 1px dotted #000; margin: 2mm 0; }
             .section-title { color: #000 !important; font-size: 13px; font-weight: bold; margin: 2mm 0 1mm; text-align: center; }
@@ -202,8 +202,8 @@ const SnacksReceiptPreviewPopup = ({
                                         );
                                     })}
                                     <div className="border-t border-dashed border-gray-400 my-2"></div>
-                                    <div className="flex justify-between"><span className="font-bold">Total</span><span className="font-bold">₹{catTotal.toLocaleString("en-IN")}</span></div>
-                                    <div className="flex justify-between"><span className="font-bold">Items</span><span className="font-bold">{catQty}</span></div>
+                                    <div className="flex justify-between font-bold"><span className="font-bold">Total</span><span className="font-bold">₹{catTotal.toLocaleString("en-IN")}</span></div>
+                                    <div className="flex justify-between font-bold"><span className="font-bold">Items</span><span className="font-bold">{catQty}</span></div>
                                     <div className="border-t border-dashed border-gray-400 my-2"></div>
                                     <div className="text-center text-[12px] text-black space-y-1">
                                         <div className="font-bold">GST: 33CMMPP7822B1Z2</div>
@@ -237,8 +237,8 @@ const SnacksReceiptPreviewPopup = ({
                                 );
                             })}
                             <div className="border-t border-black my-2"></div>
-                            <div className="flex justify-between"><span className="font-bold">Total Items:</span><span className="font-bold">{grouped.totals.count}</span></div>
-                            <div className="flex justify-between text-black"><span className="font-bold">GRAND TOTAL:</span><span className="font-bold">₹{grouped.totals.amount.toLocaleString('en-IN')}</span></div>
+                            <div className="flex justify-between font-bold"><span className="font-bold">Total Items:</span><span className="font-bold">{grouped.totals.count}</span></div>
+                            <div className="flex justify-between text-black font-bold"><span className="font-bold">GRAND TOTAL:</span><span className="font-bold">₹{grouped.totals.amount.toLocaleString('en-IN')}</span></div>
                             <div className="border-t border-dashed border-gray-400 my-2"></div>
                             <div className="text-center text-[12px] text-black space-y-1">
                                 <div className="font-bold">GST: 33CMMPP7822B1Z2</div>
