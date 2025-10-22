@@ -144,9 +144,9 @@ const GetTicketPreviewPopup = ({
           }
           
           .large-text {
-            font-size: 1.4rem;
+            font-size: 22px !important;
             font-weight: bold;
-            line-height: calc(2.5/1.5);
+            line-height: 1.2;
           }
           
           @media print {
