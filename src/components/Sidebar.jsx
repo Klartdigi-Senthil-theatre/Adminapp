@@ -1,5 +1,7 @@
 import {
   BarChart3,
+  ChevronDown,
+  ChevronRight,
   ChevronLeft,
   Clock,
   Coffee,
@@ -17,26 +19,79 @@ import { GiOfficeChair } from "react-icons/gi";
 import { NavLink } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
-const navItems = [
-  { path: "/dashboard", icon: BarChart3, name: "Dashboard" },
-  { path: "/snacks", icon: Coffee, name: "Snacks" },
-  { path: "/seats", icon: GiOfficeChair, name: "Seat Allocation" },
-  { path: "/ads", icon: Megaphone, name: "Advertisement" },
-  { path: "/inventory", icon: Package, name: "Inventory" },
-  { path: "/movie", icon: Film, name: "Movie" },
-  { path: "/users", icon: Users, name: "Users" },
-  { path: "/show-time", icon: Clock, name: "Showtime Planner" },
-  { path: "/get-tickets", icon: Tickets, name: "Get Tickets" },
-  { path: "/report", icon: FileText, name: "Showtime Report" },
-  { path: "/snacks-report", icon: Coffee, name: "Snacks Report" },
-  { path: "/daily-report", icon: FileText, name: "Daily Report" },
-  { path: "/company-report", icon: FileText, name: "Company Report" },
+const menuStructure = [
+  {
+    type: "item",
+    path: "/dashboard",
+    icon: BarChart3,
+    name: "Dashboard"
+  },
+  {
+    type: "item",
+    path: "/snacks",
+    icon: Coffee,
+    name: "Snacks"
+  },
+  {
+    type: "item",
+    path: "/seats",
+    icon: GiOfficeChair,
+    name: "Seat Allocation"
+  },
+  {
+    type: "item",
+    path: "/ads",
+    icon: Megaphone,
+    name: "Advertisement"
+  },
+  {
+    type: "item",
+    path: "/inventory",
+    icon: Package,
+    name: "Inventory"
+  },
+  {
+    type: "item",
+    path: "/movie",
+    icon: Film,
+    name: "Movie"
+  },
+  {
+    type: "item",
+    path: "/users",
+    icon: Users,
+    name: "Users"
+  },
+  {
+    type: "item",
+    path: "/show-time",
+    icon: Clock,
+    name: "Showtime Planner"
+  },
+  {
+    type: "item",
+    path: "/get-tickets",
+    icon: Tickets,
+    name: "Get Tickets"
+  },
+  {
+    type: "group",
+    title: "Reports",
+    icon: FileText,
+    items: [
+      { path: "/report", icon: FileText, name: "Showtime Report" },
+      { path: "/snacks-report", icon: Coffee, name: "Snacks Report" },
+      { path: "/daily-report", icon: FileText, name: "Daily Report" },
+      { path: "/company-report", icon: FileText, name: "Company Report" },
+    ]
+  }
 ];
 
 // Fixed Sidebar Component
 const Sidebar = ({ isOpen, setIsOpen, isMobile }) => {
   const { user, logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [expandedGroups, setExpandedGroups] = useState({});
   const menuRef = useRef(null);
   const sidebarRef = useRef(null);
 
@@ -138,30 +193,89 @@ const Sidebar = ({ isOpen, setIsOpen, isMobile }) => {
         {/* Sidebar Navigation - Scrollable */}
         <nav className="flex-1 min-h-0 mt-3 overflow-hidden">
           <ul className="sidebar-scroll h-full overflow-y-auto pr-2 pb-4">
-            {navItems.map((item) => (
-              <li key={item.path} className="mb-2">
-                <NavLink
-                  to={item.path}
-                  className={({ isActive }) =>
-                    `flex items-center p-3 mx-2 rounded-lg transition-colors ${isActive
-                      ? "bg-orange-600 text-white"
-                      : "hover:bg-orange-300"
-                    }`
-                  }
-                  onClick={() => isMobile && setIsOpen(false)}
-                >
-                  <item.icon size={20} />
-                  {(isOpen || isMobile) && (
-                    <span className="ml-3">{item.name}</span>
-                  )}
-                </NavLink>
-              </li>
-            ))}
+            {menuStructure.map((menuItem, index) => {
+              if (menuItem.type === "item") {
+                return (
+                  <li key={menuItem.path} className="mb-2">
+                    <NavLink
+                      to={menuItem.path}
+                      className={({ isActive }) =>
+                        `flex items-center px-4 py-2 mx-2 rounded-lg transition-colors ${isActive
+                          ? "bg-orange-600 text-white"
+                          : "hover:bg-orange-300"
+                        }`
+                      }
+                      onClick={() => isMobile && setIsOpen(false)}
+                    >
+                      <menuItem.icon size={18} />
+                      {(isOpen || isMobile) && (
+                        <span className="ml-3">{menuItem.name}</span>
+                      )}
+                    </NavLink>
+                  </li>
+                );
+              }
+
+              if (menuItem.type === "group") {
+                const isExpanded = expandedGroups[menuItem.title];
+                const toggleGroup = () => {
+                  setExpandedGroups(prev => ({
+                    ...prev,
+                    [menuItem.title]: !prev[menuItem.title]
+                  }));
+                };
+
+                return (
+                  <li key={menuItem.title} className="mb-2">
+                    <button
+                      onClick={toggleGroup}
+                      className={`flex items-center justify-between w-full px-4 py-2 mx-2 rounded-lg transition-colors hover:bg-orange-300 ${isExpanded ? "bg-orange-200" : ""
+                        }`}
+                    >
+                      <div className="flex items-center">
+                        <menuItem.icon size={18} />
+                        {(isOpen || isMobile) && (
+                          <span className="ml-3 font-medium">{menuItem.title}</span>
+                        )}
+                      </div>
+                      {(isOpen || isMobile) && (
+                        isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />
+                      )}
+                    </button>
+
+                    {/* Group Submenu */}
+                    {isExpanded && (isOpen || isMobile) && (
+                      <ul className="ml-4 mt-2 space-y-1">
+                        {menuItem.items.map((item) => (
+                          <li key={item.path}>
+                            <NavLink
+                              to={item.path}
+                              className={({ isActive }) =>
+                                `flex items-center px-3 py-2 rounded-lg transition-colors text-sm ${isActive
+                                  ? "bg-orange-600 text-white"
+                                  : "hover:bg-orange-200 text-orange-800"
+                                }`
+                              }
+                              onClick={() => isMobile && setIsOpen(false)}
+                            >
+                              <item.icon size={16} />
+                              <span className="ml-2">{item.name}</span>
+                            </NavLink>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </li>
+                );
+              }
+
+              return null;
+            })}
           </ul>
         </nav>
 
         {/* User profile at bottom - Fixed */}
-        <div className="flex-shrink-0 p-4 border-t border-orange-700 bg-white">
+        <div className="flex-shrink-0 px-4 py-2 border-t border-orange-700 bg-white">
           <div
             ref={menuRef}
             className={`flex items-center cursor-pointer relative group transition-all duration-200 
