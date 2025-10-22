@@ -69,9 +69,9 @@ const SnacksReceiptPreviewPopup = ({
             body { font-family: 'Courier New', monospace; font-size: 11px; line-height: 1.1; margin: 0; padding: 1mm; width: 78mm; max-width: 78mm; color: #000; background: #fff; }
             .ticket { width: 100%; page-break-inside: avoid; break-inside: avoid; page-break-after: always; margin-bottom: 0; }
             .ticket:last-child { page-break-after: auto; }
-            .header { background: #000 !important; color: #fff !important; text-align: center; padding: 2mm 0; }
-            .cinema { font-size: 12px; font-weight: bold; }
-            .subtitle { font-size: 10px; }
+            .header { background: #000 !important; color: #fff !important; text-align: center; padding: 3mm 0; }
+            .cinema { font-size: 14px; font-weight: bold; }
+            .subtitle { font-size: 11px; font-weight: bold; }
             .row { display: flex; justify-content: space-between; margin: 1mm 0; font-size: 10px; }
             .label { font-weight: bold; }
             .dotted { border-top: 1px dotted #000; margin: 1.5mm 0; }
@@ -101,13 +101,6 @@ const SnacksReceiptPreviewPopup = ({
                     <div class="cinema">SENTHIL CINEMAS A/C</div>
                     <div class="subtitle">SNACKS ORDER</div>
                   </div>
-                  <div class="dotted"></div>
-                  <div class="row"><span class="label">Receipt No:</span><span>${receiptNo}</span></div>
-                  <div class="row"><span class="label large-text">Date:</span><span class="large-text">${nowDate}</span></div>
-                  <div class="row"><span class="label large-text">Time:</span><span class="large-text">${nowTime}</span></div>
-                  <div class="row"><span class="label large-text">Show Time:</span><span class="large-text">${showTime}</span></div>
-                  <div class="row"><span class="label">Payment:</span><span>${payment}</span></div>
-                  <div class="dotted"></div>
                   <div class="section-title">${cat.toUpperCase()}</div>
                   <div class="section-line"></div>
                   ${items
@@ -141,12 +134,6 @@ const SnacksReceiptPreviewPopup = ({
               <div class="cinema">SENTHIL CINEMAS A/C</div>
               <div class="subtitle">ORDER SUMMARY</div>
             </div>
-            <div class="dotted"></div>
-            <div class="row"><span class="label">Receipt No:</span><span>${receiptNo}</span></div>
-            <div class="row"><span class="label large-text">Date:</span><span class="large-text">${nowDate}</span></div>
-            <div class="row"><span class="label large-text">Time:</span><span class="large-text">${nowTime}</span></div>
-            <div class="row"><span class="label large-text">Show Time:</span><span class="large-text">${showTime}</span></div>
-            <div class="dotted"></div>
             <div class="section-title">ORDER BREAKDOWN</div>
             <div class="section-line"></div>
             ${grouped.categories
@@ -198,17 +185,11 @@ const SnacksReceiptPreviewPopup = ({
                         const catQty = items.reduce((s, it) => s + Number(it.quantity || 0), 0);
                         return (
                             <div key={cat} className="bg-white rounded border-2 border-gray-300" style={{ width: "280px", maxWidth: "280px" }}>
-                                <div className="bg-black text-white text-center py-2 px-3">
-                                    <div className="text-sm font-bold mb-1">SENTHIL CINEMAS A/C</div>
-                                    <div className="text-xs font-semibold">SNACKS ORDER</div>
+                                <div className="bg-black text-white text-center py-3 px-3">
+                                    <div className="text-base font-bold mb-1">SENTHIL CINEMAS A/C</div>
+                                    <div className="text-sm font-bold">SNACKS ORDER</div>
                                 </div>
                                 <div className="p-3 text-xs space-y-1">
-                                    <div className="flex justify-between"><span className="font-semibold">Receipt No:</span><span>{receiptNo}</span></div>
-                                    <div className="flex justify-between items-center"><span className="font-semibold">Date:</span><span className="font-bold text-[16px]">{nowDate}</span></div>
-                                    <div className="flex justify-between items-center"><span className="font-semibold">Time:</span><span className="font-bold text-[16px]">{nowTime}</span></div>
-                                    <div className="flex justify-between"><span className="font-semibold">Show Time:</span><span>{showTime}</span></div>
-                                    <div className="flex justify-between"><span className="font-semibold">Payment:</span><span>{payment}</span></div>
-                                    <div className="border-t border-dashed border-gray-400 my-2"></div>
                                     <div className="text-black font-bold text-xs text-center">{cat.toUpperCase()}</div>
                                     <div className="border-t-2 border-black my-1"></div>
                                     {items.map((it, idx) => {
@@ -237,16 +218,11 @@ const SnacksReceiptPreviewPopup = ({
 
                     {/* Summary Ticket */}
                     <div className="bg-white rounded border-2 border-gray-300" style={{ width: "280px", maxWidth: "280px" }}>
-                        <div className="bg-black text-white text-center py-2 px-3">
-                            <div className="text-sm font-bold mb-1">SENTHIL CINEMAS A/C</div>
-                            <div className="text-xs font-semibold">ORDER SUMMARY</div>
+                        <div className="bg-black text-white text-center py-3 px-3">
+                            <div className="text-base font-bold mb-1">SENTHIL CINEMAS A/C</div>
+                            <div className="text-sm font-bold">ORDER SUMMARY</div>
                         </div>
                         <div className="p-3 text-xs space-y-1">
-                            <div className="flex justify-between"><span className="font-semibold">Receipt No:</span><span>{receiptNo}</span></div>
-                            <div className="flex justify-between items-center"><span className="font-semibold">Date:</span><span className="font-bold text-[16px]">{nowDate}</span></div>
-                            <div className="flex justify-between items-center"><span className="font-semibold">Time:</span><span className="font-bold text-[16px]">{nowTime}</span></div>
-                            <div className="flex justify-between"><span className="font-semibold">Show Time:</span><span>{showTime}</span></div>
-                            <div className="border-t border-dashed border-gray-400 my-2"></div>
                             <div className="text-black font-bold text-xs text-center">ORDER BREAKDOWN</div>
                             <div className="border-t-2 border-black my-1"></div>
                             {grouped.categories.map((cat) => {
