@@ -1,12 +1,6 @@
 import { Calendar, MapPin, Printer, Users, X } from "lucide-react";
 import { useState } from "react";
-
-// Mock notify function for demo
-const notify = {
-  info: (msg) => console.log("Info:", msg),
-  success: (msg) => console.log("Success:", msg),
-  error: (msg) => console.log("Error:", msg),
-};
+import { notify } from "../components/Notification";
 
 const TicketPreviewPopup = ({
   selectedSeats,
@@ -33,19 +27,20 @@ const TicketPreviewPopup = ({
   };
 
   const handlePrint = () => {
-    // Block printing for past dates
-    try {
-      const selected = showDate ? new Date(showDate) : null;
-      if (selected) {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        selected.setHours(0, 0, 0, 0);
-        if (selected < today) {
-          notify.error("Cannot print for a past date.");
-          return;
-        }
-      }
-    } catch (_) {}
+    // Check if the show date is in the past
+    const showDateObj = new Date(showDate);
+    const today = new Date();
+
+    // Reset time to start of day for accurate comparison
+    today.setHours(0, 0, 0, 0);
+    showDateObj.setHours(0, 0, 0, 0);
+
+    // Compare dates (showDateObj < today means it's a past date)
+    if (showDateObj < today) {
+      notify.error("Past show tickets are not printable.");
+      return;
+    }
+
     setIsPrinting(true);
     notify.info("Preparing for printing...");
 
@@ -145,9 +140,9 @@ const TicketPreviewPopup = ({
           }
           
           .large-text {
-          font-size: 16px !important;
-          font-weight: bold;
-          line-height: 1.2;
+            font-size: 1.25rem;
+            font-weight: bold;
+            line-height: calc(2.5/1.5);
           }
           
           @media print {
@@ -178,18 +173,17 @@ const TicketPreviewPopup = ({
             }
             
             /* Ensure ticket content doesn't split */
-            .ticket-header, .ticket-body, .info-row .value, .info-row .label, .large-text {
+            .ticket-header, .ticket-body {
               page-break-inside: avoid !important;
               break-inside: avoid !important;
-              font-size: inherit !important;
             }
           }
         </style>
       </head>
       <body>
         ${selectedSeats
-          .map((seat) => {
-            return `
+        .map((seat) => {
+          return `
               <div class="thermal-ticket">
                 <div class="ticket-header">
                   <div class="cinema-name">SENTHIL CINEMAS A/C</div>
@@ -205,8 +199,8 @@ const TicketPreviewPopup = ({
                   <div class="info-row">
                     <span class="label">Date:</span>
                     <span class="value large-text">${new Date(showDate).toLocaleDateString(
-                      "en-GB"
-                    )}</span>
+            "en-GB"
+          )}</span>
                   </div>
                   
                   <div class="info-row">
@@ -234,13 +228,18 @@ const TicketPreviewPopup = ({
                     <div style="margin-top: 1mm;">Thank You!</div>
                     <div style="margin-top: 0.5mm; font-size: 0.75rem;">மது அருந்தியவர்களுக்கு அனுமதி இல்லை. 3 வயது மற்றும் அதற்கு மேற்பட்டவர்களுக்கு டிக்கெட் கட்டாயம்.</div>
                   </div>
-                  ${currentShow.userId ? `<div style="font-size: 0.275rem; margin-top: 1.5mm; text-align: center; color: gray;">User ID: ${currentShow.userId}</div>` : ''}
+                  ${currentShow.userId ? `<div style={{
+                      fontSize: "0.275rem",
+                      marginTop: "1.5mm",
+                      textAlign: "center",
+                      color: "gray",
+                    }}>User ID: ${currentShow.userId}</div>` : ''}
                   </div>
                 </div>
               </div>
             `;
-          })
-          .join("")}
+        })
+        .join("")}
       </body>
       </html>
     `;
@@ -296,22 +295,22 @@ const TicketPreviewPopup = ({
                     </div>
 
                     <div className="flex justify-between items-center">
-                      <span className="font-semibold">Date:</span>
-                      <span className="font-bold text-[16px]">
+                      <span className="font-semibold text-lg">Date:</span>
+                      <span className="font-bold text-lg">
                         {new Date(showDate).toLocaleDateString("en-GB")}
                       </span>
                     </div>
-                    
+
                     <div className="flex justify-between items-center">
-                      <span className="font-semibold">Time:</span>
-                      <span className="font-bold text-[16px]">{showTime}</span>
+                      <span className="font-semibold text-lg">Time:</span>
+                      <span className="font-bold text-lg">{showTime}</span>
                     </div>
 
                     <div className="border-t border-dashed border-gray-400 my-2"></div>
 
                     <div className="flex justify-between items-center">
                       <span className="font-bold text-lg">SEAT:</span>
-                      <span className="font-bold text-3xl">{seat}</span>
+                      <span className="font-bold text-lg">{seat}</span>
                     </div>
 
                     <div className="flex justify-between">

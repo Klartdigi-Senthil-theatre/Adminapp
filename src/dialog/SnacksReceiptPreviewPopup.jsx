@@ -203,8 +203,8 @@ const SnacksReceiptPreviewPopup = ({
                                 </div>
                                 <div className="p-3 text-xs space-y-1">
                                     <div className="flex justify-between"><span className="font-semibold">Receipt No:</span><span>{receiptNo}</span></div>
-                  <div className="flex justify-between items-center"><span className="font-semibold">Date:</span><span className="font-bold text-3xl">{nowDate}</span></div>
-                  <div className="flex justify-between items-center"><span className="font-semibold">Time:</span><span className="font-bold text-3xl">{nowTime}</span></div>
+                  <div className="flex justify-between items-center"><span className="font-semibold text-lg">Date:</span><span className="font-bold text-lg">{nowDate}</span></div>
+                  <div className="flex justify-between items-center"><span className="font-semibold text-lg">Time:</span><span className="font-bold text-lg">{nowTime}</span></div>
                                     <div className="flex justify-between"><span className="font-semibold">Show Time:</span><span>{showTime}</span></div>
                                     <div className="flex justify-between"><span className="font-semibold">Payment:</span><span>{payment}</span></div>
                                     <div className="border-t border-dashed border-gray-400 my-2"></div>
@@ -242,8 +242,8 @@ const SnacksReceiptPreviewPopup = ({
                         </div>
                         <div className="p-3 text-xs space-y-1">
                             <div className="flex justify-between"><span className="font-semibold">Receipt No:</span><span>{receiptNo}</span></div>
-                            <div className="flex justify-between items-center"><span className="font-semibold">Date:</span><span className="font-bold text-3xl">{nowDate}</span></div>
-                            <div className="flex justify-between items-center"><span className="font-semibold">Time:</span><span className="font-bold text-3xl">{nowTime}</span></div>
+                            <div className="flex justify-between items-center"><span className="font-semibold text-lg">Date:</span><span className="font-bold text-lg">{nowDate}</span></div>
+                            <div className="flex justify-between items-center"><span className="font-semibold text-lg">Time:</span><span className="font-bold text-lg">{nowTime}</span></div>
                             <div className="flex justify-between"><span className="font-semibold">Show Time:</span><span>{showTime}</span></div>
                             <div className="border-t border-dashed border-gray-400 my-2"></div>
                             <div className="text-black font-bold text-xs text-center">ORDER BREAKDOWN</div>

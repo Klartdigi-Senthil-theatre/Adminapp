@@ -44,7 +44,7 @@ const GetTicketPreviewPopup = ({
           return;
         }
       }
-    } catch (_) {}
+    } catch (_) { }
     setIsPrinting(true);
     notify.info("Preparing for printing...");
 
@@ -187,8 +187,8 @@ const GetTicketPreviewPopup = ({
       </head>
       <body>
         ${selectedSeats
-          .map((seat) => {
-            return `
+        .map((seat) => {
+          return `
               <div class="thermal-ticket">
                 <div class="ticket-header">
                   <div class="cinema-name">SENTHIL CINEMAS A/C</div>
@@ -204,8 +204,8 @@ const GetTicketPreviewPopup = ({
                   <div class="info-row">
                     <span class="label">Date:</span>
                     <span class="value large-text">${new Date(showDate).toLocaleDateString(
-                      "en-GB"
-                    )}</span>
+            "en-GB"
+          )}</span>
                   </div>
                   
                   <div class="info-row">
@@ -238,8 +238,8 @@ const GetTicketPreviewPopup = ({
                 </div>
               </div>
             `;
-          })
-          .join("")}
+        })
+        .join("")}
       </body>
       </html>
     `;
@@ -295,22 +295,22 @@ const GetTicketPreviewPopup = ({
                     </div>
 
                     <div className="flex justify-between items-center">
-                      <span className="font-semibold">Date:</span>
-                      <span className="font-bold text-[16px]">
+                      <span className="font-semibold text-lg">Date:</span>
+                      <span className="font-bold text-lg">
                         {new Date(showDate).toLocaleDateString("en-GB")}
                       </span>
                     </div>
-                    
+
                     <div className="flex justify-between items-center">
-                      <span className="font-semibold">Time:</span>
-                      <span className="font-bold text-[16px]">{showTime}</span>
+                      <span className="font-semibold text-lg">Time:</span>
+                      <span className="font-bold text-lg">{showTime}</span>
                     </div>
 
                     <div className="border-t border-dashed border-gray-400 my-2"></div>
 
                     <div className="flex justify-between items-center">
                       <span className="font-bold text-lg">SEAT:</span>
-                      <span className="font-bold text-3xl">{seat}</span>
+                      <span className="font-bold text-lg">{seat}</span>
                     </div>
 
                     <div className="flex justify-between">
