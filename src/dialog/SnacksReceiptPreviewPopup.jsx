@@ -80,12 +80,12 @@ const SnacksReceiptPreviewPopup = ({
             .item { margin: 1.5mm 0; }
             .item-head { display: flex; justify-content: space-between; font-weight: bold; }
             .item-sub { display: flex; justify-content: space-between; font-size: 10px; }
-            .large-text { font-size: 16px !important; font-weight: bold; line-height: 1.2; }
+            .large-text { font-size: 1.4rem !important; font-weight: bold; line-height: 1.2; }
             .item-total { text-align: right; color: #000 !important; font-size: 12px; font-weight: bold; }
             .totals { margin-top: 3mm; }
             .center { text-align: center; }
             .foot { text-align: center; font-size: 10px; margin-top: 3mm; }
-            @media print { .large-text { font-size: 16px !important; } }
+            @media print { .large-text { font-size: 1.4rem !important; } }
           </style>
         </head>
         <body>

@@ -140,7 +140,7 @@ const TicketPreviewPopup = ({
           }
           
           .large-text {
-            font-size: 1.25rem;
+            font-size: 1.4rem;
             font-weight: bold;
             line-height: calc(2.5/1.5);
           }
