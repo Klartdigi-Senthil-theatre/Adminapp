@@ -235,7 +235,7 @@ const Sidebar = ({ isOpen, setIsOpen, isMobile }) => {
                       <div className="flex items-center">
                         <menuItem.icon size={18} />
                         {(isOpen || isMobile) && (
-                          <span className="ml-3 font-medium">{menuItem.title}</span>
+                          <span className="ml-3">{menuItem.title}</span>
                         )}
                       </div>
                       {(isOpen || isMobile) && (
