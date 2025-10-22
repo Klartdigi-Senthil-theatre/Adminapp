@@ -147,9 +147,9 @@ const TicketPreviewPopup = ({
           
           /* Larger font specifically for seat value */
           .seat-value {
-            font-size: 32px !important;
+            font-size: 2.5rem !important;
             font-weight: 800 !important;
-            line-height: 1.2;
+            line-height: calc(2.5/2.5);
           }
           
           @media print {
