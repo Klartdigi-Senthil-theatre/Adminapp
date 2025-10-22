@@ -4,7 +4,7 @@ import axios from "axios";
 const resolvedBaseURL =
   import.meta?.env?.REACT_APP_API_URL ||
   (typeof window !== "undefined" && window?.__APP_CONFIG__?.API_URL) ||
-  "http://localhost:3000/api";
+  "https://theatre-app-backend-api-fuarhje3aceffkcu.centralindia-01.azurewebsites.net/api";
 
 // Create axios instance with base configuration
 const api = axios.create({
