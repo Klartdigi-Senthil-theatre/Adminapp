@@ -66,26 +66,26 @@ const SnacksReceiptPreviewPopup = ({
           <style>
             * { -webkit-print-color-adjust: exact !important; color-adjust: exact !important; print-color-adjust: exact !important; margin: 0; padding: 0; box-sizing: border-box; }
             @page { size: 80mm auto; margin: 0; }
-            body { font-family: 'Courier New', monospace; font-size: 11px; line-height: 1.1; margin: 0; padding: 1mm; width: 78mm; max-width: 78mm; color: #000; background: #fff; }
+            body { font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.2; margin: 0; padding: 2mm; width: 76mm; max-width: 76mm; color: #000; background: #fff; }
             .ticket { width: 100%; page-break-inside: avoid; break-inside: avoid; page-break-after: always; margin-bottom: 0; }
             .ticket:last-child { page-break-after: auto; }
             .header { background: #000 !important; color: #fff !important; text-align: center; padding: 3mm 0; }
-            .cinema { font-size: 14px; font-weight: bold; }
-            .subtitle { font-size: 11px; font-weight: bold; }
-            .row { display: flex; justify-content: space-between; margin: 1mm 0; font-size: 10px; }
+            .cinema { font-size: 16px; font-weight: bold; }
+            .subtitle { font-size: 12px; font-weight: bold; }
+            .row { display: flex; justify-content: space-between; margin: 1.5mm 0; font-size: 12px; }
             .label { font-weight: bold; }
-            .dotted { border-top: 1px dotted #000; margin: 1.5mm 0; }
-            .section-title { color: #000 !important; font-size: 11px; font-weight: bold; margin: 1.5mm 0 0.5mm; text-align: center; }
-            .section-line { border-top: 2px solid #000 !important; margin: 0.5mm 0; }
-            .item { margin: 1mm 0; }
-            .item-head { display: flex; justify-content: space-between; font-weight: bold; font-size: 16px; }
-            .item-sub { display: flex; justify-content: space-between; font-size: 9px; }
+            .dotted { border-top: 1px dotted #000; margin: 2mm 0; }
+            .section-title { color: #000 !important; font-size: 13px; font-weight: bold; margin: 2mm 0 1mm; text-align: center; }
+            .section-line { border-top: 2px solid #000 !important; margin: 1mm 0; }
+            .item { margin: 1.5mm 0; }
+            .item-head { display: flex; justify-content: space-between; font-weight: bold; font-size: 14px; }
+            .item-sub { display: flex; justify-content: space-between; font-size: 12px; font-weight: bold; }
             .large-text { font-size: 16px !important; font-weight: bold; line-height: 1.2; }
             .date-time-text { font-size: 16px !important; font-weight: bold; line-height: 1.2; }
-            .item-total { text-align: right; color: #000 !important; font-size: 10px; font-weight: bold; }
-            .totals { margin-top: 2mm; }
+            .item-total { text-align: right; color: #000 !important; font-size: 12px; font-weight: bold; }
+            .totals { margin-top: 3mm; }
             .center { text-align: center; }
-            .foot { text-align: center; font-size: 9px; margin-top: 2mm; }
+            .foot { text-align: center; font-size: 12px; font-weight: bold; margin-top: 3mm; }
             @media print { .large-text { font-size: 16px !important; } .date-time-text { font-size: 16px !important; } }
           </style>
         </head>
@@ -186,7 +186,7 @@ const SnacksReceiptPreviewPopup = ({
                         return (
                             <div key={cat} className="bg-white rounded border-2 border-gray-300" style={{ width: "280px", maxWidth: "280px" }}>
                                 <div className="bg-black text-white text-center py-3 px-3">
-                                    <div className="text-base font-bold mb-1">SENTHIL CINEMAS A/C</div>
+                                    <div className="text-lg font-bold mb-1">SENTHIL CINEMAS A/C</div>
                                     <div className="text-sm font-bold">SNACKS ORDER</div>
                                 </div>
                                 <div className="p-3 text-xs space-y-1">
@@ -197,7 +197,7 @@ const SnacksReceiptPreviewPopup = ({
                                         return (
                                             <div key={`${cat}-${idx}`} className="mb-1">
                                                 <div className="flex justify-between font-bold text-[16px]"><span className="truncate pr-2">{it.name}</span><span>₹{lineTotal.toLocaleString("en-IN")}</span></div>
-                                                <div className="flex justify-between text-[10px]"><span>Qty: {it.quantity}</span><span>₹{Number(it.price || 0).toLocaleString("en-IN")} × {it.quantity}</span></div>
+                                                <div className="flex justify-between text-[12px] font-bold"><span>Qty: {it.quantity}</span><span>₹{Number(it.price || 0).toLocaleString("en-IN")} × {it.quantity}</span></div>
                                             </div>
                                         );
                                     })}
@@ -205,11 +205,11 @@ const SnacksReceiptPreviewPopup = ({
                                     <div className="flex justify-between"><span className="font-bold">Total</span><span className="font-bold">₹{catTotal.toLocaleString("en-IN")}</span></div>
                                     <div className="flex justify-between"><span className="font-bold">Items</span><span className="font-bold">{catQty}</span></div>
                                     <div className="border-t border-dashed border-gray-400 my-2"></div>
-                                    <div className="text-center text-[10px] text-black space-y-1">
-                                        <div>GST: 33CMMPP7822B1Z2</div>
-                                        <div>Premium Cinema Experience</div>
+                                    <div className="text-center text-[12px] text-black space-y-1">
+                                        <div className="font-bold">GST: 33CMMPP7822B1Z2</div>
+                                        <div className="font-bold">Premium Cinema Experience</div>
                                         <div className="font-semibold">Thank You!</div>
-                                        <div className="text-[9px]">மது அருந்தியவர்களுக்கு அனுமதி இல்லை. 3 வயது மற்றும் அதற்கு மேற்பட்டவர்களுக்கு டிக்கெட் கட்டாயம்.</div>
+                                        <div className="text-[10px] font-bold">மது அருந்தியவர்களுக்கு அனுமதி இல்லை. 3 வயது மற்றும் அதற்கு மேற்பட்டவர்களுக்கு டிக்கெட் கட்டாயம்.</div>
                                     </div>
                                 </div>
                             </div>
@@ -219,7 +219,7 @@ const SnacksReceiptPreviewPopup = ({
                     {/* Summary Ticket */}
                     <div className="bg-white rounded border-2 border-gray-300" style={{ width: "280px", maxWidth: "280px" }}>
                         <div className="bg-black text-white text-center py-3 px-3">
-                            <div className="text-base font-bold mb-1">SENTHIL CINEMAS A/C</div>
+                            <div className="text-lg font-bold mb-1">SENTHIL CINEMAS A/C</div>
                             <div className="text-sm font-bold">ORDER SUMMARY</div>
                         </div>
                         <div className="p-3 text-xs space-y-1">
@@ -240,11 +240,11 @@ const SnacksReceiptPreviewPopup = ({
                             <div className="flex justify-between"><span className="font-bold">Total Items:</span><span className="font-bold">{grouped.totals.count}</span></div>
                             <div className="flex justify-between text-black"><span className="font-bold">GRAND TOTAL:</span><span className="font-bold">₹{grouped.totals.amount.toLocaleString('en-IN')}</span></div>
                             <div className="border-t border-dashed border-gray-400 my-2"></div>
-                            <div className="text-center text-[10px] text-black space-y-1">
-                                <div>GST: 33CMMPP7822B1Z2</div>
-                                <div>Premium Cinema Experience</div>
+                            <div className="text-center text-[12px] text-black space-y-1">
+                                <div className="font-bold">GST: 33CMMPP7822B1Z2</div>
+                                <div className="font-bold">Premium Cinema Experience</div>
                                 <div className="font-semibold">Thank You!</div>
-                                <div className="text-[9px]">மது அருந்தியவர்களுக்கு அனுமதி இல்லை. 3 வயது மற்றும் அதற்கு மேற்பட்டவர்களுக்கு டிக்கெட் கட்டாயம்.</div>
+                                <div className="text-[10px] font-bold">மது அருந்தியவர்களுக்கு அனுமதி இல்லை. 3 வயது மற்றும் அதற்கு மேற்பட்டவர்களுக்கு டிக்கெட் கட்டாயம்.</div>
                             </div>
                         </div>
                     </div>
