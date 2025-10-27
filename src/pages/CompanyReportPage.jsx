@@ -154,11 +154,23 @@ const CompanyReportPage = () => {
 
   const calculateOnlineAmount = (showIndex) => {
     const show = reportData.shows[showIndex];
-    const baseAmount = parseInt(show.online.amount) || 0;
-    const totalTickets = parseInt(show.online.totalTickets) || 0;
-    const deductionPerTicket = 20; // Fixed deduction per ticket
-    const totalDeduction = totalTickets * deductionPerTicket;
-    return baseAmount - totalDeduction;
+    const counterAmount = parseInt(show.counter.amount) || 0;
+    const counterTickets = parseInt(show.counter.totalTickets) || 0;
+    const onlineTickets = parseInt(show.online.totalTickets) || 0;
+    const onlineAmount = parseInt(show.online.amount) || 0;
+    
+    // If no counter tickets, fallback to online amount (shouldn't happen in normal cases)
+    if (counterTickets === 0) {
+      return onlineAmount;
+    }
+    
+    // Calculate price per ticket from counter sales (company standard rate)
+    const pricePerTicket = counterAmount / counterTickets;
+    
+    // Calculate online amount at counter rate (what company actually receives)
+    const onlineAmountAtCounterRate = onlineTickets * pricePerTicket;
+    
+    return Math.round(onlineAmountAtCounterRate);
   };
 
   return (
