@@ -378,7 +378,7 @@ useEffect(() => {
   const endOfMonth = currentDate.clone().endOf("month").endOf("week");
   const days = [];
   let day = startOfMonth.clone();
-  while (day.isBefore(endOfMonth, "day")) {
+  while (day.isSameOrBefore(endOfMonth, "day")) {
     days.push(day.clone());
     day.add(1, "day");
   }
