@@ -85,6 +85,7 @@ const CompanyReportPage = () => {
               amount: apiShow.onlineReport?.totalAmount || 0,
             },
             showTime: normalizeTime(apiShow.showTime),
+            movieName: apiShow.movieName || "Unknown",
           }))
           .sort((a, b) => {
             const timeA = moment(a.showTime, "hh:mm A", true);
@@ -299,7 +300,7 @@ const CompanyReportPage = () => {
                       className="text-xl font-bold"
                       style={{ color: "var(--color-orange-700)" }}
                     >
-                      SHOW {index + 1} ( {show.showTime} )
+                      SHOW {index + 1} ( {show.showTime} ) - {show.movieName}
                     </h2>
                   </div>
 
