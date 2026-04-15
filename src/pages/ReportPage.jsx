@@ -451,7 +451,7 @@ const ReportPage = () => {
                               onChange={(e) =>
                                 handleInputChange("date", e.target.value)
                               }
-                              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                              className="w-full border border-gray-300 rounded-md px-3 py-2 font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500"
                             />
                           </td>
                           <td className="border-r border-gray-300 p-3 bg-gray-50 font-medium w-1/4">
@@ -558,7 +558,7 @@ const ReportPage = () => {
                           onChange={(e) =>
                             handleInputChange("date", e.target.value)
                           }
-                          className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                          className="w-full border border-gray-300 rounded-md px-3 py-2 font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500"
                         />
                       </div>
                       <div>
