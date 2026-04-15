@@ -15,6 +15,7 @@ const ReportPage = () => {
   const [reportData, setReportData] = useState({
     date: "",
     showTime: "",
+    movieName: "",
     totalTicketsSold: "",
     pass: "",
     netTickets: "",
@@ -96,6 +97,7 @@ const ReportPage = () => {
             .filter((item) => item.showTime && item.showTime.showTime)
             .map((item) => ({
               time: normalizeTime(item.showTime.showTime),
+              movieName: item.movie?.movieName || "",
               id: item.id,
               price: item.price,
             }))
@@ -118,6 +120,7 @@ const ReportPage = () => {
           setReportData((prev) => ({
             ...prev,
             showTime: "",
+            movieName: "",
             totalTicketsSold: "",
             pass: "",
             netTickets: "",
@@ -152,7 +155,7 @@ const ReportPage = () => {
           const reportResponse = await api.get(
             `/reports/bookings/${showTimePlannerId}`
           );
-          const { online, offline } = reportResponse;
+          const { online, offline, movieName } = reportResponse;
 
           // Update report data
           setReportData((prev) => {
@@ -172,6 +175,7 @@ const ReportPage = () => {
 
             return {
               ...prev,
+              movieName: movieName || "",
               perTicketPrice: perTicketPrice.toString(),
               counterPass: counterPass.toString(),
               counterTotalTickets: counterTotalTickets.toString(),
@@ -302,8 +306,8 @@ const ReportPage = () => {
     });
   };
 
-  const handleShowTimeSelect = (time, id) => {
-    setReportData((prev) => ({ ...prev, showTime: time }));
+  const handleShowTimeSelect = (time, id, movieName) => {
+    setReportData((prev) => ({ ...prev, showTime: time, movieName: movieName || "" }));
     setShowTimePlannerId(id);
     setIsShowTimeDropdownOpen(false);
   };
@@ -346,6 +350,7 @@ const ReportPage = () => {
     setReportData({
       date: "",
       showTime: "",
+      movieName: "",
       totalTicketsSold: "",
       pass: "",
       netTickets: "",
@@ -446,7 +451,7 @@ const ReportPage = () => {
                               onChange={(e) =>
                                 handleInputChange("date", e.target.value)
                               }
-                              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                              className="w-full border border-gray-300 rounded-md px-3 py-2 font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500"
                             />
                           </td>
                           <td className="border-r border-gray-300 p-3 bg-gray-50 font-medium w-1/4">
@@ -486,7 +491,11 @@ const ReportPage = () => {
                                     <div
                                       className="px-3 py-2 text-gray-500 hover:bg-gray-100 cursor-pointer text-sm"
                                       onClick={() => {
-                                        handleInputChange("showTime", "");
+                                        setReportData((prev) => ({
+                                          ...prev,
+                                          showTime: "",
+                                          movieName: "",
+                                        }));
                                         setShowTimePlannerId(null);
                                         setIsShowTimeDropdownOpen(false);
                                       }}
@@ -504,7 +513,8 @@ const ReportPage = () => {
                                         onClick={() =>
                                           handleShowTimeSelect(
                                             option.time,
-                                            option.id
+                                            option.id,
+                                            option.movieName
                                           )
                                         }
                                       >
@@ -515,6 +525,20 @@ const ReportPage = () => {
                                 </div>
                               )}
                             </div>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td className="border-r border-t border-gray-300 p-3 bg-gray-50 font-medium w-1/4">
+                            Movie Name
+                          </td>
+                          <td className="border-t border-gray-300 p-3" colSpan={3}>
+                            <input
+                              type="text"
+                              value={reportData.movieName}
+                              readOnly
+                              className="w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-100 text-gray-700 font-semibold"
+                              placeholder="Movie will appear after show selection"
+                            />
                           </td>
                         </tr>
                       </tbody>
@@ -534,7 +558,7 @@ const ReportPage = () => {
                           onChange={(e) =>
                             handleInputChange("date", e.target.value)
                           }
-                          className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                          className="w-full border border-gray-300 rounded-md px-3 py-2 font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500"
                         />
                       </div>
                       <div>
@@ -572,7 +596,11 @@ const ReportPage = () => {
                                 <div
                                   className="px-3 py-2 text-gray-500 hover:bg-gray-100 cursor-pointer text-sm"
                                   onClick={() => {
-                                    handleInputChange("showTime", "");
+                                    setReportData((prev) => ({
+                                      ...prev,
+                                      showTime: "",
+                                      movieName: "",
+                                    }));
                                     setShowTimePlannerId(null);
                                     setIsShowTimeDropdownOpen(false);
                                   }}
@@ -590,7 +618,8 @@ const ReportPage = () => {
                                     onClick={() =>
                                       handleShowTimeSelect(
                                         option.time,
-                                        option.id
+                                        option.id,
+                                        option.movieName
                                       )
                                     }
                                   >
@@ -601,6 +630,18 @@ const ReportPage = () => {
                             </div>
                           )}
                         </div>
+                      </div>
+                      <div>
+                        <label className="block font-medium text-gray-700 mb-2">
+                          Movie Name
+                        </label>
+                        <input
+                          type="text"
+                          value={reportData.movieName}
+                          readOnly
+                          className="w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-100 text-gray-700 font-semibold"
+                          placeholder="Movie will appear after show selection"
+                        />
                       </div>
                     </div>
                   </div>
