@@ -532,13 +532,19 @@ const ReportPage = () => {
                             Movie Name
                           </td>
                           <td className="border-t border-gray-300 p-3" colSpan={3}>
-                            <input
-                              type="text"
-                              value={reportData.movieName}
-                              readOnly
-                              className="w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-100 text-gray-700 font-semibold"
-                              placeholder="Movie will appear after show selection"
-                            />
+                            <div className="w-full min-h-[50px] border-2 border-teal-300 rounded-md px-4 py-2.5 bg-gradient-to-r from-teal-50 via-emerald-50 to-cyan-50 shadow-sm flex items-center">
+                              <span
+                                className={`block w-full truncate text-[18px] leading-6 ${
+                                  reportData.movieName
+                                    ? "font-extrabold text-teal-900 tracking-wide"
+                                    : "font-semibold text-teal-500 italic"
+                                }`}
+                                title={reportData.movieName || "No movie selected"}
+                              >
+                                {reportData.movieName ||
+                                  "Movie will appear after show selection"}
+                              </span>
+                            </div>
                           </td>
                         </tr>
                       </tbody>
@@ -635,13 +641,19 @@ const ReportPage = () => {
                         <label className="block font-medium text-gray-700 mb-2">
                           Movie Name
                         </label>
-                        <input
-                          type="text"
-                          value={reportData.movieName}
-                          readOnly
-                          className="w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-100 text-gray-700 font-semibold"
-                          placeholder="Movie will appear after show selection"
-                        />
+                        <div className="w-full min-h-[50px] border-2 border-teal-300 rounded-md px-4 py-2.5 bg-gradient-to-r from-teal-50 via-emerald-50 to-cyan-50 shadow-sm flex items-center">
+                          <span
+                            className={`block w-full truncate text-[18px] leading-6 ${
+                              reportData.movieName
+                                ? "font-extrabold text-teal-900 tracking-wide"
+                                : "font-semibold text-teal-500 italic"
+                            }`}
+                            title={reportData.movieName || "No movie selected"}
+                          >
+                            {reportData.movieName ||
+                              "Movie will appear after show selection"}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>
