@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import api from "../config/api";
 import moment from "moment/moment";
+import { nonNegativeInputValue } from "../utils/nonNegativeInputValue";
 
 const ReportPage = () => {
   const [reportData, setReportData] = useState({
@@ -229,8 +230,9 @@ const ReportPage = () => {
   }, []);
 
   const handleInputChange = (field, value) => {
+    const v = nonNegativeInputValue(value);
     setReportData((prev) => {
-      const updated = { ...prev, [field]: value };
+      const updated = { ...prev, [field]: v };
 
       // Auto-calculate Show Collection fields
       if (
