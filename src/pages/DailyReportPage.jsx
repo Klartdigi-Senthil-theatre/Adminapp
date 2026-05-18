@@ -3,6 +3,7 @@ import PageHeader from "../components/PageHeader";
 import { FileText } from "lucide-react";
 import api from "../config/api";
 import moment from "moment/moment";
+import { nonNegativeInputValue } from "../utils/nonNegativeInputValue";
 
 const DailyReportPage = () => {
   const [loading, setLoading] = useState(false);
@@ -124,11 +125,12 @@ const DailyReportPage = () => {
   };
 
   const handleShowChange = (showIndex, type, field, value) => {
+    const v = nonNegativeInputValue(value);
     setReportData((prev) => ({
       ...prev,
       shows: prev.shows.map((show, index) =>
         index === showIndex
-          ? { ...show, [type]: { ...show[type], [field]: value } }
+          ? { ...show, [type]: { ...show[type], [field]: v } }
           : show
       ),
     }));

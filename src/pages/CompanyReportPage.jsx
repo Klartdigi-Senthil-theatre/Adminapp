@@ -3,6 +3,7 @@ import PageHeader from "../components/PageHeader";
 import { FileText } from "lucide-react";
 import api from "../config/api";
 import moment from "moment/moment";
+import { nonNegativeInputValue } from "../utils/nonNegativeInputValue";
 
 const CompanyReportPage = () => {
   const [loading, setLoading] = useState(false);
@@ -82,7 +83,11 @@ const CompanyReportPage = () => {
             },
             online: {
               totalTickets: apiShow.onlineReport?.totalSeats || 0,
-              amount: apiShow.onlineReport?.totalAmount || 0,
+              amount: Math.max(
+                0,
+                (apiShow.onlineReport?.totalAmount || 0) -
+                  (apiShow.onlineReport?.totalSeats || 0) * 20
+              ),
             },
             showTime: normalizeTime(apiShow.showTime),
             movieName: apiShow.movieName || "Unknown",
@@ -122,65 +127,42 @@ const CompanyReportPage = () => {
   };
 
   const handleShowChange = (showIndex, type, field, value) => {
+    const v = nonNegativeInputValue(value);
+
     setReportData((prev) => ({
       ...prev,
-      shows: prev.shows.map((show, index) =>
-        index === showIndex
-          ? { ...show, [type]: { ...show[type], [field]: value } }
-          : show
-      ),
+      shows: prev.shows.map((show, index) => {
+        if (index !== showIndex) return show;
+        const next = { ...show, [type]: { ...show[type], [field]: v } };
+        if (type === "online" && field === "totalTickets") {
+          const t = parseInt(v, 10) || 0;
+          const ct = parseInt(next.counter.totalTickets, 10) || 0;
+          const ca = parseInt(next.counter.amount, 10) || 0;
+          if (ct > 0) {
+            next.online = {
+              ...next.online,
+              totalTickets: v,
+              amount: Math.round((t * ca) / ct),
+            };
+          }
+        }
+        return next;
+      }),
     }));
   };
 
   const calculateTotal = (showIndex, field) => {
     const show = reportData.shows[showIndex];
-    const counter = parseInt(show.counter[field]) || 0;
-    let online;
-    if (field === "amount") {
-      online = calculateOnlineAmount(showIndex);
-    } else {
-      online = parseInt(show.online[field]) || 0;
-    }
+    const counter = parseInt(show.counter[field], 10) || 0;
+    const online = parseInt(show.online[field], 10) || 0;
     return counter + online;
   };
 
   const calculateSummary = (type, field) => {
-    return reportData.shows.reduce((total, show, index) => {
-      if (type === "online" && field === "amount") {
-        return total + calculateOnlineAmount(index);
-      }
-      return total + (parseInt(show[type][field]) || 0);
-    }, 0);
-  };
-
-  // const calculateOnlineAmount = (showIndex) => {
-  //   const show = reportData.shows[showIndex];
-  //   const counterAmount = parseInt(show.counter.amount) || 0;
-  //   const counterTickets = parseInt(show.counter.totalTickets) || 0;
-  //   const onlineTickets = parseInt(show.online.totalTickets) || 0;
-  //   const onlineAmount = parseInt(show.online.amount) || 0;
-
-  //   // If no counter tickets, fallback to online amount (shouldn't happen in normal cases)
-  //   if (counterTickets === 0) {
-  //     return onlineAmount;
-  //   }
-
-  //   // Calculate price per ticket from counter sales (company standard rate)
-  //   const pricePerTicket = counterAmount / counterTickets;
-
-  //   // Calculate online amount at counter rate (what company actually receives)
-  //   const onlineAmountAtCounterRate = onlineTickets * pricePerTicket;
-
-  //   return Math.round(onlineAmountAtCounterRate);
-  // };
-
-  const calculateOnlineAmount = (showIndex) => {
-    const show = reportData.shows[showIndex];
-    const baseAmount = parseInt(show.online.amount) || 0;
-    const totalTickets = parseInt(show.online.totalTickets) || 0;
-    const deductionPerTicket = 20; // Fixed deduction per ticket
-    const totalDeduction = totalTickets * deductionPerTicket;
-    return baseAmount - totalDeduction;
+    return reportData.shows.reduce(
+      (total, show) => total + (parseInt(show[type][field], 10) || 0),
+      0
+    );
   };
 
   return (
@@ -390,7 +372,7 @@ const CompanyReportPage = () => {
                               <span className="mr-1">₹</span>
                               <input
                                 type="number"
-                                value={calculateOnlineAmount(index)}
+                                value={show.online.amount}
                                 onChange={(e) =>
                                   handleShowChange(
                                     index,
@@ -476,7 +458,7 @@ const CompanyReportPage = () => {
                           <h4 className="font-bold text-gray-700">AMOUNT</h4>
                         </div>
                         <div className="p-3 space-y-3">
-                          <div classNameName="flex items-center justify-between">
+                          <div className="flex items-center justify-between">
                             <label className="font-medium text-gray-600">
                               Counter:
                             </label>
@@ -506,7 +488,7 @@ const CompanyReportPage = () => {
                               <span>₹</span>
                               <input
                                 type="number"
-                                value={calculateOnlineAmount(index)}
+                                value={show.online.amount}
                                 onChange={(e) =>
                                   handleShowChange(
                                     index,
