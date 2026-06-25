@@ -356,8 +356,8 @@ const SeatsPage = () => {
       }
 
       // Use showTimePlannerId in the bookings API endpoint
-      const bookingsUrl = `/movie-seat-bookings/show-time-planner/${currentShow.showTimePlannerId}`;
-      const holdsUrl = `/movie-seat-holds/show-time-planner/${currentShow.showTimePlannerId}`;
+      const bookingsUrl = `/movie-seat-bookings/show-time-planner/${currentShow.showTimePlannerId}?skipTimeCheck=true`;
+      const holdsUrl = `/movie-seat-holds/show-time-planner/${currentShow.showTimePlannerId}?skipTimeCheck=true`;
 
       // Fetch both bookings and holds
       const [bookingsResponse, holdsResponse] = await Promise.all([

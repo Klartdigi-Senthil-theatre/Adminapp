@@ -174,7 +174,7 @@ const GetTicketsPage = () => {
           if (bookingResult.date) {
             try {
               const showTimeByDateResponse = await api.get(
-                `/show-time-planner/date/${bookingResult.date}`
+                `/show-time-planner/date/${bookingResult.date}?skipTimeCheck=true`
               );
               if (showTimeByDateResponse && showTimeByDateResponse.length > 0) {
                 const matchingEntry = showTimeByDateResponse.find(
@@ -224,7 +224,7 @@ const GetTicketsPage = () => {
         // Date-based lookup if no showTimePlannerId
         try {
           const showTimeByDateResponse = await api.get(
-            `/show-time-planner/date/${bookingResult.date}`
+            `/show-time-planner/date/${bookingResult.date}?skipTimeCheck=true`
           );
           if (showTimeByDateResponse && showTimeByDateResponse.length > 0) {
             const matchingEntry = showTimeByDateResponse.find(

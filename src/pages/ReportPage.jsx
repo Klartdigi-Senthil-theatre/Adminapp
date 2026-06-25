@@ -51,7 +51,7 @@ const ReportPage = () => {
         try {
           const formattedDate = reportData.date; // Already in YYYY-MM-DD format
           const response = await api.get(
-            `/show-time-planner/date/${formattedDate}`
+            `/show-time-planner/date/${formattedDate}?skipTimeCheck=true`
           );
 
           // Normalize time format to "hh:mm A" for consistent sorting
@@ -148,7 +148,7 @@ const ReportPage = () => {
         try {
           // Fetch booked seats
           const seatsResponse = await api.get(
-            `/movie-seat-bookings/show-time-planner/${showTimePlannerId}`
+            `/movie-seat-bookings/show-time-planner/${showTimePlannerId}?skipTimeCheck=true`
           );
           const bookings = seatsResponse;
 

@@ -122,7 +122,7 @@ const ShowTimePage = () => {
   const refreshPlannerData = useCallback(async () => {
     try {
       const formattedDate = selectedDate.format("YYYY-MM-DD");
-      const response = await api.get(`/show-time-planner/date/${formattedDate}`);
+      const response = await api.get(`/show-time-planner/date/${formattedDate}?skipTimeCheck=true`);
 
       const assignments = {};
       const prices = {};

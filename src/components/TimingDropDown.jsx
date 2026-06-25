@@ -146,7 +146,7 @@ const TimingDropdown = ({ currentShow, onTimeSelect }) => {
         setLoading(true);
         const formattedDate = currentShow.date || moment().format("YYYY-MM-DD");
         const plannedShowtimes = await api.get(
-          `/show-time-planner/date/${formattedDate}`
+          `/show-time-planner/date/${formattedDate}?skipTimeCheck=true`
         );
 
         const moviesMap = new Map();
