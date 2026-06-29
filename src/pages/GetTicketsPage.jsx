@@ -111,6 +111,7 @@ const GetTicketsPage = () => {
           bookingId: bookingResult.bookingId || bookingResult.id,
           movieId: bookingResult.movieId || null,
           movieName: bookingResult.movieName || null,
+          image: bookingResult.image || null,
           userId: bookingResult.userId || null,
           adminUserId: bookingResult.adminUserId || null,
           showTimePlannerId: bookingResult.showTimePlannerId || null,
@@ -125,17 +126,10 @@ const GetTicketsPage = () => {
         };
       }
 
-      // Fetch movie details using the movieId (if available)
-      let movieResponse = null;
-      if (bookingResult.movieId) {
-        movieResponse = await api.get(`/movies/${bookingResult.movieId}`);
-      } else {
-        // Fallback movie details for phone number response
-        movieResponse = {
-          movieName: bookingResult.movieName,
-          image: bookingResult.image,
-        };
-      }
+      const movieResponse = {
+        movieName: bookingResult.movieName,
+        image: bookingResult.image,
+      };
 
       // Get showtime planner by date
       let showTimePlannerData = null;
@@ -502,10 +496,17 @@ const GetTicketsPage = () => {
             {/* Booking Info Card (shown when there's a result) */}
             {showBookingSummary && bookingResult && (
               <div className="mt-3 border-t pt-3">
-                <h3 className="font-semibold mb-2 text-green-700 flex items-center gap-2 text-sm sm:text-lg">
-                  <Tickets size={16} className="sm:w-5 sm:h-5" />
-                  Booking Summary
-                </h3>
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-semibold text-green-700 flex items-center gap-2 text-sm sm:text-lg">
+                    <Tickets size={16} className="sm:w-5 sm:h-5" />
+                    Booking Summary
+                  </h3>
+                  {(!isBookingIdMode || bookingList.length === 0) && seatCount > 0 && (
+                    <span className="text-xs sm:text-sm font-semibold text-orange-700 bg-orange-100 px-2.5 py-1 rounded-full">
+                      {seatCount} {seatCount === 1 ? "Ticket" : "Tickets"}
+                    </span>
+                  )}
+                </div>
                 <div className={`bg-gray-50 rounded-lg p-3 sm:p-4 ${isBookingIdMode && bookingList.length > 0 ? 'max-h-[60vh] overflow-y-auto' : ''}`}>
                   {isBookingIdMode && bookingList.length > 0 ? (
                     <div className="space-y-3">
