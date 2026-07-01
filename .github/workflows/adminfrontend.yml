@@ -1,0 +1,28 @@
+name: Hostinger Admin Frontend Deployment
+
+on:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: hostinger-adminfrontend-deploy
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to Hostinger VM
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HOSTINGER_VM_IP }}
+          username: ${{ secrets.HOSTINGER_VM_USERNAME }}
+          key: ${{ secrets.HOSTINGER_VM_SSH_KEY }}
+          script: |
+            cd /root/senthilcinema/Adminapp
+            git pull origin main
+            npm ci
+            npm run build
+            pm2 restart adminfrontend
